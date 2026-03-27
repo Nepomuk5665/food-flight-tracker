@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { Sparkles, Send, ChevronLeft } from "lucide-react";
 import Markdown from "react-markdown";
 import { getConversation, saveConversation, getScanHistory, type AiMessage } from "@/lib/scan-history";
@@ -18,6 +19,7 @@ type Props = {
 };
 
 export default function AiInsights({ lotCode, barcode, context, autoPrompt, suggestions = [], activeTab, onTabChange, hiddenTabs = [] }: Props) {
+  const router = useRouter();
   const storageKey = barcode ?? lotCode ?? "";
   const [messages, setMessages] = useState<AiMessage[]>([]);
   const [input, setInput] = useState("");
@@ -139,7 +141,7 @@ export default function AiInsights({ lotCode, barcode, context, autoPrompt, sugg
         <div className="mx-auto max-w-lg">
           <div className="mb-2">
             <button
-              onClick={() => onTabChange?.("info")}
+              onClick={() => router.push("/products")}
               className="inline-flex items-center gap-1 text-sm text-[#9CA3AF] transition-colors hover:text-[#16A34A]"
             >
               <ChevronLeft className="h-4 w-4" />
