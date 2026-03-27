@@ -131,8 +131,7 @@ Open **[foodflighttracker.com/overview](https://foodflighttracker.com/overview)*
 ---
 
 ## Architecture
-<img width="1580" height="1401" alt="https://excalidraw.com/#json=Awp0C5WT5hKTU3EbFSQTu,_jzfh53lbQQUXVD_9JyA8A" src="https://github.com/user-attachments/assets/5c67562c-1f6f-45f8-9bbe-8c7431309e0a" />
-
+<img width="1580" height="1401" alt="architecture" src="https://github.com/user-attachments/assets/6bdf3e20-935d-4d58-9a8e-decee3c2579e" />
 
 ## Local Development
 
@@ -161,7 +160,7 @@ pnpm dev        # http://localhost:3000
 ---
 
 ## Infrastructure
-<img width="1597" height="1081" alt="Infrastructure" src="https://github.com/user-attachments/assets/e9976dce-3681-41f6-9906-4b3cc6cf9824" />
+<img width="1597" height="1081" alt="Infrastructure" src="https://github.com/user-attachments/assets/9976e15c-b03a-4125-a99f-d9ad9e802a6c" />
 
 ## Feature Summary
 
