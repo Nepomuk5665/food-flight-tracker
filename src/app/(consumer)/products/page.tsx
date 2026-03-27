@@ -90,7 +90,11 @@ export default function ProductsPage() {
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-bold text-[#060606]">{entry.name}</p>
               <p className="truncate text-xs text-[#777777]">{entry.brand}</p>
-              <p className="text-[10px] text-[#bbbbbb]">{entry.barcode}</p>
+              {entry.aiSummary ? (
+                <p className="mt-0.5 line-clamp-2 text-[10px] leading-tight text-[#9eca45]">✦ {entry.aiSummary.replace(/[*#_`]/g, "").slice(0, 120)}</p>
+              ) : (
+                <p className="text-[10px] text-[#bbbbbb]">{entry.barcode}</p>
+              )}
             </div>
 
             <div className="flex shrink-0 flex-col items-end gap-1">

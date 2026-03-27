@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { Sparkles, Send, ChevronDown } from "lucide-react";
 import Markdown from "react-markdown";
+import { getAiSummary, updateAiSummary } from "@/lib/scan-history";
 
 type Props = {
   lotCode?: string;
@@ -30,7 +31,7 @@ export default function AiInsights({ lotCode, barcode, context, autoPrompt, sugg
     }
   }, [messages]);
 
-  const sendMessage = useCallback(async (text: string, visible: boolean) => {
+  const sendMessage = useCallback(async (text: string, visible: boolean, isAuto = false) => {
     if (streaming) return;
     setStreaming(true);
 
@@ -66,19 +67,32 @@ export default function AiInsights({ lotCode, barcode, context, autoPrompt, sugg
         streamed += decoder.decode(value, { stream: true });
         setMessages([...withUser, { role: "assistant", content: streamed }]);
       }
+
+      if (isAuto && barcode && streamed) {
+        updateAiSummary(barcode, streamed);
+      }
     } catch {
       setMessages((prev) => [...prev, { role: "assistant", content: "Connection error." }]);
     } finally {
       setStreaming(false);
     }
-  }, [streaming, lotCode, barcode]);
+  }, [streaming, lotCode, barcode, context]);
 
   useEffect(() => {
     if (autoPrompt && !autoFired) {
       setAutoFired(true);
-      sendMessage(autoPrompt, false);
+
+      if (barcode) {
+        const cached = getAiSummary(barcode);
+        if (cached) {
+          setMessages([{ role: "assistant", content: cached }]);
+          return;
+        }
+      }
+
+      sendMessage(autoPrompt, false, true);
     }
-  }, [autoPrompt, autoFired, sendMessage]);
+  }, [autoPrompt, autoFired, sendMessage, barcode]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

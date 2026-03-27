@@ -9,6 +9,7 @@ export interface ScanHistoryEntry {
   nutriScore: string | null;
   source: string;
   scannedAt: string;
+  aiSummary: string | null;
 }
 
 export function getScanHistory(): ScanHistoryEntry[] {
@@ -23,10 +24,30 @@ export function getScanHistory(): ScanHistoryEntry[] {
 
 export function addToScanHistory(entry: Omit<ScanHistoryEntry, "scannedAt">) {
   if (typeof window === "undefined") return;
+  const existing = getScanHistory().find((e) => e.barcode === entry.barcode);
   const history = getScanHistory().filter((e) => e.barcode !== entry.barcode);
-  history.unshift({ ...entry, scannedAt: new Date().toISOString() });
+  history.unshift({
+    ...entry,
+    aiSummary: entry.aiSummary ?? existing?.aiSummary ?? null,
+    scannedAt: new Date().toISOString(),
+  });
   if (history.length > MAX_ENTRIES) history.length = MAX_ENTRIES;
   localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
+}
+
+export function updateAiSummary(barcode: string, aiSummary: string) {
+  if (typeof window === "undefined") return;
+  const history = getScanHistory();
+  const entry = history.find((e) => e.barcode === barcode);
+  if (entry) {
+    entry.aiSummary = aiSummary;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
+  }
+}
+
+export function getAiSummary(barcode: string): string | null {
+  if (typeof window === "undefined") return null;
+  return getScanHistory().find((e) => e.barcode === barcode)?.aiSummary ?? null;
 }
 
 export function clearScanHistory() {

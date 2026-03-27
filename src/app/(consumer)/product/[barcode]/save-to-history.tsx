@@ -14,7 +14,7 @@ type Props = {
 
 export default function SaveToHistory(props: Props) {
   useEffect(() => {
-    addToScanHistory(props);
+    addToScanHistory({ ...props, aiSummary: null });
   }, [props]);
 
   return null;
