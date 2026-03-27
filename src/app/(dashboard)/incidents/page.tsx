@@ -42,7 +42,7 @@ export default function IncidentsPage() {
     try {
       const res = await fetch("/api/recalls");
       const json = await res.json();
-      setRecalls(json.data || []);
+      setRecalls(json.data?.recalls ?? []);
     } catch (error) {
       console.error("Failed to fetch recalls:", error);
     } finally {
