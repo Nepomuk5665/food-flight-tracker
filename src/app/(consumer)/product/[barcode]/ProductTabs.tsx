@@ -117,6 +117,7 @@ export default function ProductTabs({
           productName={product.name}
           loading={journey.loading}
           error={journey.error}
+          canGenerate={canGenerateJourney}
           onBack={() => handleTabChange("info")}
           onGenerate={journey.generate}
         />
@@ -128,7 +129,7 @@ export default function ProductTabs({
             barcode={barcode}
             lotCode={activeLot?.lotCode}
             context={fullAiContext}
-            fullPage
+            
             autoPrompt={`Give a brief safety summary for this product${activeLot ? " including its supply chain status" : ""}. Mention any concerns.`}
             suggestions={[
               "Is this safe to eat?",

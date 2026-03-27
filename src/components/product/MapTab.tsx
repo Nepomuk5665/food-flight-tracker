@@ -19,11 +19,12 @@ type MapTabProps = {
   productName: string;
   loading: boolean;
   error: string | null;
+  canGenerate: boolean;
   onBack: () => void;
   onGenerate: () => void;
 };
 
-export function MapTab({ journey, productName, loading, error, onBack, onGenerate }: MapTabProps) {
+export function MapTab({ journey, productName, loading, error, canGenerate, onBack, onGenerate }: MapTabProps) {
   const [selectedStage, setSelectedStage] = useState<JourneyStage | null>(null);
   const [drawer, setDrawer] = useState<DrawerState>("closed");
   const [dragHeight, setDragHeight] = useState<number | null>(null);
@@ -38,11 +39,11 @@ export function MapTab({ journey, productName, loading, error, onBack, onGenerat
   const hasTriggeredGenerate = useRef(false);
 
   useEffect(() => {
-    if (!hasTriggeredGenerate.current && journey.length === 0 && !loading && !error) {
+    if (!hasTriggeredGenerate.current && journey.length === 0 && !loading && !error && canGenerate) {
       hasTriggeredGenerate.current = true;
       onGenerate();
     }
-  }, [journey.length, loading, error, onGenerate]);
+  }, [journey.length, loading, error, canGenerate, onGenerate]);
 
   const handleStageSelect = useCallback((stage: JourneyStage | null) => {
     setSelectedStage(stage);
@@ -118,43 +119,26 @@ export function MapTab({ journey, productName, loading, error, onBack, onGenerat
     );
   }
 
-  if (error) {
+  if (error || journey.length === 0) {
     return (
-      <section className="fixed inset-0 z-[60] flex flex-col items-center justify-center gap-4 bg-[#111] p-4 font-sans">
-        <div className="rounded border border-red-500/30 bg-red-950/50 p-4 text-center text-sm text-red-400">
-          {error}
-        </div>
-        <div className="flex gap-3">
+      <section className="fixed inset-0 z-[60] flex flex-col items-center justify-center bg-[#f7f9fa] p-8 font-sans">
+        <div className="mx-auto max-w-sm text-center">
+          <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center bg-[#003a5d]">
+            <svg className="h-8 w-8 text-[#9eca45]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 6.75V15m6-6v8.25m.503 3.498 4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 0 0-1.006 0L3.622 5.689C3.24 5.88 3 6.27 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c.317-.159.69-.159 1.006 0l4.994 2.497c.317.158.69.158 1.006 0Z" />
+            </svg>
+          </div>
+          <h2 className="text-lg font-bold uppercase text-[#003a5d]">Supply Chain Map Unavailable</h2>
+          <p className="mt-2 text-sm text-[#777777]">
+            This product doesn&apos;t have tracked supply chain data yet. As more producers join Project Trace, journey maps will become available.
+          </p>
           <button
             onClick={onBack}
-            className="flex items-center gap-1 text-sm text-[#9eca45]"
+            className="mt-6 flex items-center gap-1 mx-auto bg-[#9eca45] px-6 py-3 text-xs font-bold uppercase text-white shadow-[0_1px_1px_rgba(0,0,0,0.2)] transition-all hover:bg-[#333333]"
           >
-            <ChevronLeft className="h-4 w-4" /> Back
-          </button>
-          <button
-            onClick={() => {
-              hasTriggeredGenerate.current = false;
-              onGenerate();
-            }}
-            className="text-sm text-[#9eca45] underline"
-          >
-            Retry
+            <ChevronLeft className="h-4 w-4" /> Back to Product
           </button>
         </div>
-      </section>
-    );
-  }
-
-  if (journey.length === 0) {
-    return (
-      <section className="fixed inset-0 z-[60] flex flex-col items-center justify-center gap-4 bg-[#111] p-4 font-sans">
-        <p className="text-sm text-white/60">No journey data available for this product.</p>
-        <button
-          onClick={onBack}
-          className="flex items-center gap-1 text-sm text-[#9eca45]"
-        >
-          <ChevronLeft className="h-4 w-4" /> Back
-        </button>
       </section>
     );
   }
