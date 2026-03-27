@@ -1688,5 +1688,135 @@
         "accessCount": 1
       }
     ]
+  },
+  {
+    "timestamp": 1774643006678,
+    "nodes": 24,
+    "edges": 13,
+    "pageRankSum": 1,
+    "confidences": [
+      0.5,
+      0.5,
+      0.5,
+      0.5,
+      0.5,
+      0.5,
+      0.5,
+      0.5,
+      0.5,
+      0.5,
+      0.5,
+      0.5,
+      0.5,
+      0.5,
+      0.5,
+      0.5,
+      0.5,
+      0.5,
+      0.5,
+      0.5,
+      0.5,
+      0.5,
+      0.5,
+      0.5
+    ],
+    "accessCounts": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "topPatterns": [
+      {
+        "id": "mem-MEMORY-memory-index",
+        "summary": "Memory Index",
+        "confidence": 0.5,
+        "pageRank": 0.1075275154032278,
+        "accessCount": 0
+      },
+      {
+        "id": "mem-MEMORY-memory-index",
+        "summary": "Memory Index",
+        "confidence": 0.5,
+        "pageRank": 0.1075275154032278,
+        "accessCount": 0
+      },
+      {
+        "id": "mem-project_status----",
+        "summary": "---",
+        "confidence": 0.5,
+        "pageRank": 0.1075275154032278,
+        "accessCount": 0
+      },
+      {
+        "id": "mem-user_projects_and_ecc----",
+        "summary": "---",
+        "confidence": 0.5,
+        "pageRank": 0.1075275154032278,
+        "accessCount": 0
+      },
+      {
+        "id": "mem-MEMORY-memory-index",
+        "summary": "Memory Index",
+        "confidence": 0.5,
+        "pageRank": 0.1075275154032278,
+        "accessCount": 0
+      },
+      {
+        "id": "mem-project_status----",
+        "summary": "---",
+        "confidence": 0.5,
+        "pageRank": 0.1075275154032278,
+        "accessCount": 0
+      },
+      {
+        "id": "mem-user_projects_and_ecc----",
+        "summary": "---",
+        "confidence": 0.5,
+        "pageRank": 0.1075275154032278,
+        "accessCount": 0
+      },
+      {
+        "id": "mem-project_arbor_openclaw-phases",
+        "summary": "Phases",
+        "confidence": 0.5,
+        "pageRank": 0.06707654944172703,
+        "accessCount": 0
+      },
+      {
+        "id": "mem-MEMORY-sprint-tracker",
+        "summary": "Sprint Tracker",
+        "confidence": 0.5,
+        "pageRank": 0.06707654944172703,
+        "accessCount": 0
+      },
+      {
+        "id": "mem-project_arbor_openclaw-team",
+        "summary": "Team",
+        "confidence": 0.5,
+        "pageRank": 0.05990576248963563,
+        "accessCount": 0
+      }
+    ]
   }
 ]
