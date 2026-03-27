@@ -19,6 +19,7 @@ export default function ScanPage() {
   const [barcodeInput, setBarcodeInput] = useState("");
   const [ready, setReady] = useState(false);
   const [isNavigating, setIsNavigating] = useState(false);
+  const [isMobile, setIsMobile] = useState(true);
 
   const lookupBarcode = useCallback(
     (value: string) => {
@@ -74,11 +75,13 @@ export default function ScanPage() {
           formats: ["ean_13", "ean_8", "upc_a", "upc_e", "qr_code", "data_matrix", "code_128"],
         });
 
+        const mobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+        setIsMobile(mobile);
         stream = await navigator.mediaDevices.getUserMedia({
           video: {
-            facingMode: "environment",
-            width: { ideal: 1920 },
-            height: { ideal: 1080 },
+            facingMode: mobile ? { ideal: "environment" } : undefined,
+            width: { ideal: mobile ? 1920 : 1280 },
+            height: { ideal: mobile ? 1080 : 720 },
           },
           audio: false,
         });
@@ -163,7 +166,7 @@ export default function ScanPage() {
           </div>
         ) : (
           <>
-            <video ref={videoRef} className="h-full w-full object-cover" playsInline muted autoPlay />
+            <video ref={videoRef} className={`h-full w-full ${isMobile ? "object-cover" : "object-contain"}`} playsInline muted autoPlay />
             <canvas ref={canvasRef} className="hidden" />
 
             <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
