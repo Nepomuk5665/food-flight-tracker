@@ -9,9 +9,9 @@ function getCerebras() {
 }
 
 export function getChatModel() {
-  return getCerebras()("llama-4-scout-17b-16e-instruct");
+  return getCerebras()("zai-glm-4.7");
 }
 
 export function getAnalysisModel() {
-  return getCerebras()("llama3.3-70b");
+  return getCerebras()("zai-glm-4.7");
 }
