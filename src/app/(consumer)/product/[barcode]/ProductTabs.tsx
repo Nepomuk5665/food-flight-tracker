@@ -100,7 +100,7 @@ export default function ProductTabs({
       />
 
       {activeTab !== "map" && (
-        <TabToggle activeTab={activeTab} onTabChange={handleTabChange} />
+        <TabToggle activeTab={activeTab} onTabChange={handleTabChange} hiddenTabs={canGenerateJourney ? [] : ["map"]} />
       )}
 
       {activeTab === "info" && (

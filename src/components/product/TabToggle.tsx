@@ -7,6 +7,7 @@ export type TabId = "info" | "map" | "chat";
 type TabToggleProps = {
   activeTab: TabId;
   onTabChange: (tab: TabId) => void;
+  hiddenTabs?: TabId[];
 };
 
 const TABS: { id: TabId; label: string; icon: typeof Info }[] = [
@@ -15,11 +16,12 @@ const TABS: { id: TabId; label: string; icon: typeof Info }[] = [
   { id: "chat", label: "Chat", icon: MessageCircle },
 ];
 
-export function TabToggle({ activeTab, onTabChange }: TabToggleProps) {
+export function TabToggle({ activeTab, onTabChange, hiddenTabs = [] }: TabToggleProps) {
+  const visibleTabs = TABS.filter((t) => !hiddenTabs.includes(t.id));
   return (
     <div className="sticky top-0 z-20 -mx-4 mb-4 border-b border-[#dddddd] bg-white px-4">
       <div className="flex">
-        {TABS.map(({ id, label, icon: Icon }) => {
+        {visibleTabs.map(({ id, label, icon: Icon }) => {
           const isActive = activeTab === id;
           return (
             <button
