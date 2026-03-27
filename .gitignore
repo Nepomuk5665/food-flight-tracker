@@ -49,3 +49,4 @@ drizzle/
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+npm-cache/
