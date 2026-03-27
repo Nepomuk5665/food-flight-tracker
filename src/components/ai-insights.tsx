@@ -1,11 +1,9 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import { useRouter } from "next/navigation";
-import { Sparkles, Send, ChevronLeft } from "lucide-react";
+import { Sparkles, Send } from "lucide-react";
 import Markdown from "react-markdown";
 import { getConversation, saveConversation, getScanHistory, type AiMessage } from "@/lib/scan-history";
-import { TabToggle, type TabId } from "@/components/product/TabToggle";
 
 type Props = {
   lotCode?: string;
@@ -13,13 +11,9 @@ type Props = {
   context?: string;
   autoPrompt?: string;
   suggestions?: string[];
-  activeTab?: TabId;
-  onTabChange?: (tab: TabId) => void;
-  hiddenTabs?: TabId[];
 };
 
-export default function AiInsights({ lotCode, barcode, context, autoPrompt, suggestions = [], activeTab, onTabChange, hiddenTabs = [] }: Props) {
-  const router = useRouter();
+export default function AiInsights({ lotCode, barcode, context, autoPrompt, suggestions = [] }: Props) {
   const storageKey = barcode ?? lotCode ?? "";
   const [messages, setMessages] = useState<AiMessage[]>([]);
   const [input, setInput] = useState("");
@@ -136,23 +130,7 @@ export default function AiInsights({ lotCode, barcode, context, autoPrompt, sugg
   const showLoader = streaming && messages.length === 0;
 
   return (
-    <div className="fixed inset-x-0 top-0 bottom-[72px] z-[55] flex flex-col bg-[#FAFAF8]">
-      <div className="shrink-0 bg-[#FAFAF8] px-4 pt-3">
-        <div className="mx-auto max-w-lg">
-          <div className="mb-2">
-            <button
-              onClick={() => router.push("/products")}
-              className="inline-flex items-center gap-1 text-sm text-[#9CA3AF] transition-colors hover:text-[#16A34A]"
-            >
-              <ChevronLeft className="h-4 w-4" />
-              Back
-            </button>
-          </div>
-          {activeTab && onTabChange && (
-            <TabToggle activeTab={activeTab} onTabChange={onTabChange} hiddenTabs={hiddenTabs} />
-          )}
-        </div>
-      </div>
+    <div className="fixed inset-x-0 top-[100px] bottom-[72px] z-[55] flex flex-col bg-[#FAFAF8]">
       <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-2">
         <div className="mx-auto max-w-lg space-y-2">
           {showLoader && (

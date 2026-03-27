@@ -103,26 +103,31 @@ export default function ProductTabs({
         source={product.source}
       />
 
-      <div className="mb-2">
-        <Link
-          href="/products"
-          className="inline-flex items-center gap-1 text-sm text-muted hover:text-primary"
-        >
-          <ChevronLeft className="h-4 w-4" />
-          Back
-        </Link>
-      </div>
-
-      {activeTab !== "map" && activeTab !== "chat" && (
-        <TabToggle activeTab={activeTab} onTabChange={handleTabChange} hiddenTabs={canGenerateJourney ? [] : ["map"]} />
+      {activeTab !== "map" && (
+        <div className="fixed inset-x-0 top-0 z-[60] bg-[#FAFAF8] px-4 pt-3 pb-1">
+          <div className="mx-auto max-w-lg">
+            <div className="mb-2">
+              <Link
+                href="/products"
+                className="inline-flex items-center gap-1 text-sm text-[#9CA3AF] transition-colors hover:text-[#16A34A]"
+              >
+                <ChevronLeft className="h-4 w-4" />
+                Back
+              </Link>
+            </div>
+            <TabToggle activeTab={activeTab} onTabChange={handleTabChange} hiddenTabs={canGenerateJourney ? [] : ["map"]} />
+          </div>
+        </div>
       )}
 
       {activeTab === "info" && (
-        <ProductInfo
-          product={product}
-          activeLot={activeLot}
-          supplyChain={supplyChain}
-        />
+        <div className="pt-[100px]">
+          <ProductInfo
+            product={product}
+            activeLot={activeLot}
+            supplyChain={supplyChain}
+          />
+        </div>
       )}
 
       {activeTab === "map" && (
@@ -132,7 +137,6 @@ export default function ProductTabs({
           loading={journey.loading}
           error={journey.error}
           canGenerate={canGenerateJourney}
-          
           onBack={() => handleTabChange("info")}
           onGenerate={journey.generate}
         />
@@ -150,9 +154,6 @@ export default function ProductTabs({
             "Any allergen concerns?",
             journey.payload ? "Explain the supply chain" : "Where do the ingredients come from?",
           ]}
-          activeTab={activeTab}
-          onTabChange={handleTabChange}
-          hiddenTabs={canGenerateJourney ? [] : ["map"]}
         />
       )}
     </>
