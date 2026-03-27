@@ -1,4 +1,5 @@
 import GenerateJourneyButton from "./generate-journey-button";
+import SaveToHistory from "./save-to-history";
 
 type ProductPageProps = {
   params: Promise<{ barcode: string }>;
@@ -124,8 +125,16 @@ export default async function ProductPage({ params }: ProductPageProps) {
   const { product, activeLot, supplyChain } = productDetails;
   const canGenerateJourney = Boolean(activeLot || product.inferredOrigins.length > 0);
 
-  return (
+   return (
     <section className="space-y-4 font-sans">
+      <SaveToHistory
+        barcode={barcode}
+        name={product.name}
+        brand={product.brand}
+        imageUrl={product.imageUrl}
+        nutriScore={product.nutriScore}
+        source={product.source}
+      />
       <header className="space-y-4 border border-[#dddddd] bg-white p-4 rounded-none">
         <div className="space-y-2">
           <h1 className="text-3xl font-bold uppercase tracking-wide text-[#003a5d]">{product.name}</h1>
