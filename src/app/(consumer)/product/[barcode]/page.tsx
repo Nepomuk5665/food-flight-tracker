@@ -1,4 +1,3 @@
-import Image from "next/image";
 import GenerateJourneyButton from "./generate-journey-button";
 
 type ProductPageProps = {
@@ -151,11 +150,9 @@ export default async function ProductPage({ params }: ProductPageProps) {
       <div className="grid gap-4 border border-[#dddddd] bg-white p-4 rounded-none sm:grid-cols-[140px_1fr]">
         <div className="overflow-hidden border border-[#dddddd] bg-[#f7f9fa]">
           {product.imageUrl ? (
-            <Image
+            <img
               src={product.imageUrl}
               alt={product.name}
-              width={280}
-              height={280}
               className="h-full w-full object-cover"
             />
           ) : (
