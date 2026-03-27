@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { generatedJourneyStorageKey } from "@/lib/journey/storage";
 import type { JourneyStage } from "@/lib/types";
+import AiInsights from "@/components/ai-insights";
 
 type JourneyPayload = {
   generated: boolean;
@@ -152,6 +153,17 @@ export default function JourneyPage() {
           ))}
         </ul>
       </div>
+
+      <AiInsights
+        lotCode={lotCode}
+        autoPrompt="Analyze this supply chain journey. Summarize the route, flag any anomalies or risks, and give an overall safety assessment."
+        suggestions={[
+          "Is there a cold chain issue?",
+          "How long was the transport?",
+          "Should I be concerned?",
+          "What does the risk score mean?",
+        ]}
+      />
     </section>
   );
 }

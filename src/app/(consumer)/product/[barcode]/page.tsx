@@ -1,5 +1,6 @@
 import GenerateJourneyButton from "./generate-journey-button";
 import SaveToHistory from "./save-to-history";
+import AiInsights from "@/components/ai-insights";
 
 type ProductPageProps = {
   params: Promise<{ barcode: string }>;
@@ -265,6 +266,18 @@ export default async function ProductPage({ params }: ProductPageProps) {
           </ul>
         </div>
       ) : null}
+
+      <AiInsights
+        barcode={barcode}
+        lotCode={activeLot?.lotCode}
+        autoPrompt={`Give a brief safety summary for this product${activeLot ? " including its supply chain status" : ""}. Mention any concerns.`}
+        suggestions={[
+          "Is this safe to eat?",
+          "Tell me about the ingredients",
+          "Any allergen concerns?",
+          activeLot ? "Explain the supply chain" : "Where do the ingredients come from?",
+        ]}
+      />
     </section>
   );
 }
