@@ -205,17 +205,6 @@ pnpm dev        # http://localhost:3000
 
 ---
 
-## Project Links
-
-| Resource | Link |
-|----------|------|
-| Live App | [foodflighttracker.com](https://foodflighttracker.com) |
-| Documentation | [docs/](https://github.com/Nepomuk5665/food-flight-tracker/tree/main/docs) |
-| Architecture Decisions | [docs/DECISIONS.md](https://github.com/Nepomuk5665/food-flight-tracker/blob/main/docs/DECISIONS.md) |
-| Figma Mockup | [Figma](https://www.figma.com/design/4XAMeiD6nuGZ4HwsxqE1gT/Untitled?node-id=0-1&p=f) |
-
----
-
 <p align="center">
   <strong>Built at Baden Hackt 2026</strong> · Powered by Autexis
 </p>
