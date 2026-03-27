@@ -1,36 +1,34 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+<h1 align="center">
+  <img 
+    src="https://github.com/user-attachments/assets/c2074992-de16-4764-bae1-d95cfe6d4c8d" 
+    alt="Food Flight Tracker Logo" 
+    width="200"
+  />
+  <br/>
+  Food Flight Tracker
+</h1>
 
-## Getting Started
+<p align="center">
+  Food Flight Tracker is an interactive mobile app which allows you to track any type of food using a QR code.
+</p>
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Website
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+[![Live Demo](https://img.shields.io/badge/Live-Demo-brightgreen?style=for-the-badge)](https://foodflighttracker.com/)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Tech Stack
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- <img src="https://skillicons.dev/icons?i=react,ts,tailwind,nextjs" alt="React, TypeScript, Tailwind CSS, Next.js" height="40" /> **Frontend:** React, TypeScript, Tailwind CSS, Next.js
+- <img src="https://skillicons.dev/icons?i=py,fastapi" alt="Python, FastAPI" height="40" /> **Backend:** Python, FastAPI TBD
+- <img src="https://skillicons.dev/icons?i=mysql" alt="MySQL" height="40" /> **Database:** MySQL
 
-## Learn More
+ ---
 
-To learn more about Next.js, take a look at the following resources:
+## Project Links
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+[![Figma Mockup](https://img.shields.io/badge/Figma-Mockup-F24E1E?style=for-the-badge&logo=figma&logoColor=white)](https://www.figma.com/design/4XAMeiD6nuGZ4HwsxqE1gT/Untitled?node-id=0-1&p=f)
+[![ERD Diagram](https://img.shields.io/badge/Docs-Project_Docs-0ea5e9?style=for-the-badge&logo=databricks&logoColor=white)](https://github.com/Nepomuk5665/food-flight-tracker/tree/main/docs)
+[![Notion](https://img.shields.io/badge/Notion-Project_Page-000000?style=for-the-badge&logo=notion&logoColor=white)](https://www.notion.so/test-30cb5b818ecd80ceba89cadcd348c87a)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
