@@ -236,7 +236,6 @@ AWS EC2 (t3.small, Ubuntu 24.04)
 > **Who wants to wait for an AI to give an answer? No one.** So we implemented the fastest AI inference on the planet — [Cerebras](https://cerebras.ai/) running at **~2,000 tokens/second**. Responses stream instantly. No spinners, no waiting, no "generating..." screens. You ask, you get an answer. Immediately.
 
 - Cerebras zai-glm-4.7 via Vercel AI SDK
-- Streaming responses with animated cursor + shimmer
 - Product-scoped system prompts with full supply chain context
 - Scan history awareness (compare products across scans)
 - Markdown rendering (bold, lists, headings)
