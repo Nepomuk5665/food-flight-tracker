@@ -54,24 +54,24 @@ export function JourneyTimeline({
               {/* Stage card */}
               <button
                 type="button"
-                className={`w-full rounded-2xl p-4 text-left transition-shadow ${
+                className={`w-full p-4 text-left transition-shadow ${
                   hasAnomaly
                     ? "bg-red-50 shadow-sm ring-1 ring-red-200"
                     : isActive
-                      ? "bg-white shadow-md ring-1 ring-[#9eca45]/30"
+                      ? "bg-white shadow-md ring-1 ring-accent/30"
                       : "bg-white shadow-sm ring-1 ring-black/[0.04]"
                 }`}
                 onClick={() => onStageClick(stage)}
               >
                 <div className="mb-2 flex items-center gap-2">
                   <span
-                    className="inline-block rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white"
+                    className="inline-block px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white"
                     style={{ backgroundColor: color }}
                   >
                     {stage.type}
                   </span>
                   {hasAnomaly && (
-                    <span className="rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-semibold text-red-600">
+                    <span className="bg-red-100 px-2 py-0.5 text-[10px] font-semibold text-red-600">
                       Alert
                     </span>
                   )}

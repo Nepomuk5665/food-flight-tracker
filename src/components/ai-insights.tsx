@@ -124,40 +124,40 @@ export default function AiInsights({ lotCode, barcode, context, autoPrompt, sugg
   const isLastStreaming = streaming && lastMsg?.role === "assistant";
 
   return (
-    <div className={`overflow-hidden border border-[#dddddd] bg-[#fafbfc] ${fullPage ? "flex flex-1 flex-col" : ""}`}>
-      <div className="flex items-center gap-2 bg-[#003a5d] px-4 py-2.5">
+    <div className={`overflow-hidden border border-border bg-[#fafbfc] ${fullPage ? "flex flex-1 flex-col" : ""}`}>
+      <div className="flex items-center gap-2 bg-primary px-4 py-2.5">
         <div className="relative flex h-5 w-5 items-center justify-center">
-          <Sparkles className={`h-4 w-4 text-[#9eca45] ${streaming ? "animate-pulse" : ""}`} />
+          <Sparkles className={`h-4 w-4 text-accent ${streaming ? "animate-pulse" : ""}`} />
           {streaming && (
             <>
-              <span className="absolute inset-0 animate-ping rounded-full bg-[#9eca45]/30" />
-              <span className="absolute -inset-1 animate-[spin_3s_linear_infinite] rounded-full border border-dashed border-[#9eca45]/40" />
+              <span className="absolute inset-0 animate-ping rounded-full bg-accent/30" />
+              <span className="absolute -inset-1 animate-[spin_3s_linear_infinite] rounded-full border border-dashed border-accent/40" />
             </>
           )}
         </div>
         <span className="text-xs font-bold uppercase tracking-wide text-white">
           {streaming ? "Analyzing" : "AI Analysis"}
         </span>
-        {streaming && <span className="ml-1 text-xs text-[#9eca45] animate-pulse">●</span>}
+        {streaming && <span className="ml-1 text-xs text-accent animate-pulse">●</span>}
       </div>
 
       <div ref={scrollRef} className={`overflow-y-auto ${fullPage ? "flex-1" : "max-h-[400px]"}`}>
         {isFirstLoad && !lastMsg?.content && (
           <div className="flex items-center gap-3 px-4 py-5">
             <div className="flex gap-1">
-              <span className="h-2 w-2 animate-[bounce_1s_infinite_0ms] rounded-full bg-[#9eca45]" />
-              <span className="h-2 w-2 animate-[bounce_1s_infinite_200ms] rounded-full bg-[#9eca45]" />
-              <span className="h-2 w-2 animate-[bounce_1s_infinite_400ms] rounded-full bg-[#9eca45]" />
+              <span className="h-2 w-2 animate-[bounce_1s_infinite_0ms] rounded-full bg-accent" />
+              <span className="h-2 w-2 animate-[bounce_1s_infinite_200ms] rounded-full bg-accent" />
+              <span className="h-2 w-2 animate-[bounce_1s_infinite_400ms] rounded-full bg-accent" />
             </div>
-            <span className="text-sm text-[#777777]">Running analysis...</span>
+            <span className="text-sm text-muted">Running analysis...</span>
           </div>
         )}
 
         {messages.map((msg, i) => {
           if (msg.role === "user") {
             return (
-              <div key={i} className="border-b border-[#eeeeee] bg-[#f0f2f5] px-4 py-2.5">
-                <p className="text-xs font-bold uppercase text-[#003a5d]">{msg.content}</p>
+              <div key={i} className="border-b border-border-light bg-surface-dim px-4 py-2.5">
+                <p className="text-xs font-bold uppercase text-primary">{msg.content}</p>
               </div>
             );
           }
@@ -167,13 +167,13 @@ export default function AiInsights({ lotCode, barcode, context, autoPrompt, sugg
           return (
             <div key={i} className="relative px-4 py-3">
               {isThisStreaming && (
-                <div className="absolute bottom-0 left-0 h-[2px] w-full overflow-hidden bg-[#eeeeee]">
-                  <div className="h-full w-1/3 animate-[shimmer_1.5s_ease-in-out_infinite] bg-gradient-to-r from-transparent via-[#9eca45] to-transparent" />
-                </div>
-              )}
-              <div className="ai-prose text-sm leading-relaxed text-[#424242]">
+                  <div className="absolute bottom-0 left-0 h-[2px] w-full overflow-hidden bg-border-light">
+                    <div className="h-full w-1/3 animate-[shimmer_1.5s_ease-in-out_infinite] bg-gradient-to-r from-transparent via-accent to-transparent" />
+                  </div>
+                )}
+              <div className="ai-prose text-sm leading-relaxed text-body">
                 <Markdown>{msg.content}</Markdown>
-                {isThisStreaming && <span className="ml-0.5 inline-block h-4 w-[2px] animate-[blink_1s_infinite] bg-[#9eca45]" />}
+                {isThisStreaming && <span className="ml-0.5 inline-block h-4 w-[2px] animate-[blink_1s_infinite] bg-accent" />}
               </div>
             </div>
           );
@@ -181,7 +181,7 @@ export default function AiInsights({ lotCode, barcode, context, autoPrompt, sugg
       </div>
 
       {suggestions.length > 0 && messages.length <= 1 && !streaming && (
-        <div className="border-t border-[#eeeeee] px-4 py-3">
+        <div className="border-t border-border-light px-4 py-3">
           <div className="mb-2 flex items-center gap-1 text-[10px] font-bold uppercase text-[#999999]">
             <ChevronDown className="h-3 w-3" />
             Ask a question
@@ -191,7 +191,7 @@ export default function AiInsights({ lotCode, barcode, context, autoPrompt, sugg
               <button
                 key={s}
                 onClick={() => sendMessage(s, true)}
-                className="border border-[#dddddd] bg-white px-2.5 py-1.5 text-[11px] text-[#424242] transition-all hover:border-[#9eca45] hover:bg-[#f3f9e7] hover:text-[#003a5d] active:scale-95"
+                className="border border-border bg-white px-2.5 py-1.5 text-[11px] text-body transition-all hover:border-[#9eca45] hover:bg-[#f3f9e7] hover:text-primary active:scale-95"
               >
                 {s}
               </button>
@@ -200,18 +200,18 @@ export default function AiInsights({ lotCode, barcode, context, autoPrompt, sugg
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="flex gap-2 border-t border-[#dddddd] bg-white p-2.5">
+      <form onSubmit={handleSubmit} className="flex gap-2 border-t border-border bg-white p-2.5">
         <input
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="Ask a follow-up..."
-          className="flex-1 border border-[#dddddd] bg-white px-3 py-2 text-sm text-[#424242] outline-none transition-all focus:border-[#9eca45]"
+          className="flex-1 border border-border bg-white px-4 py-3 text-sm text-body outline-none transition-colors focus:border-accent"
         />
         <button
           type="submit"
           disabled={streaming || !input.trim()}
-          className="flex items-center justify-center bg-[#9eca45] px-3.5 py-2 text-white transition-all hover:bg-[#333333] disabled:bg-[#b8c59a] active:scale-95"
+          className="flex items-center justify-center bg-accent px-4 py-3 text-xs font-bold uppercase text-white shadow-button transition-colors hover:bg-accent-hover disabled:bg-[#b8c59a]"
         >
           <Send className="h-4 w-4" />
         </button>

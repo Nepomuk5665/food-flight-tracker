@@ -2,6 +2,8 @@
 
 import { useCallback, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
+import { ChevronLeft } from "lucide-react";
 
 import { TabToggle, type TabId } from "@/components/product/TabToggle";
 import { ProductInfo } from "@/components/product/ProductInfo";
@@ -98,6 +100,16 @@ export default function ProductTabs({
         nutriScore={product.nutriScore}
         source={product.source}
       />
+
+      <div className="mb-2">
+        <Link
+          href="/products"
+          className="inline-flex items-center gap-1 text-sm text-muted hover:text-primary"
+        >
+          <ChevronLeft className="h-4 w-4" />
+          Back
+        </Link>
+      </div>
 
       {activeTab !== "map" && (
         <TabToggle activeTab={activeTab} onTabChange={handleTabChange} hiddenTabs={canGenerateJourney ? [] : ["map"]} />

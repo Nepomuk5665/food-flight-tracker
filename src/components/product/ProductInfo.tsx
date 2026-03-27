@@ -55,12 +55,12 @@ const isAllergenIngredient = (ingredient: string, allergens: string[]): boolean 
 const scoreBadgeClass = (score: string | null): string =>
   score
     ? SCORE_STYLES[score] ?? "border-[#777777] bg-[#777777] text-white"
-    : "border-[#dddddd] bg-white text-[#777777]";
+    : "border-border bg-white text-muted";
 
 function ScoreCard({ label, score }: { label: string; score: string | null }) {
   return (
-    <article className="space-y-3 border border-[#dddddd] bg-[#f7f9fa] p-4 rounded-none">
-      <h2 className="text-xs font-bold uppercase text-[#003a5d]">{label}</h2>
+    <article className="space-y-3 border border-border bg-surface p-4 rounded-none">
+      <h2 className="text-xs font-bold uppercase text-primary">{label}</h2>
       <div
         className={`inline-flex min-w-20 items-center justify-center border px-4 py-2 text-2xl font-bold uppercase ${scoreBadgeClass(score)}`}
       >
@@ -81,13 +81,13 @@ function BadgeList({
 }) {
   const toneClass =
     tone === "success"
-      ? "border-[#9eca45] bg-[#f3f9e7] text-[#003a5d]"
+      ? "border-accent bg-[#f3f9e7] text-primary"
       : tone === "warning"
         ? "border-[#d9b86a] bg-[#fff7e0] text-[#6c4c00]"
-        : "border-[#dddddd] bg-white text-[#424242]";
+        : "border-border bg-white text-body";
 
   if (items.length === 0) {
-    return <p className="text-sm text-[#777777]">{emptyLabel}</p>;
+    return <p className="text-sm text-muted">{emptyLabel}</p>;
   }
 
   return (
@@ -104,27 +104,27 @@ function BadgeList({
 export function ProductInfo({ product, activeLot, supplyChain }: ProductInfoProps) {
   return (
     <div className="space-y-4">
-      <header className="space-y-4 border border-[#dddddd] bg-white p-4 rounded-none">
+      <header className="space-y-4 border border-border bg-white p-4 rounded-none">
         <div className="space-y-2">
-          <h1 className="text-3xl font-bold uppercase tracking-wide text-[#003a5d]">{product.name}</h1>
-          <p className="text-sm text-[#424242]">{product.brand}</p>
-          <p className="text-sm text-[#777777]">Barcode: {product.barcode}</p>
+          <h1 className="text-3xl font-bold uppercase tracking-wide text-primary">{product.name}</h1>
+          <p className="text-sm text-body">{product.brand}</p>
+          <p className="text-sm text-muted">Barcode: {product.barcode}</p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <span className="border border-[#9eca45] bg-[#f3f9e7] px-2 py-1 text-xs font-bold uppercase text-[#003a5d]">
+          <span className="border border-accent bg-[#f3f9e7] px-2 py-1 text-xs font-bold uppercase text-primary">
             {SOURCE_LABELS[product.source]}
           </span>
           {activeLot ? (
-            <span className="border border-[#dddddd] bg-white px-2 py-1 text-xs font-bold uppercase text-[#003a5d]">
+            <span className="border border-border bg-white px-2 py-1 text-xs font-bold uppercase text-primary">
               Active lot {activeLot.lotCode}
             </span>
           ) : null}
         </div>
       </header>
 
-      <div className="grid gap-4 border border-[#dddddd] bg-white p-4 rounded-none sm:grid-cols-[140px_1fr]">
-        <div className="relative min-h-[140px] overflow-hidden border border-[#dddddd] bg-[#f7f9fa]">
+      <div className="grid gap-4 border border-border bg-white p-4 rounded-none sm:grid-cols-[140px_1fr]">
+        <div className="relative min-h-[140px] overflow-hidden border border-border bg-surface">
           {product.imageUrl ? (
             <Image
               src={product.imageUrl}
@@ -140,24 +140,24 @@ export function ProductInfo({ product, activeLot, supplyChain }: ProductInfoProp
 
         <div className="space-y-4">
           <div className="space-y-2">
-            <h2 className="text-xs font-bold uppercase text-[#003a5d]">Product Info</h2>
-            <p className="text-sm text-[#424242]">
+            <h2 className="text-xs font-bold uppercase text-primary">Product Info</h2>
+            <p className="text-sm text-body">
               {product.category ? `Category: ${toTitleCase(product.category)}` : "Category unavailable"}
             </p>
           </div>
 
           <div className="space-y-2">
-            <h3 className="text-xs font-bold uppercase text-[#003a5d]">Labels</h3>
+            <h3 className="text-xs font-bold uppercase text-primary">Labels</h3>
             <BadgeList items={product.labels} emptyLabel="No labels listed." tone="success" />
           </div>
 
           <div className="space-y-2">
-            <h3 className="text-xs font-bold uppercase text-[#003a5d]">Manufacturing</h3>
+            <h3 className="text-xs font-bold uppercase text-primary">Manufacturing</h3>
             <BadgeList items={product.manufacturingPlaces} emptyLabel="Manufacturing place unavailable." />
           </div>
 
           <div className="space-y-2">
-            <h3 className="text-xs font-bold uppercase text-[#003a5d]">Declared Origins</h3>
+            <h3 className="text-xs font-bold uppercase text-primary">Declared Origins</h3>
             <BadgeList items={product.origins} emptyLabel="No declared origins from product data." tone="warning" />
           </div>
         </div>
@@ -168,9 +168,9 @@ export function ProductInfo({ product, activeLot, supplyChain }: ProductInfoProp
         <ScoreCard label="Eco-Score" score={product.ecoScore} />
       </div>
 
-      <div className="space-y-4 border border-[#dddddd] bg-[#f7f9fa] p-4 rounded-none">
+      <div className="space-y-4 border border-border bg-surface p-4 rounded-none">
         <div className="space-y-2">
-          <h2 className="text-xs font-bold uppercase text-[#003a5d]">Ingredients</h2>
+          <h2 className="text-xs font-bold uppercase text-primary">Ingredients</h2>
           {product.ingredients.length > 0 ? (
             <div className="flex flex-wrap gap-2">
               {product.ingredients.map((ingredient) => {
@@ -181,7 +181,7 @@ export function ProductInfo({ product, activeLot, supplyChain }: ProductInfoProp
                     className={`border px-2 py-1 text-xs font-semibold uppercase ${
                       highlighted
                         ? "border-[#c62828] bg-[#fdecea] text-[#8c1d18]"
-                        : "border-[#dddddd] bg-white text-[#424242]"
+                        : "border-border bg-white text-body"
                     }`}
                   >
                     {toTitleCase(ingredient)}
@@ -190,21 +190,21 @@ export function ProductInfo({ product, activeLot, supplyChain }: ProductInfoProp
               })}
             </div>
           ) : (
-            <p className="text-sm text-[#777777]">No ingredient list available.</p>
+            <p className="text-sm text-muted">No ingredient list available.</p>
           )}
-          {product.ingredientsText ? <p className="text-sm text-[#424242]">{product.ingredientsText}</p> : null}
+          {product.ingredientsText ? <p className="text-sm text-body">{product.ingredientsText}</p> : null}
         </div>
 
         <div className="space-y-2">
-          <h3 className="text-xs font-bold uppercase text-[#003a5d]">Allergens</h3>
+          <h3 className="text-xs font-bold uppercase text-primary">Allergens</h3>
           <BadgeList items={product.allergens} emptyLabel="No allergens listed." tone="warning" />
         </div>
       </div>
 
       {product.inferredOrigins.length > 0 ? (
-        <div className="space-y-3 border border-[#dddddd] bg-white p-4 rounded-none">
-          <h2 className="text-xs font-bold uppercase text-[#003a5d]">Inferred Origins</h2>
-          <ul className="space-y-2 text-sm text-[#424242]">
+        <div className="space-y-3 border border-border bg-white p-4 rounded-none">
+          <h2 className="text-xs font-bold uppercase text-primary">Inferred Origins</h2>
+          <ul className="space-y-2 text-sm text-body">
             {product.inferredOrigins.map((origin) => (
               <li key={`${origin.ingredient}-${origin.country}`} className="border-l-2 border-[#9eca45] pl-3">
                 {toTitleCase(origin.ingredient)} likely from {origin.likelyCountries.join(" / ")}
@@ -215,18 +215,18 @@ export function ProductInfo({ product, activeLot, supplyChain }: ProductInfoProp
       ) : null}
 
       {activeLot && supplyChain.length > 0 ? (
-        <div className="space-y-3 border border-[#dddddd] bg-white p-4 rounded-none">
+        <div className="space-y-3 border border-border bg-white p-4 rounded-none">
           <div className="flex items-center justify-between gap-3">
-            <h2 className="text-xs font-bold uppercase text-[#003a5d]">Supply Chain</h2>
-            <span className="text-xs font-semibold uppercase text-[#777777]">Risk score {activeLot.riskScore}</span>
+            <h2 className="text-xs font-bold uppercase text-primary">Supply Chain</h2>
+            <span className="text-xs font-semibold uppercase text-muted">Risk score {activeLot.riskScore}</span>
           </div>
 
           <ul className="space-y-3">
             {supplyChain.map((stage) => (
               <li key={stage.stageId} className="border-l-2 border-[#9eca45] pl-3">
-                <p className="text-xs font-bold uppercase text-[#003a5d]">{stage.type}</p>
-                <p className="text-sm font-semibold text-[#424242]">{stage.name}</p>
-                <p className="text-sm text-[#777777]">{stage.location.name}</p>
+                <p className="text-xs font-bold uppercase text-primary">{stage.type}</p>
+                <p className="text-sm font-semibold text-body">{stage.name}</p>
+                <p className="text-sm text-muted">{stage.location.name}</p>
               </li>
             ))}
           </ul>

@@ -21,40 +21,40 @@ export function StagePopup({ stage }: { stage: JourneyStage }) {
   return (
     <div className="min-w-[220px] max-w-[280px] font-sans text-sm">
       <div
-        className="mb-2 rounded-sm px-2 py-1 text-xs font-bold uppercase tracking-wide text-white"
+        className="mb-2 px-2 py-1 text-xs font-bold uppercase tracking-wide text-white"
         style={{ backgroundColor: color }}
       >
         {stage.type}
       </div>
-      <h3 className="mb-1 text-sm font-bold text-[#003a5d]">{stage.name}</h3>
-      <p className="mb-1 text-xs text-[#777777]">{stage.location.name}</p>
-      <p className="mb-2 text-xs text-[#777777]">
+      <h3 className="mb-1 text-sm font-bold text-primary">{stage.name}</h3>
+      <p className="mb-1 text-xs text-muted">{stage.location.name}</p>
+      <p className="mb-2 text-xs text-muted">
         {formatDate(stage.startedAt)} — {formatDate(stage.completedAt)}
       </p>
 
       {stage.operator && (
         <p className="mb-2 text-xs">
-          <span className="font-semibold text-[#424242]">Operator:</span>{" "}
-          <span className="text-[#777777]">{stage.operator}</span>
+          <span className="font-semibold text-body">Operator:</span>{" "}
+          <span className="text-muted">{stage.operator}</span>
         </p>
       )}
 
       {(stage.telemetry.avgTemperature != null || stage.telemetry.avgHumidity != null) && (
         <div className="mb-2 flex gap-3 text-xs">
           {stage.telemetry.avgTemperature != null && (
-            <span className="text-[#424242]">
+            <span className="text-body">
               Temp: {stage.telemetry.minTemperature}–{stage.telemetry.maxTemperature}°C
               (avg {stage.telemetry.avgTemperature}°C)
             </span>
           )}
           {stage.telemetry.avgHumidity != null && (
-            <span className="text-[#424242]">Humidity: {stage.telemetry.avgHumidity}%</span>
+            <span className="text-body">Humidity: {stage.telemetry.avgHumidity}%</span>
           )}
         </div>
       )}
 
       {hasAnomaly && (
-        <div className="mt-2 rounded-sm border border-red-300 bg-red-50 px-2 py-1.5">
+        <div className="mt-2 border border-red-300 bg-red-50 px-2 py-1.5">
           {stage.anomalies.map((a) => (
             <p key={a.id} className="text-xs font-medium text-red-700">
               {a.description}

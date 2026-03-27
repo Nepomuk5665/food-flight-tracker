@@ -225,7 +225,7 @@ export function JourneyMap({
 
   if (!MAPBOX_TOKEN) {
     return (
-      <div className="flex h-full items-center justify-center bg-[#111] text-sm text-[#777777]">
+      <div className="flex h-full items-center justify-center bg-[#111] text-sm text-muted">
         Set NEXT_PUBLIC_MAPBOX_TOKEN to enable the map
       </div>
     );
