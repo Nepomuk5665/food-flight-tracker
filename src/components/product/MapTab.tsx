@@ -135,7 +135,7 @@ export function MapTab({ journey, productName, loading, error, canGenerate, line
           </p>
           <button
             onClick={onBack}
-            className="mt-6 flex items-center gap-1 mx-auto bg-accent px-6 py-3 text-xs font-bold uppercase text-white shadow-button transition-all hover:bg-[#333333]"
+            className="mt-6 flex items-center gap-1 mx-auto rounded-xl bg-[#16A34A] px-6 py-3 text-xs font-bold uppercase text-white shadow-sm transition-all hover:bg-[#15803D]"
           >
             <ChevronLeft className="h-4 w-4" /> Back to Product
           </button>

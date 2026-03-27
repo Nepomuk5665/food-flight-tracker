@@ -4,6 +4,7 @@ import { getProduct } from "@/lib/api/openfoodfacts";
 const mockFetch = vi.fn();
 
 beforeEach(() => {
+  mockFetch.mockReset();
   vi.stubGlobal("fetch", mockFetch);
 });
 
@@ -26,16 +27,26 @@ describe("getProduct", () => {
     expect(result).toBeNull();
   });
 
-  it("returns null for 429 rate-limited response", async () => {
+  it("returns null for 429 after exhausting retries", async () => {
+    vi.useFakeTimers();
     mockFetch.mockResolvedValue({ ok: false, status: 429 });
-    const result = await getProduct("0000000000000");
+    const promise = getProduct("0000000000000");
+    await vi.advanceTimersByTimeAsync(30_000);
+    const result = await promise;
     expect(result).toBeNull();
+    expect(mockFetch).toHaveBeenCalledTimes(5);
+    vi.useRealTimers();
   });
 
-  it("returns null for non-ok response", async () => {
+  it("returns null for 500 after exhausting retries", async () => {
+    vi.useFakeTimers();
     mockFetch.mockResolvedValue({ ok: false, status: 500 });
-    const result = await getProduct("0000000000000");
+    const promise = getProduct("0000000000000");
+    await vi.advanceTimersByTimeAsync(30_000);
+    const result = await promise;
     expect(result).toBeNull();
+    expect(mockFetch).toHaveBeenCalledTimes(5);
+    vi.useRealTimers();
   });
 
   it("returns null when payload has status 0", async () => {

@@ -37,42 +37,44 @@
   --radius-3xl: 34px;
 }
 
-::selection {
-  background-color: #dcfce7;
-  color: #1a1a1a;
-}
+@layer base {
+  ::selection {
+    background-color: #dcfce7;
+    color: #1a1a1a;
+  }
 
-::-moz-selection {
-  background-color: #dcfce7;
-  color: #1a1a1a;
-}
+  ::-moz-selection {
+    background-color: #dcfce7;
+    color: #1a1a1a;
+  }
 
-body {
-  background: var(--color-background);
-  color: var(--color-body);
-  font-family: var(--font-sans);
-  font-size: 16px;
-  line-height: 1.5;
-  -webkit-font-smoothing: antialiased;
-  -webkit-text-size-adjust: 100%;
-}
+  body {
+    background: var(--color-background);
+    color: var(--color-body);
+    font-family: var(--font-sans);
+    font-size: 16px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -webkit-text-size-adjust: 100%;
+  }
 
-h1, h2, h3, h4, h5, h6 {
-  color: var(--color-foreground);
-  font-family: var(--font-sans);
-  font-weight: 600;
-  margin: 0;
-}
+  h1, h2, h3, h4, h5, h6 {
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    font-weight: 600;
+    margin: 0;
+  }
 
-a {
-  color: var(--color-primary);
-  transition: all 200ms ease-in;
-}
+  a {
+    color: var(--color-primary);
+    transition: all 200ms ease-in;
+  }
 
-a:hover,
-a:focus {
-  color: #000000;
-  text-decoration: none;
+  a:hover,
+  a:focus {
+    color: #000000;
+    text-decoration: none;
+  }
 }
 
 .ai-prose p { margin-top: 0.5rem; margin-bottom: 0.5rem; }
