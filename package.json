@@ -11,8 +11,8 @@
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
-    "db:seed": "tsx scripts/seed.ts",
-    "db:reset": "rm -f data/trace.db && pnpm db:push && pnpm db:seed"
+    "db:seed": "node node_modules/.pnpm/node_modules/tsx/dist/cli.mjs scripts/seed.ts",
+    "db:reset": "node scripts/reset-db.mjs"
   },
   "dependencies": {
     "@ai-sdk/openai-compatible": "^2.0.37",

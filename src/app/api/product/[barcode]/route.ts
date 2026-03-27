@@ -1,8 +1,5 @@
 import { NextResponse } from "next/server";
 
-// TODO: replace mock response with real DB query once src/lib/db is implemented.
-import type {} from "@/lib/db";
-
 type ProductRouteContext = {
   params: Promise<{ barcode: string }>;
 };
@@ -10,15 +7,39 @@ type ProductRouteContext = {
 export async function GET(_request: Request, context: ProductRouteContext) {
   const { barcode } = await context.params;
 
-  return NextResponse.json({
-    success: true,
-    data: {
-      product: {
-        barcode,
-        name: "Demo Product",
-        brand: "Demo",
+  try {
+    const { resolveProductDetails } = await import("@/lib/product/resolve");
+    const productDetails = await resolveProductDetails(barcode);
+
+    if (!productDetails) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: "PRODUCT_NOT_FOUND",
+            message: "Product not found",
+          },
+        },
+        { status: 404 },
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      data: productDetails,
+    });
+  } catch (error) {
+    console.error("Product lookup failed", error);
+
+    return NextResponse.json(
+      {
+        success: false,
+        error: {
+          code: "PRODUCT_LOOKUP_FAILED",
+          message: "Unable to load product details right now",
+        },
       },
-      activeLot: null,
-    },
-  });
+      { status: 500 },
+    );
+  }
 }

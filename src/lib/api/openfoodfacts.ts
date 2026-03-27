@@ -2,7 +2,9 @@ export interface OpenFoodFactsProduct {
   name: string;
   brand: string;
   imageUrl: string | null;
+  ingredientsText: string | null;
   ingredients: string[];
+  allergens: string[];
   nutriScore: string | null;
   ecoScore: string | null;
   labels: string[];
@@ -19,6 +21,11 @@ interface OpenFoodFactsResponse {
     image_url?: string;
     ingredients_text?: string;
     ingredients_tags?: string[];
+    allergens?: string;
+    allergens_tags?: string[];
+    allergens_from_ingredients?: string;
+    traces?: string;
+    traces_tags?: string[];
     nutriscore_grade?: string;
     ecoscore_grade?: string;
     labels_tags?: string[];
@@ -32,12 +39,22 @@ interface OpenFoodFactsResponse {
 
 const splitCsv = (value?: string): string[] =>
   (value ?? "")
-    .split(",")
+    .split(/[;,]/)
     .map((entry) => entry.trim())
+    .map((entry) => entry.replace(/\.$/, ""))
     .filter(Boolean);
 
-const normalizeTags = (values?: string[]): string[] =>
-  (values ?? []).map((entry) => entry.replace(/^[a-z]{2}:/, "").trim()).filter(Boolean);
+const cleanEntry = (entry: string): string =>
+  entry
+    .replace(/^[a-z]{2}:/, "")
+    .replace(/[_-]+/g, " ")
+    .trim();
+
+const dedupe = (values: string[]): string[] => [...new Set(values.filter(Boolean))];
+
+const normalizeTags = (values?: string[]): string[] => dedupe((values ?? []).map(cleanEntry).filter(Boolean));
+
+const normalizeTextValues = (value?: string): string[] => dedupe(splitCsv(value).map(cleanEntry).filter(Boolean));
 
 export async function getProduct(barcode: string): Promise<OpenFoodFactsProduct | null> {
   const response = await fetch(`https://world.openfoodfacts.org/api/v2/product/${barcode}.json`, {
@@ -64,19 +81,34 @@ export async function getProduct(barcode: string): Promise<OpenFoodFactsProduct 
 
   const ingredientsFromText = splitCsv(product.ingredients_text);
   const ingredientsFromTags = normalizeTags(product.ingredients_tags);
+  const allergens = dedupe([
+    ...normalizeTags(product.allergens_tags),
+    ...normalizeTextValues(product.allergens),
+    ...normalizeTextValues(product.allergens_from_ingredients),
+    ...normalizeTags(product.traces_tags),
+    ...normalizeTextValues(product.traces),
+  ]);
 
   return {
     name: product.product_name?.trim() || "Unknown product",
     brand: product.brands?.trim() || "Unknown brand",
     imageUrl: product.image_front_url ?? product.image_url ?? null,
+    ingredientsText: product.ingredients_text?.trim() || null,
     ingredients: ingredientsFromText.length > 0 ? ingredientsFromText : ingredientsFromTags,
+    allergens,
     nutriScore: product.nutriscore_grade?.toUpperCase() || null,
     ecoScore: product.ecoscore_grade?.toUpperCase() || null,
-    labels: normalizeTags(product.labels_tags).length > 0 ? normalizeTags(product.labels_tags) : splitCsv(product.labels),
-    origins: normalizeTags(product.origins_tags).length > 0 ? normalizeTags(product.origins_tags) : splitCsv(product.origins),
+    labels:
+      normalizeTags(product.labels_tags).length > 0
+        ? normalizeTags(product.labels_tags)
+        : normalizeTextValues(product.labels),
+    origins:
+      normalizeTags(product.origins_tags).length > 0
+        ? normalizeTags(product.origins_tags)
+        : normalizeTextValues(product.origins),
     manufacturingPlaces:
       normalizeTags(product.manufacturing_places_tags).length > 0
         ? normalizeTags(product.manufacturing_places_tags)
-        : splitCsv(product.manufacturing_places),
+        : normalizeTextValues(product.manufacturing_places),
   };
 }

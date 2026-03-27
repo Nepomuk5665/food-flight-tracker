@@ -9,6 +9,7 @@ export interface OriginData {
 
 export interface OriginResult extends OriginData {
   ingredient: string;
+  likelyCountries: string[];
 }
 
 export const INGREDIENT_ORIGINS: Record<string, OriginData[]> = {
@@ -58,13 +59,15 @@ const topOriginByIngredient = (ingredient: string): OriginResult | null => {
   }
 
   const [matchedIngredient, origins] = mappingEntry;
-  const best = [...origins].sort((a, b) => b.share - a.share)[0];
+  const rankedOrigins = [...origins].sort((a, b) => b.share - a.share);
+  const best = rankedOrigins[0];
   return {
     ingredient: matchedIngredient,
     country: best.country,
     lat: best.lat,
     lng: best.lng,
     share: best.share,
+    likelyCountries: rankedOrigins.slice(0, 2).map((origin) => origin.country),
   };
 };
 

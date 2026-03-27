@@ -6,34 +6,39 @@ type BatchRouteContext = {
 
 export async function GET(_request: Request, context: BatchRouteContext) {
   const { lotCode } = await context.params;
+  const [{ getBatchJourney, getProductById }, { serializeJourneyStages }] = await Promise.all([
+    import("@/lib/db/queries"),
+    import("@/lib/journey/serialize"),
+  ]);
+
+  const batchJourney = getBatchJourney(lotCode);
+
+  if (!batchJourney) {
+    return NextResponse.json(
+      {
+        success: false,
+        error: {
+          code: "BATCH_NOT_FOUND",
+          message: "Journey not found",
+        },
+      },
+      { status: 404 },
+    );
+  }
+
+  const product = getProductById(batchJourney.batch.productId);
 
   return NextResponse.json({
     success: true,
     data: {
+      generated: false,
       batch: {
-        lotCode,
-        status: "active",
+        lotCode: batchJourney.batch.lotCode,
+        status: batchJourney.batch.status,
+        riskScore: batchJourney.batch.riskScore,
+        productName: product?.name ?? "Unknown product",
       },
-      journey: [
-        {
-          stageId: "stage-1",
-          name: "Origin Farm",
-          type: "harvest",
-          location: "Kumasi, Ghana",
-        },
-        {
-          stageId: "stage-2",
-          name: "Processing Plant",
-          type: "processing",
-          location: "Brussels, Belgium",
-        },
-        {
-          stageId: "stage-3",
-          name: "Retail Distribution",
-          type: "distribution",
-          location: "Munich, Germany",
-        },
-      ],
+      journey: serializeJourneyStages(batchJourney.stages),
     },
   });
 }
