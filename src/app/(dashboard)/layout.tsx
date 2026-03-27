@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LayoutDashboard, Package, AlertTriangle, Menu, X } from "lucide-react";
 import { useState } from "react";
+import DesktopGate from "@/components/desktop-gate";
 
 const NAV_ITEMS = [
   { href: "/overview", label: "Overview", icon: LayoutDashboard },
@@ -20,6 +21,7 @@ export default function DashboardLayout({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
+    <DesktopGate>
     <div className="min-h-screen flex flex-col font-sans bg-[#f7f9fa]">
       {/* Top Bar */}
       <header className="h-16 bg-[#0a0e1a] flex items-center justify-between px-6 border-b border-[#1a1f35] shrink-0 z-20 relative">
@@ -84,5 +86,6 @@ export default function DashboardLayout({
         </main>
       </div>
     </div>
+    </DesktopGate>
   );
 }
