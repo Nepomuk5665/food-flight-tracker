@@ -1,68 +1,45 @@
 import { NextResponse } from "next/server";
-import {
-  getProductByBarcode,
-  getActiveLotForProduct,
-  upsertProductFromOFF,
-} from "@/lib/db/queries";
-import { getProduct as getOFFProduct } from "@/lib/api/openfoodfacts";
 
-type Ctx = { params: Promise<{ barcode: string }> };
+type ProductRouteContext = {
+  params: Promise<{ barcode: string }>;
+};
 
-export async function GET(_request: Request, context: Ctx) {
+export async function GET(_request: Request, context: ProductRouteContext) {
   const { barcode } = await context.params;
 
-  let product = getProductByBarcode(barcode);
+  try {
+    const { resolveProductDetails } = await import("@/lib/product/resolve");
+    const productDetails = await resolveProductDetails(barcode);
 
-  if (!product) {
-    try {
-      const off = await getOFFProduct(barcode);
-      if (off) {
-        product = upsertProductFromOFF({
-          barcode,
-          name: off.name,
-          brand: off.brand,
-          category: "unknown",
-          imageUrl: off.imageUrl,
-          nutriScore: off.nutriScore,
-          ecoScore: off.ecoScore,
-          ingredients: off.ingredients.join(", "),
-          allergens: [],
-          offData: {
-            labels: off.labels,
-            origins: off.origins,
-            manufacturingPlaces: off.manufacturingPlaces,
+    if (!productDetails) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: "PRODUCT_NOT_FOUND",
+            message: `No product found for barcode ${barcode}`,
           },
-        });
-      }
-    } catch {
-      // OpenFoodFacts unavailable — continue with null
+        },
+        { status: 404 },
+      );
     }
-  }
 
-  if (!product) {
+    return NextResponse.json({
+      success: true,
+      data: productDetails,
+    });
+  } catch (error) {
+    console.error("Product lookup failed", error);
+
     return NextResponse.json(
-      { success: false, error: { code: "PRODUCT_NOT_FOUND", message: `No product found for barcode ${barcode}` } },
-      { status: 404 },
+      {
+        success: false,
+        error: {
+          code: "PRODUCT_LOOKUP_FAILED",
+          message: "Unable to load product details right now",
+        },
+      },
+      { status: 500 },
     );
   }
-
-  const activeLot = getActiveLotForProduct(product.id);
-
-  return NextResponse.json({
-    success: true,
-    data: {
-      product: {
-        ...product,
-        allergens: JSON.parse(product.allergens ?? "[]"),
-        offData: product.offData ? JSON.parse(product.offData) : null,
-      },
-      activeLot: activeLot
-        ? {
-            lotCode: activeLot.lotCode,
-            status: activeLot.status,
-            riskScore: activeLot.riskScore,
-          }
-        : null,
-    },
-  });
 }

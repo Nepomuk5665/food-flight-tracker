@@ -1,397 +1,264 @@
-"use client";
-
-import { useState, useEffect, use } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
-import { ArrowLeft, ScanLine, MessageCircle, AlertTriangle, CheckCircle2 } from "lucide-react";
-
-type ProductData = {
-  product: {
-    id: string;
-    barcode: string;
-    name: string;
-    brand: string | null;
-    imageUrl: string | null;
-    ingredients: string | null;
-    allergens: string | null;
-    nutriScore: string | null;
-    ecoScore: string | null;
-    source: string;
-  };
-  activeLot: {
-    lotCode: string;
-    status: string;
-    riskScore: number;
-  } | null;
-};
+import Image from "next/image";
+import GenerateJourneyButton from "./generate-journey-button";
 
 type ProductPageProps = {
   params: Promise<{ barcode: string }>;
 };
 
-export default function ProductPage({ params }: ProductPageProps) {
-  const { barcode } = use(params);
-  const router = useRouter();
-  
-  const [data, setData] = useState<ProductData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [notFound, setNotFound] = useState(false);
-  const [lotInput, setLotInput] = useState("");
+const SCORE_STYLES: Record<string, string> = {
+  A: "border-[#2e7d32] bg-[#2e7d32] text-white",
+  B: "border-[#7cb342] bg-[#7cb342] text-white",
+  C: "border-[#f9a825] bg-[#f9a825] text-[#1f1f1f]",
+  D: "border-[#ef6c00] bg-[#ef6c00] text-white",
+  E: "border-[#c62828] bg-[#c62828] text-white",
+};
 
-  useEffect(() => {
-    const fetchProduct = async () => {
-      try {
-        const res = await fetch(`/api/product/${barcode}`);
-        if (res.status === 404) {
-          setNotFound(true);
-          return;
-        }
-        if (!res.ok) {
-          throw new Error("Failed to fetch product data");
-        }
-        const json = await res.json();
-        if (json.success) {
-          setData(json.data);
-          if (json.data.activeLot) {
-            setLotInput(json.data.activeLot.lotCode);
-          }
-        } else {
-          throw new Error(json.error || "Unknown error");
-        }
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "An error occurred");
-      } finally {
-        setLoading(false);
-      }
-    };
+const SOURCE_LABELS = {
+  internal: "Supply chain from our DB",
+  open_food_facts: "OpenFoodFacts fallback",
+  merged: "Merged DB + OpenFoodFacts",
+} as const;
 
-    fetchProduct();
-  }, [barcode]);
+const normalize = (value: string): string =>
+  value.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
 
-  const handleJourneySubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (lotInput.trim()) {
-      router.push(`/journey/${lotInput.trim()}`);
+const toTitleCase = (value: string): string =>
+  value.replace(/\b\w/g, (character) => character.toUpperCase());
+
+const isAllergenIngredient = (ingredient: string, allergens: string[]): boolean => {
+  const normalizedIngredient = normalize(ingredient);
+
+  return allergens.some((allergen) => {
+    const normalizedAllergen = normalize(allergen);
+    if (!normalizedAllergen) {
+      return false;
     }
-  };
 
-  if (loading) {
     return (
-      <div className="animate-pulse space-y-6 font-sans">
-        <div className="h-64 w-full bg-[#f7f9fa] border border-[#dddddd]"></div>
-        <div className="space-y-4">
-          <div className="h-8 w-3/4 bg-[#eeeeee]"></div>
-          <div className="h-4 w-1/2 bg-[#eeeeee]"></div>
-        </div>
-        <div className="h-32 w-full bg-[#f7f9fa] border border-[#dddddd]"></div>
-        <div className="h-32 w-full bg-[#f7f9fa] border border-[#dddddd]"></div>
-      </div>
+      normalizedIngredient.includes(normalizedAllergen) ||
+      normalizedAllergen
+        .split(" ")
+        .filter((token) => token.length > 2)
+        .some((token) => normalizedIngredient.includes(token))
     );
+  });
+};
+
+const scoreBadgeClass = (score: string | null): string =>
+  score
+    ? SCORE_STYLES[score] ?? "border-[#777777] bg-[#777777] text-white"
+    : "border-[#dddddd] bg-white text-[#777777]";
+
+function ScoreCard({
+  label,
+  score,
+}: {
+  label: string;
+  score: string | null;
+}) {
+  return (
+    <article className="space-y-3 border border-[#dddddd] bg-[#f7f9fa] p-4 rounded-none">
+      <h2 className="text-xs font-bold uppercase text-[#003a5d]">{label}</h2>
+      <div
+        className={`inline-flex min-w-20 items-center justify-center border px-4 py-2 text-2xl font-bold uppercase ${scoreBadgeClass(score)}`}
+      >
+        {score ?? "N/A"}
+      </div>
+    </article>
+  );
+}
+
+function BadgeList({
+  items,
+  emptyLabel,
+  tone = "neutral",
+}: {
+  items: string[];
+  emptyLabel: string;
+  tone?: "neutral" | "success" | "warning";
+}) {
+  const toneClass =
+    tone === "success"
+      ? "border-[#9eca45] bg-[#f3f9e7] text-[#003a5d]"
+      : tone === "warning"
+        ? "border-[#d9b86a] bg-[#fff7e0] text-[#6c4c00]"
+        : "border-[#dddddd] bg-white text-[#424242]";
+
+  if (items.length === 0) {
+    return <p className="text-sm text-[#777777]">{emptyLabel}</p>;
   }
-
-  if (notFound) {
-    return (
-      <div className="flex min-h-[60vh] flex-col items-center justify-center space-y-6 text-center font-sans">
-        <div className="flex h-20 w-20 items-center justify-center rounded-full bg-[#f7f9fa] text-[#777777]">
-          <ScanLine className="h-10 w-10" />
-        </div>
-        <div>
-          <h1 className="text-2xl font-bold uppercase text-[#003a5d]">Product Not Found</h1>
-          <p className="mt-2 text-[#424242]">We couldn&apos;t find a product with barcode {barcode}.</p>
-        </div>
-        <Link
-          href="/scan"
-          className="bg-[#9eca45] px-7 py-3.5 text-xs font-bold uppercase text-white shadow-[0_1px_1px_rgba(0,0,0,0.2)] transition-all hover:bg-[#333333]"
-        >
-          Scan Again
-        </Link>
-      </div>
-    );
-  }
-
-  if (error || !data) {
-    return (
-      <div className="flex min-h-[60vh] flex-col items-center justify-center space-y-6 text-center font-sans">
-        <AlertTriangle className="h-12 w-12 text-[#dc2626]" />
-        <div>
-          <h1 className="text-2xl font-bold uppercase text-[#003a5d]">Error</h1>
-          <p className="mt-2 text-[#424242]">{error || "Something went wrong"}</p>
-        </div>
-        <Link
-          href="/scan"
-          className="bg-[#003a5d] px-7 py-3.5 text-xs font-bold uppercase text-white shadow-[0_1px_1px_rgba(0,0,0,0.2)] transition-all hover:bg-[#9eca45]"
-        >
-          Back to Scanner
-        </Link>
-      </div>
-    );
-  }
-
-  const { product, activeLot } = data;
-
-  const renderNutriScore = (score: string | null) => {
-    const letters = ["A", "B", "C", "D", "E"];
-    const colors: Record<string, string> = {
-      A: "#038141",
-      B: "#85BB2F",
-      C: "#FECB02",
-      D: "#EE8100",
-      E: "#E63E11",
-    };
-    
-    const activeScore = score?.toUpperCase();
-
-    if (!activeScore || !letters.includes(activeScore)) {
-      return <span className="text-sm font-bold text-[#777777]">N/A</span>;
-    }
-
-    return (
-      <div className="flex gap-1">
-        {letters.map((letter) => {
-          const isActive = letter === activeScore;
-          return (
-            <div
-              key={letter}
-              className={`flex h-8 w-6 items-center justify-center text-xs font-bold text-white ${
-                isActive ? "scale-110 shadow-sm" : "opacity-40"
-              }`}
-              style={{ backgroundColor: isActive ? colors[letter] : "#dddddd" }}
-            >
-              {letter}
-            </div>
-          );
-        })}
-      </div>
-    );
-  };
-
-  const renderEcoScore = (score: string | null) => {
-    const letters = ["A", "B", "C", "D", "E"];
-    const colors: Record<string, string> = {
-      A: "#1E8F4E",
-      B: "#60AC0E",
-      C: "#FECB02",
-      D: "#FF6F1E",
-      E: "#DF1F12",
-    };
-    
-    const activeScore = score?.toUpperCase();
-
-    if (!activeScore || !letters.includes(activeScore)) {
-      return <span className="text-sm font-bold text-[#777777]">N/A</span>;
-    }
-
-    return (
-      <div className="flex gap-1">
-        {letters.map((letter) => {
-          const isActive = letter === activeScore;
-          return (
-            <div
-              key={letter}
-              className={`flex h-8 w-6 items-center justify-center text-xs font-bold text-white ${
-                isActive ? "scale-110 shadow-sm" : "opacity-40"
-              }`}
-              style={{ backgroundColor: isActive ? colors[letter] : "#dddddd" }}
-            >
-              {letter}
-            </div>
-          );
-        })}
-      </div>
-    );
-  };
-
-  const renderIngredients = () => {
-    if (!product.ingredients) return <p className="text-sm text-[#777777]">No ingredients information available.</p>;
-    
-    const allergensList = product.allergens ? product.allergens.toLowerCase().split(',').map(a => a.trim()) : [];
-    
-    if (allergensList.length === 0) {
-      return <p className="text-sm text-[#424242]">{product.ingredients}</p>;
-    }
-
-    const words = product.ingredients.split(/([\s,.]+)/);
-    
-    return (
-      <p className="text-sm text-[#424242]">
-        {words.map((word, i) => {
-          const cleanWord = word.toLowerCase().replace(/[^a-z]/g, '');
-          const isAllergen = allergensList.some(a => cleanWord.includes(a) || a.includes(cleanWord));
-          
-          if (isAllergen && cleanWord.length > 2) {
-            return <strong key={i} className="font-bold text-[#dc2626]">{word}</strong>;
-          }
-          return <span key={i}>{word}</span>;
-        })}
-      </p>
-    );
-  };
-
-  const getRiskColor = (score: number) => {
-    if (score <= 25) return "#3fa435";
-    if (score <= 50) return "#f59e0b";
-    if (score <= 75) return "#ea580c";
-    return "#dc2626";
-  };
 
   return (
-    <div className="space-y-6 font-sans pb-8">
-      <div className="flex items-center gap-4">
-        <Link 
-          href="/scan" 
-          className="flex h-10 w-10 items-center justify-center border border-[#dddddd] bg-white text-[#003a5d] transition-all hover:bg-[#f7f9fa]"
-        >
-          <ArrowLeft className="h-5 w-5" />
-        </Link>
-        <h1 className="text-xl font-bold uppercase tracking-wide text-[#003a5d]">Product Details</h1>
-      </div>
-
-      <div className="border border-[#dddddd] bg-white p-0">
-        {product.imageUrl ? (
-          <div className="flex justify-center border-b border-[#dddddd] bg-white p-4">
-            <img 
-              src={product.imageUrl} 
-              alt={product.name} 
-              className="max-h-64 object-contain"
-            />
-          </div>
-        ) : (
-          <div className="flex h-48 items-center justify-center border-b border-[#dddddd] bg-[#f7f9fa]">
-            <ScanLine className="h-16 w-16 text-[#dddddd]" />
-          </div>
-        )}
-        
-        <div className="p-5">
-          <div className="mb-2 flex items-start justify-between gap-4">
-            <div>
-              <h2 className="text-2xl font-bold text-[#060606]">{product.name}</h2>
-              {product.brand && <p className="text-lg text-[#777777]">{product.brand}</p>}
-            </div>
-            <span 
-              className={`inline-block whitespace-nowrap px-2 py-1 text-[10px] font-bold uppercase text-white ${
-                product.source === "Internal" ? "bg-[#3fa435]" : "bg-[#009ee3]"
-              }`}
-            >
-              {product.source}
-            </span>
-          </div>
-          <p className="text-xs text-[#777777]">EAN/GTIN: {product.barcode}</p>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        <div className="border border-[#dddddd] bg-white p-4">
-          <h3 className="mb-3 text-xs font-bold uppercase text-[#003a5d]">Nutri-Score</h3>
-          {renderNutriScore(product.nutriScore)}
-        </div>
-        <div className="border border-[#dddddd] bg-white p-4">
-          <h3 className="mb-3 text-xs font-bold uppercase text-[#003a5d]">Eco-Score</h3>
-          {renderEcoScore(product.ecoScore)}
-        </div>
-      </div>
-
-      <div className="border border-[#dddddd] bg-white p-5">
-        <h3 className="mb-3 text-xs font-bold uppercase text-[#003a5d]">Ingredients</h3>
-        {renderIngredients()}
-        
-        {product.allergens && (
-          <div className="mt-4 border-t border-[#eeeeee] pt-3">
-            <h4 className="text-xs font-bold uppercase text-[#dc2626]">Contains Allergens</h4>
-            <p className="text-sm text-[#424242]">{product.allergens}</p>
-          </div>
-        )}
-      </div>
-
-      <div className="border border-[#dddddd] bg-[#f7f9fa] p-5">
-        <h3 className="mb-4 text-lg font-bold uppercase text-[#003a5d]">Supply Chain Journey</h3>
-        
-        {activeLot && (
-          <div className="mb-6 border border-[#dddddd] bg-white p-4">
-            <div className="mb-3 flex items-center justify-between">
-              <span className="text-sm font-bold text-[#424242]">Active Batch: {activeLot.lotCode}</span>
-              <span className="flex items-center gap-1 text-xs font-bold uppercase text-[#3fa435]">
-                <CheckCircle2 className="h-3.5 w-3.5" />
-                {activeLot.status}
-              </span>
-            </div>
-            
-            <div className="space-y-1">
-              <div className="flex justify-between text-xs">
-                <span className="text-[#777777]">Risk Score</span>
-                <span className="font-bold" style={{ color: getRiskColor(activeLot.riskScore) }}>
-                  {activeLot.riskScore}/100
-                </span>
-              </div>
-              <div className="h-[8px] w-full bg-[#eeeeee]">
-                <div 
-                  className="h-full transition-all duration-1000" 
-                  style={{ 
-                    width: `${activeLot.riskScore}%`,
-                    backgroundColor: getRiskColor(activeLot.riskScore)
-                  }}
-                ></div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        <form onSubmit={handleJourneySubmit} className="space-y-3">
-          <label htmlFor="lot-code" className="block text-sm font-normal text-[#424242]">
-            Enter Chargennummer (Batch Number)
-          </label>
-          <div className="flex gap-2">
-            <input
-              id="lot-code"
-              type="text"
-              value={lotInput}
-              onChange={(e) => setLotInput(e.target.value)}
-              placeholder="e.g. LOT-2026-03-A42"
-              className="flex-1 border border-[#dddddd] bg-white px-3 py-3 text-sm text-[#424242] outline-none transition-all focus:border-[#bbbbbb] rounded-none"
-            />
-            <button
-              type="submit"
-              className="bg-[#003a5d] px-6 py-3 text-xs font-bold uppercase text-white shadow-[0_1px_1px_rgba(0,0,0,0.2)] transition-all hover:bg-[#333333] rounded-none"
-            >
-              View Journey
-            </button>
-          </div>
-        </form>
-        
-        {activeLot && (
-          <button
-            onClick={() => router.push(`/journey/${activeLot.lotCode}`)}
-            className="mt-4 w-full bg-[#9eca45] px-7 py-4 text-sm font-bold uppercase text-white shadow-[0_1px_1px_rgba(0,0,0,0.2)] transition-all hover:bg-[#8bb83a] rounded-none"
-          >
-            View Full Journey
-          </button>
-        )}
-      </div>
-
-      <div className="grid grid-cols-2 gap-4 pt-4">
-        <Link
-          href="/scan"
-          className="flex items-center justify-center gap-2 border border-[#dddddd] bg-white px-4 py-3.5 text-xs font-bold uppercase text-[#424242] transition-all hover:bg-[#f7f9fa] rounded-none"
-        >
-          <ScanLine className="h-4 w-4" />
-          Scan Another
-        </Link>
-        
-        {activeLot ? (
-          <Link
-            href={`/chat?lot=${activeLot.lotCode}`}
-            className="flex items-center justify-center gap-2 bg-[#009ee3] px-4 py-3.5 text-xs font-bold uppercase text-white shadow-[0_1px_1px_rgba(0,0,0,0.2)] transition-all hover:bg-[#007bb5] rounded-none"
-          >
-            <MessageCircle className="h-4 w-4" />
-            Ask AI
-          </Link>
-        ) : (
-          <div className="flex items-center justify-center gap-2 border border-[#eeeeee] bg-[#f7f9fa] px-4 py-3.5 text-xs font-bold uppercase text-[#bbbbbb] rounded-none">
-            <MessageCircle className="h-4 w-4" />
-            Ask AI
-          </div>
-        )}
-      </div>
+    <div className="flex flex-wrap gap-2">
+      {items.map((item) => (
+        <span key={item} className={`border px-2 py-1 text-xs font-semibold uppercase ${toneClass}`}>
+          {toTitleCase(item)}
+        </span>
+      ))}
     </div>
+  );
+}
+
+export default async function ProductPage({ params }: ProductPageProps) {
+  const { barcode } = await params;
+  const { resolveProductDetails } = await import("@/lib/product/resolve");
+  const productDetails = await resolveProductDetails(barcode);
+
+  if (!productDetails) {
+    return (
+      <section className="space-y-4 font-sans">
+        <header className="border border-[#dddddd] bg-white p-4 rounded-none">
+          <h1 className="text-3xl font-bold uppercase tracking-wide text-[#003a5d]">Product Details</h1>
+          <p className="mt-2 text-sm text-[#777777]">Barcode: {barcode}</p>
+        </header>
+
+        <div className="space-y-3 border border-[#dddddd] bg-[#f7f9fa] p-5 rounded-none">
+          <h2 className="text-xl font-bold uppercase tracking-wide text-[#003a5d]">Product Not Found</h2>
+          <p className="text-sm text-[#424242]">
+            This barcode is not in our database and OpenFoodFacts did not return a matching product.
+          </p>
+        </div>
+      </section>
+    );
+  }
+
+  const { product, activeLot, supplyChain } = productDetails;
+  const canGenerateJourney = Boolean(activeLot || product.inferredOrigins.length > 0);
+
+  return (
+    <section className="space-y-4 font-sans">
+      <header className="space-y-4 border border-[#dddddd] bg-white p-4 rounded-none">
+        <div className="space-y-2">
+          <h1 className="text-3xl font-bold uppercase tracking-wide text-[#003a5d]">{product.name}</h1>
+          <p className="text-sm text-[#424242]">{product.brand}</p>
+          <p className="text-sm text-[#777777]">Barcode: {barcode}</p>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="border border-[#9eca45] bg-[#f3f9e7] px-2 py-1 text-xs font-bold uppercase text-[#003a5d]">
+            {SOURCE_LABELS[product.source]}
+          </span>
+          {activeLot ? (
+            <span className="border border-[#dddddd] bg-white px-2 py-1 text-xs font-bold uppercase text-[#003a5d]">
+              Active lot {activeLot.lotCode}
+            </span>
+          ) : null}
+        </div>
+
+        <GenerateJourneyButton barcode={barcode} disabled={!canGenerateJourney} />
+      </header>
+
+      <div className="grid gap-4 border border-[#dddddd] bg-white p-4 rounded-none sm:grid-cols-[140px_1fr]">
+        <div className="overflow-hidden border border-[#dddddd] bg-[#f7f9fa]">
+          {product.imageUrl ? (
+            <Image
+              src={product.imageUrl}
+              alt={product.name}
+              width={280}
+              height={280}
+              className="h-full w-full object-cover"
+            />
+          ) : (
+            <div className="flex h-full min-h-[140px] items-center justify-center text-xs font-bold uppercase text-[#777777]">
+              No image
+            </div>
+          )}
+        </div>
+
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <h2 className="text-xs font-bold uppercase text-[#003a5d]">Product Info</h2>
+            <p className="text-sm text-[#424242]">
+              {product.category ? `Category: ${toTitleCase(product.category)}` : "Category unavailable"}
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <h3 className="text-xs font-bold uppercase text-[#003a5d]">Labels</h3>
+            <BadgeList items={product.labels} emptyLabel="No labels listed." tone="success" />
+          </div>
+
+          <div className="space-y-2">
+            <h3 className="text-xs font-bold uppercase text-[#003a5d]">Manufacturing</h3>
+            <BadgeList items={product.manufacturingPlaces} emptyLabel="Manufacturing place unavailable." />
+          </div>
+
+          <div className="space-y-2">
+            <h3 className="text-xs font-bold uppercase text-[#003a5d]">Declared Origins</h3>
+            <BadgeList items={product.origins} emptyLabel="No declared origins from product data." tone="warning" />
+          </div>
+        </div>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        <ScoreCard label="Nutri-Score" score={product.nutriScore} />
+        <ScoreCard label="Eco-Score" score={product.ecoScore} />
+      </div>
+
+      <div className="space-y-4 border border-[#dddddd] bg-[#f7f9fa] p-4 rounded-none">
+        <div className="space-y-2">
+          <h2 className="text-xs font-bold uppercase text-[#003a5d]">Ingredients</h2>
+          {product.ingredients.length > 0 ? (
+            <div className="flex flex-wrap gap-2">
+              {product.ingredients.map((ingredient) => {
+                const highlighted = isAllergenIngredient(ingredient, product.allergens);
+                return (
+                  <span
+                    key={ingredient}
+                    className={`border px-2 py-1 text-xs font-semibold uppercase ${
+                      highlighted
+                        ? "border-[#c62828] bg-[#fdecea] text-[#8c1d18]"
+                        : "border-[#dddddd] bg-white text-[#424242]"
+                    }`}
+                  >
+                    {toTitleCase(ingredient)}
+                  </span>
+                );
+              })}
+            </div>
+          ) : (
+            <p className="text-sm text-[#777777]">No ingredient list available.</p>
+          )}
+          {product.ingredientsText ? <p className="text-sm text-[#424242]">{product.ingredientsText}</p> : null}
+        </div>
+
+        <div className="space-y-2">
+          <h3 className="text-xs font-bold uppercase text-[#003a5d]">Allergens</h3>
+          <BadgeList items={product.allergens} emptyLabel="No allergens listed." tone="warning" />
+        </div>
+      </div>
+
+      {product.inferredOrigins.length > 0 ? (
+        <div className="space-y-3 border border-[#dddddd] bg-white p-4 rounded-none">
+          <h2 className="text-xs font-bold uppercase text-[#003a5d]">Inferred Origins</h2>
+          <ul className="space-y-2 text-sm text-[#424242]">
+            {product.inferredOrigins.map((origin) => (
+              <li key={`${origin.ingredient}-${origin.country}`} className="border-l-2 border-[#9eca45] pl-3">
+                {toTitleCase(origin.ingredient)} likely from {origin.likelyCountries.join(" / ")}
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+
+      {activeLot && supplyChain.length > 0 ? (
+        <div className="space-y-3 border border-[#dddddd] bg-white p-4 rounded-none">
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="text-xs font-bold uppercase text-[#003a5d]">Supply Chain</h2>
+            <span className="text-xs font-semibold uppercase text-[#777777]">Risk score {activeLot.riskScore}</span>
+          </div>
+
+          <ul className="space-y-3">
+            {supplyChain.map((stage) => (
+              <li key={stage.stageId} className="border-l-2 border-[#9eca45] pl-3">
+                <p className="text-xs font-bold uppercase text-[#003a5d]">{stage.type}</p>
+                <p className="text-sm font-semibold text-[#424242]">{stage.name}</p>
+                <p className="text-sm text-[#777777]">{stage.location.name}</p>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+    </section>
   );
 }

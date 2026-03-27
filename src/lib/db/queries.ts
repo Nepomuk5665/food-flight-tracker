@@ -11,7 +11,6 @@ import {
   recalls,
   recallLots,
   type NewConsumerReport,
-  type NewRecall,
 } from "./schema";
 
 // ---------------------------------------------------------------------------

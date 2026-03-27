@@ -1,45 +1,66 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, AlertCircle } from "lucide-react";
 import Link from "next/link";
+import { AlertCircle, ArrowLeft } from "lucide-react";
 import { parseGS1 } from "@/lib/scanner/gs1-parser";
 
 export default function ScanPage() {
   const router = useRouter();
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const detectorRef = useRef<InstanceType<typeof import("barcode-detector/ponyfill").BarcodeDetector> | null>(null);
+  const detectorRef =
+    useRef<InstanceType<typeof import("barcode-detector/ponyfill").BarcodeDetector> | null>(null);
   const rafRef = useRef<number>(0);
   const scanningRef = useRef(true);
 
   const [error, setError] = useState<string | null>(null);
   const [barcodeInput, setBarcodeInput] = useState("");
   const [ready, setReady] = useState(false);
+  const [isNavigating, setIsNavigating] = useState(false);
+
+  const lookupBarcode = useCallback(
+    (value: string) => {
+      const barcode = value.trim();
+
+      if (!barcode || isNavigating) {
+        return;
+      }
+
+      setIsNavigating(true);
+      router.push(`/product/${encodeURIComponent(barcode)}`);
+    },
+    [isNavigating, router],
+  );
 
   const handleDetection = useCallback(
     (rawValue: string) => {
-      if (!scanningRef.current) return;
-      scanningRef.current = false;
+      if (!scanningRef.current || isNavigating) {
+        return;
+      }
 
+      scanningRef.current = false;
       navigator.vibrate?.(200);
 
       if (rawValue.startsWith("(01)") || rawValue.startsWith("01")) {
         const parsed = parseGS1(rawValue);
+
         if (parsed.batch) {
-          router.push(`/journey/${parsed.batch}`);
+          setIsNavigating(true);
+          router.push(`/journey/${encodeURIComponent(parsed.batch)}`);
           return;
         }
+
         if (parsed.gtin) {
-          router.push(`/product/${parsed.gtin}`);
+          lookupBarcode(parsed.gtin);
           return;
         }
       }
 
-      router.push(`/product/${rawValue}`);
+      lookupBarcode(rawValue);
     },
-    [router],
+    [isNavigating, lookupBarcode, router],
   );
 
   useEffect(() => {
@@ -70,6 +91,7 @@ export default function ScanPage() {
         }
       } catch (err) {
         const e = err as Error;
+
         if (e.name === "NotAllowedError" || e.name === "PermissionDeniedError") {
           setError("Camera access denied. Please use manual entry below.");
         } else {
@@ -79,9 +101,12 @@ export default function ScanPage() {
     }
 
     async function scan() {
-      if (!scanningRef.current || !detectorRef.current || !videoRef.current) return;
+      if (!scanningRef.current || !detectorRef.current || !videoRef.current || isNavigating) {
+        return;
+      }
 
       const video = videoRef.current;
+
       if (video.readyState < 2) {
         rafRef.current = requestAnimationFrame(scan);
         return;
@@ -91,11 +116,14 @@ export default function ScanPage() {
         const barcodes = await detectorRef.current.detect(video);
 
         if (barcodes.length > 0 && scanningRef.current) {
-          handleDetection(barcodes[0].rawValue);
-          return;
+          const rawValue = barcodes[0]?.rawValue;
+          if (rawValue) {
+            handleDetection(rawValue);
+            return;
+          }
         }
       } catch {
-        // detection error on frame — skip, try next
+        // Ignore frame-level detection errors and continue scanning
       }
 
       rafRef.current = requestAnimationFrame(scan);
@@ -106,16 +134,13 @@ export default function ScanPage() {
     return () => {
       scanningRef.current = false;
       cancelAnimationFrame(rafRef.current);
-      stream?.getTracks().forEach((t) => t.stop());
+      stream?.getTracks().forEach((track) => track.stop());
     };
-  }, [handleDetection]);
+  }, [handleDetection, isNavigating]);
 
-  const handleManualSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const clean = barcodeInput.trim();
-    if (/^\d{8,14}$/.test(clean)) {
-      router.push(`/product/${clean}`);
-    }
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    lookupBarcode(barcodeInput);
   };
 
   return (
@@ -138,13 +163,7 @@ export default function ScanPage() {
           </div>
         ) : (
           <>
-            <video
-              ref={videoRef}
-              className="h-full w-full object-cover"
-              playsInline
-              muted
-              autoPlay
-            />
+            <video ref={videoRef} className="h-full w-full object-cover" playsInline muted autoPlay />
             <canvas ref={canvasRef} className="hidden" />
 
             <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
@@ -154,13 +173,13 @@ export default function ScanPage() {
                 <div className="absolute bottom-0 left-0 h-10 w-10 border-b-[3px] border-l-[3px] border-[#9eca45]" />
                 <div className="absolute bottom-0 right-0 h-10 w-10 border-b-[3px] border-r-[3px] border-[#9eca45]" />
 
-                <div className="absolute left-2 right-2 top-1/2 h-[2px] -translate-y-1/2 bg-[#9eca45] opacity-80 shadow-[0_0_12px_#9eca45,0_0_24px_#9eca45] animate-pulse" />
+                <div className="absolute left-2 right-2 top-1/2 h-[2px] -translate-y-1/2 animate-pulse bg-[#9eca45] opacity-80 shadow-[0_0_12px_#9eca45,0_0_24px_#9eca45]" />
               </div>
             </div>
 
             <div className="absolute bottom-6 left-0 right-0 text-center">
               <span className="inline-block bg-black/60 px-5 py-2 text-xs font-bold uppercase tracking-widest text-white backdrop-blur-sm">
-                {ready ? "Point at any barcode" : "Starting camera..."}
+                {isNavigating ? "Opening..." : ready ? "Point at any barcode" : "Starting camera..."}
               </span>
             </div>
           </>
@@ -168,7 +187,7 @@ export default function ScanPage() {
       </div>
 
       <div className="shrink-0 bg-white p-5 shadow-[0_-2px_12px_rgba(0,0,0,0.08)]">
-        <form onSubmit={handleManualSubmit} className="mx-auto flex max-w-[480px] gap-2">
+        <form onSubmit={handleSubmit} className="mx-auto flex max-w-[480px] gap-2">
           <input
             type="text"
             inputMode="numeric"
@@ -180,9 +199,10 @@ export default function ScanPage() {
           />
           <button
             type="submit"
-            className="bg-[#9eca45] px-6 py-3 text-xs font-bold uppercase text-white shadow-[0_1px_1px_rgba(0,0,0,0.2)] transition-all hover:bg-[#333333]"
+            disabled={isNavigating || barcodeInput.trim().length === 0}
+            className="bg-[#9eca45] px-6 py-3 text-xs font-bold uppercase text-white shadow-[0_1px_1px_rgba(0,0,0,0.2)] transition-all hover:bg-[#333333] disabled:cursor-not-allowed disabled:bg-[#b8c59a]"
           >
-            Lookup
+            {isNavigating ? "Opening..." : "Lookup"}
           </button>
         </form>
       </div>
