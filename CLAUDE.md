@@ -82,7 +82,7 @@ Parses GS1 Application Identifiers from DataMatrix/GS1-128 barcodes. Extracts GT
 
 ### Styling
 
-Tailwind CSS v4 with Autexis corporate theme. Key colors: `#003a5d` (navy), `#9eca45` (green accent), `#424242` (body text), `#f7f9fa` (background). Font: Titillium Web. No border-radius (`rounded-none` throughout). See `docs/STYLEGUIDE.md`.
+Tailwind CSS v4 with Autexis corporate theme. Key colors: `#003a5d` (navy), `#9eca45` (green accent), `#424242` (body text), `#f7f9fa` (background). Font: Titillium Web. No border-radius (`rounded-none` throughout).
 
 ## Deployment
 

@@ -252,7 +252,6 @@ AWS EC2 (t3.small, Ubuntu 24.04)
 | Live App | [foodflighttracker.com](https://foodflighttracker.com) |
 | Documentation | [docs/](https://github.com/Nepomuk5665/food-flight-tracker/tree/main/docs) |
 | Architecture Decisions | [docs/DECISIONS.md](https://github.com/Nepomuk5665/food-flight-tracker/blob/main/docs/DECISIONS.md) |
-| Style Guide | [docs/STYLEGUIDE.md](https://github.com/Nepomuk5665/food-flight-tracker/blob/main/docs/STYLEGUIDE.md) |
 | Figma Mockup | [Figma](https://www.figma.com/design/4XAMeiD6nuGZ4HwsxqE1gT/Untitled?node-id=0-1&p=f) |
 
 ---

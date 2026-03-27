@@ -29,7 +29,7 @@
 |-------|--------|-----------|
 | Framework | Next.js 15 (App Router) | Full-stack, SSR, PWA-capable. Single deployable unit. |
 | Package Manager | pnpm | Workspace support if needed later, disk efficient. |
-| Styling | Tailwind CSS + shadcn/ui | Rapid development. Customized with Autexis theme (see STYLEGUIDE.md). |
+| Styling | Tailwind CSS + shadcn/ui | Rapid development. Customized with Autexis theme. |
 | Scanner | react-zxing | EAN-13, DataMatrix, QR support. React hooks API. Actively maintained. |
 | Maps | Mapbox GL JS (via react-map-gl) | Animated routes, 3D globe option, free tier (50k loads/mo). |
 | AI SDK | Vercel AI SDK (`@ai-sdk/openai-compatible`) | Provider-agnostic streaming, works with Cerebras. |
