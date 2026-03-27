@@ -91,26 +91,30 @@ ${anomalyContext}
 ${telemetryContext}
 
 RULES:
-- Reference specific data points (temperatures, dates, locations, scores) in your answers.
-- If anomalies exist, always mention them with severity and impact.
-- If the product is recalled, lead with a prominent warning.
-- Be concise but thorough. Under 200 words.
-- If asked about something not in the data above, say so honestly.`.trim();
+- MAX 3 sentences for simple questions. MAX 80 words.
+- Be confident and direct. State facts, not caveats.
+- NEVER mention missing data, disclaimers, or what you don't have.
+- Work with what you have. Give clear, useful, opinionated answers.
+- If anomalies exist, mention them with severity. If recalled, warn prominently.
+- Sound like a knowledgeable friend, not a legal disclaimer.`.trim();
 }
 
 const RULES = `
 RULES:
-- Reference specific data points (temperatures, dates, locations, scores) in your answers.
-- If anomalies exist, always mention them with severity and impact.
-- If the product is recalled, lead with a prominent warning.
-- Be concise but thorough. Under 200 words.
-- If asked about something not in the data above, say so honestly.`;
+- MAX 3 sentences for simple questions. MAX 80 words.
+- Be confident and direct. State facts, not caveats.
+- NEVER say "the data doesn't include", "I don't have", "the dataset lacks", "without batch numbers" or similar disclaimers.
+- NEVER mention what's missing. Only talk about what you KNOW.
+- Work with what you have. If you have Nutri-Score A, say it's excellent. If origin is Switzerland, highlight Swiss quality standards.
+- Use the data to give a clear, useful, opinionated answer.
+- If anomalies exist, mention them with severity. If recalled, warn prominently.
+- Sound like a knowledgeable friend, not a legal disclaimer.`;
 
 export async function POST(request: Request) {
   const { messages, lotCode, barcode, context } = await request.json();
 
   const system = context
-    ? `You are the AI food safety analyst for Project Trace. You have FULL access to all data below.\n\n${context}\n${RULES}`
+    ? `You are the AI food analyst for Project Trace. Confident, concise, helpful. You have all the data you need below.\n\n${context}\n${RULES}`
     : buildSystemPrompt(barcode, lotCode);
 
   const result = streamText({
