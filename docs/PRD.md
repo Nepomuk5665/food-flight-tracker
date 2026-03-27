@@ -132,6 +132,7 @@ food-flight-tracker/
 | LLM | OpenAI GPT-4o / GPT-4o-mini | Well-documented, fast to integrate |
 | Real-time | Native WebSocket (ws library) | Lightweight, full control |
 | Auth (Dashboard only) | Simple session/JWT | Single demo user, minimal implementation |
+| Product catalog | Open Food Facts API | Free, 3M+ products, real barcodes/images/names |
 
 ---
 
@@ -157,8 +158,9 @@ food-flight-tracker/
 - On successful scan: auto-navigates to product journey screen
 - Also supports manual entry: "Enter barcode manually" text input as fallback (accessibility)
 
-**Screen 1: Product Journey**
+**Screen 1a: Product Journey (tracked product)**
 - URL: `/product/{barcode}` (resolved from barcode scan or manual entry)
+- Shown when `tracked: true` — product is in our system with supply chain data
 - Hero element: Full-screen Mapbox map showing the product's geographic journey
 - Map pins at each supply chain stage, connected by route lines
 - Tapping a pin opens a metadata popup (see 5.1.2)
@@ -166,6 +168,15 @@ food-flight-tracker/
   - Product name + brand + image
   - Health status badge: `SAFE` (green) or `RECALLED` (red, pulsing)
   - "Report an Issue" button
+
+**Screen 1b: Product Info (untracked product)**
+- URL: `/product/{barcode}` (same URL, different view based on `tracked` flag)
+- Shown when `tracked: false` — product found via Open Food Facts but not in our supply chain system
+- Displays: product name, brand, image, Nutri-Score (A-E), Eco-Score, ingredients, allergens
+- All data from Open Food Facts — free, no manufacturer integration needed
+- Message: "This product is not yet tracked on Project Trace. Supply chain data will be available when the manufacturer joins our platform."
+- Still shows "Report an Issue" button (reports go to a general queue)
+- This screen alone is valuable to consumers (product info + nutri-score) and demonstrates the system works with ANY product
 
 **Screen 2: Pin Detail Popup (Map Overlay)**
 - Triggered by tapping a map pin
@@ -383,9 +394,16 @@ food-flight-tracker/
 #### 5.3.2 Key API Behaviors
 
 **Product Barcode Resolution (called after in-app barcode scan):**
+
+Resolution logic (3-tier fallback):
+1. Check local DB for barcode → if found, return product + active lot + journey
+2. If not in DB → query Open Food Facts API for product info (name, brand, image)
+3. If neither → return "Product not recognized"
+
 ```
 GET /api/products/4012345678901
 
+// Case 1: Product in our DB WITH supply chain data (demo products)
 Response:
 {
   "product": {
@@ -393,15 +411,69 @@ Response:
     "name": "Swiss Dark Chocolate 100g",
     "brand": "ChocoTrace",
     "category": "chocolate",
-    "imageUrl": "/images/chocolate.jpg"
+    "imageUrl": "/images/chocolate.jpg",
+    "source": "internal"
   },
   "activeLot": {
     "lotCode": "L6029479302",
-    "status": "active",        // "active" | "under_review" | "recalled"
+    "status": "active",
     "riskScore": 23,
     "journeyStages": 5
+  },
+  "tracked": true
+}
+
+// Case 2: Product found via Open Food Facts but NOT tracked in our system
+// (any real product a judge might scan)
+Response:
+{
+  "product": {
+    "barcode": "7622210449283",
+    "name": "Milka Alpine Milk Chocolate",
+    "brand": "Milka",
+    "category": "chocolates",
+    "imageUrl": "https://images.openfoodfacts.org/...",
+    "source": "open_food_facts",
+    "nutriScore": "E",
+    "ingredients": "Sugar, cocoa butter, ...",
+    "allergens": "milk, soy"
+  },
+  "activeLot": null,
+  "tracked": false,
+  "message": "This product is not yet tracked on our platform. Want to notify the manufacturer?"
+}
+
+// Case 3: Barcode not found anywhere
+Response:
+{
+  "success": false,
+  "error": {
+    "code": "PRODUCT_NOT_FOUND",
+    "message": "We don't recognize this barcode. Try scanning again or enter it manually."
   }
 }
+```
+
+**Open Food Facts Integration:**
+```
+// Backend calls OFF API when barcode not in local DB
+GET https://world.openfoodfacts.org/api/v2/product/{barcode}.json
+
+// Relevant fields extracted:
+{
+  product_name,
+  brands,
+  image_url,
+  nutriscore_grade,        // A-E score (bonus feature for free!)
+  ingredients_text,
+  allergens_tags,
+  categories,
+  ecoscore_grade,          // ecological impact score (another freebie)
+  countries_tags,
+  packaging
+}
+
+// Cache in local DB after first lookup to avoid repeated API calls
 ```
 
 **Batch Journey (with geographic data for map):**
@@ -562,6 +634,12 @@ CREATE TABLE products (
     brand           VARCHAR(255) NOT NULL,
     category        VARCHAR(50) NOT NULL,            -- 'chocolate', 'dairy'
     image_url       VARCHAR(500),
+    source          VARCHAR(20) DEFAULT 'internal',  -- 'internal' (our DB) | 'open_food_facts'
+    nutri_score     CHAR(1),                         -- A, B, C, D, E (from OFF)
+    eco_score       CHAR(1),                         -- A, B, C, D, E (from OFF)
+    ingredients     TEXT,                             -- ingredients list (from OFF)
+    allergens       JSONB DEFAULT '[]',              -- allergen tags (from OFF)
+    off_data        JSONB DEFAULT '{}',              -- raw Open Food Facts response (cache)
     created_at      TIMESTAMPTZ DEFAULT NOW()
 );
 ```
@@ -959,6 +1037,69 @@ Scenarios:
 - `normal-journey`: Clean data, no anomalies, shows happy path
 - `consumer-report-spike`: Simulates 3 consumer reports in quick succession
 - `full-demo`: Runs the complete pitch sequence automatically with pauses for narration
+
+### 5.8 Data Ingestion Architecture
+
+**Purpose:** Define how data enters the system — from product catalog to supply chain events. Three-tier ingestion model: public data, manufacturer data, live telemetry.
+
+#### 5.8.1 Tier 1: Product Catalog (Open Food Facts)
+
+Any barcode scanned by a consumer is looked up via the Open Food Facts API. This provides:
+- Product name, brand, image
+- Nutri-Score (A-E nutritional rating)
+- Eco-Score (environmental impact rating)
+- Ingredients list, allergens
+- Packaging info, country of origin
+
+This data is cached in the local `products` table after first lookup. ~3 million products available.
+
+**API:** `GET https://world.openfoodfacts.org/api/v2/product/{barcode}.json`
+**Latency:** ~200-500ms (cached after first call)
+**Cost:** Free, open-source, no API key required
+
+#### 5.8.2 Tier 2: Manufacturer Supply Chain Data (B2B Integration)
+
+This is the core B2B value. Manufacturers who use the platform provide:
+- Lot/batch codes linked to product barcodes
+- Supply chain stages (processing steps, locations, operators)
+- Batch lineage (merge/split relationships)
+
+**For hackathon:** Pre-populated via seed script for two demo products.
+**In production:** REST API or batch import from manufacturer's ERP/MES system. This is what Autexis would integrate.
+
+#### 5.8.3 Tier 3: Live Telemetry (IoT / Autexis)
+
+Real-time sensor data from the supply chain:
+- Temperature, humidity, pressure readings
+- Location/GPS tracking
+- Machine operational data
+
+**For hackathon:** Simulated via the telemetry simulator API (`POST /api/telemetry/events`).
+**In production:** MQTT or webhook integration with Autexis IoT platform and logistics providers.
+
+#### 5.8.4 Scan Resolution Flow
+
+```
+Consumer scans barcode
+         │
+         ▼
+    ┌─────────────┐     found?     ┌──────────────────────┐
+    │  Local DB    │ ──── yes ────> │ Return product +     │
+    │  Lookup      │                │ active lot + journey  │
+    └─────────────┘                └──────────────────────┘
+         │ no
+         ▼
+    ┌─────────────┐     found?     ┌──────────────────────┐
+    │  Open Food   │ ──── yes ────> │ Cache in local DB.   │
+    │  Facts API   │                │ Return product info   │
+    └─────────────┘                │ (no supply chain).    │
+         │ no                      │ Show Nutri/Eco-Score. │
+         ▼                         └──────────────────────┘
+    ┌─────────────┐
+    │  Not Found   │
+    │  "Try again" │
+    └─────────────┘
+```
 
 ---
 
