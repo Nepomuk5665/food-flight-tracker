@@ -1,37 +1,53 @@
-import type { UIMessage } from "ai";
-
-type ChatRequestBody = {
-  messages?: UIMessage[];
-};
-
-function getLatestUserMessage(messages: UIMessage[]): string {
-  const latest = [...messages].reverse().find((message) => message.role === "user");
-
-  if (!latest) {
-    return "";
-  }
-
-  const textPart = latest.parts.find((part) => part.type === "text");
-  return textPart?.type === "text" ? textPart.text : "";
-}
+import { streamText } from "ai";
+import { getChatModel } from "@/lib/ai/cerebras";
+import { getBatchJourney, getProductById } from "@/lib/db/queries";
 
 export async function POST(request: Request) {
-  const body = (await request.json()) as ChatRequestBody;
-  const incoming = getLatestUserMessage(body.messages ?? []);
-  const reply = incoming ? `Echo: ${incoming}` : "Echo: Ready to help with this product.";
+  const { messages, lotCode } = await request.json();
 
-  const encoder = new TextEncoder();
-  const stream = new ReadableStream({
-    start(controller) {
-      controller.enqueue(encoder.encode(`${reply}\n`));
-      controller.close();
-    },
+  let systemPrompt =
+    "You are a food safety assistant for Project Trace. You help consumers understand the journey and safety of food products. Keep answers under 150 words. Be honest about detected issues without unnecessary alarm.";
+
+  if (lotCode) {
+    const journey = getBatchJourney(lotCode);
+    if (journey) {
+      const product = getProductById(journey.batch.productId);
+
+      const anomalies = journey.stages
+        .flatMap((s) => s.anomalies)
+        .map((a) => `${a.anomalyType}: ${a.description} (severity: ${a.severity})`)
+        .join("\n");
+
+      const stagesSummary = journey.stages
+        .map((s) => `${s.sequenceOrder}. ${s.name} — ${s.locationName} (${s.startedAt})`)
+        .join("\n");
+
+      systemPrompt = `You are a food safety assistant for Project Trace.
+
+Product: ${product?.name ?? "Unknown"} by ${product?.brand ?? "Unknown"}
+Lot Code: ${journey.batch.lotCode}
+Status: ${journey.batch.status}
+Risk Score: ${journey.batch.riskScore}/100
+
+Supply Chain Journey:
+${stagesSummary}
+
+${anomalies ? `Anomalies Detected:\n${anomalies}` : "No anomalies detected."}
+
+Rules:
+- Only discuss THIS specific product and lot.
+- If status is "recalled", prominently warn the user.
+- Be honest about detected anomalies but avoid unnecessary alarm.
+- Keep answers under 150 words.
+- If asked something outside your data, say "I don't have that information for this product."`;
+    }
+  }
+
+  const result = streamText({
+    model: getChatModel(),
+    system: systemPrompt,
+    messages,
   });
 
-  return new Response(stream, {
-    headers: {
-      "Content-Type": "text/plain; charset=utf-8",
-      "Cache-Control": "no-cache",
-    },
-  });
+  return result.toTextStreamResponse();
 }

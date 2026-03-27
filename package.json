@@ -20,6 +20,7 @@
     "@ai-sdk/provider-utils": "^4.0.21",
     "@types/better-sqlite3": "^7.6.13",
     "ai": "^6.0.140",
+    "barcode-detector": "^3.1.1",
     "better-sqlite3": "^12.8.0",
     "drizzle-kit": "^0.31.10",
     "drizzle-orm": "^0.45.1",
@@ -30,7 +31,6 @@
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "react-map-gl": "^8.1.0",
-    "react-zxing": "^2.1.0",
     "zod": "^4.3.6",
     "zustand": "^5.0.12"
   },
@@ -44,6 +44,11 @@
     "tailwindcss": "^4",
     "tsx": "^4.21.0",
     "typescript": "^5"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "better-sqlite3"
+    ]
   },
   "packageManager": "pnpm@10.29.3+sha512.498e1fb4cca5aa06c1dcf2611e6fafc50972ffe7189998c409e90de74566444298ffe43e6cd2acdc775ba1aa7cc5e092a8b7054c811ba8c5770f84693d33d2dc"
 }

@@ -19,7 +19,8 @@ const SOURCE_LABELS = {
   merged: "Merged DB + OpenFoodFacts",
 } as const;
 
-const normalize = (value: string): string => value.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+const normalize = (value: string): string =>
+  value.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
 
 const toTitleCase = (value: string): string =>
   value.replace(/\b\w/g, (character) => character.toUpperCase());
@@ -44,7 +45,9 @@ const isAllergenIngredient = (ingredient: string, allergens: string[]): boolean 
 };
 
 const scoreBadgeClass = (score: string | null): string =>
-  score ? SCORE_STYLES[score] ?? "border-[#777777] bg-[#777777] text-white" : "border-[#dddddd] bg-white text-[#777777]";
+  score
+    ? SCORE_STYLES[score] ?? "border-[#777777] bg-[#777777] text-white"
+    : "border-[#dddddd] bg-white text-[#777777]";
 
 function ScoreCard({
   label,

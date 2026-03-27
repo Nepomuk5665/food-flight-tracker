@@ -17,7 +17,7 @@ export async function GET(_request: Request, context: ProductRouteContext) {
           success: false,
           error: {
             code: "PRODUCT_NOT_FOUND",
-            message: "Product not found",
+            message: `No product found for barcode ${barcode}`,
           },
         },
         { status: 404 },
