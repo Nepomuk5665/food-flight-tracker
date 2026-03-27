@@ -18,6 +18,7 @@ export default function ScanPage() {
   const rafRef = useRef<number>(0);
   const scanningRef = useRef(true);
   const retryCountRef = useRef(0);
+  const startingRef = useRef(false);
   const streamRef = useRef<MediaStream | null>(null);
 
   const [cameraState, setCameraState] = useState<CameraState>(() => {
@@ -119,6 +120,8 @@ export default function ScanPage() {
 
   /* ── Camera lifecycle ── */
   const startCamera = useCallback(async () => {
+    if (startingRef.current) return;
+    startingRef.current = true;
     setCameraState("loading");
 
     try {
@@ -148,22 +151,29 @@ export default function ScanPage() {
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
         await videoRef.current.play();
+        retryCountRef.current = 0;
+        startingRef.current = false;
         setCameraState("active");
       }
     } catch (err) {
       const e = err as Error;
       if (e.name === "NotAllowedError" || e.name === "PermissionDeniedError") {
+        startingRef.current = false;
         setCameraState("denied");
         setErrorMessage("Camera access was denied.");
-      } else {
-        retryCountRef.current += 1;
-        if (retryCountRef.current < 3) {
-          await new Promise((r) => setTimeout(r, 500 * retryCountRef.current));
-          return startCamera();
-        }
-        setCameraState("error");
-        setErrorMessage(e.message);
+        return;
       }
+      retryCountRef.current += 1;
+      if (retryCountRef.current < 3) {
+        await new Promise((r) => setTimeout(r, 500 * retryCountRef.current));
+        startingRef.current = false;
+        startCamera();
+        return;
+      }
+      retryCountRef.current = 0;
+      startingRef.current = false;
+      setCameraState("error");
+      setErrorMessage(e.message);
     }
   }, []);
 
