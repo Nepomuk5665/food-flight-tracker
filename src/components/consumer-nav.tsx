@@ -14,8 +14,8 @@ export function ConsumerNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-white">
-      <ul className="mx-auto grid w-full max-w-[480px] grid-cols-3">
+    <nav className="fixed bottom-4 left-1/2 z-50 -translate-x-1/2 rounded-full border border-[#E5E7EB] bg-white/80 px-3 py-2 shadow-lg backdrop-blur-xl">
+      <ul className="flex items-center gap-2">
         {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
           let isActive = false;
           if (href === "/products") {
@@ -28,17 +28,13 @@ export function ConsumerNav() {
             <li key={href}>
               <Link
                 href={href}
-                className={`flex flex-col items-center justify-center gap-1 border-r border-border-light px-2 py-2 text-xs font-semibold uppercase last:border-r-0 ${
-                  isActive
-                    ? "border-t-2 border-t-accent text-accent"
-                    : "border-t-2 border-t-transparent text-primary"
+                className={`relative flex min-w-[72px] flex-col items-center justify-center gap-1 rounded-full px-3 py-1.5 transition-colors ${
+                  isActive ? "text-[#16A34A]" : "text-[#9CA3AF]"
                 }`}
               >
-                <Icon
-                  className={`h-4 w-4 ${isActive ? "text-accent" : "text-accent"}`}
-                  aria-hidden="true"
-                />
-                <span>{label}</span>
+                <Icon className="h-5 w-5" aria-hidden="true" />
+                <span className="text-[10px] font-semibold leading-none">{label}</span>
+                {isActive ? <span className="mt-0.5 h-1.5 w-1.5 rounded-full bg-[#16A34A]" aria-hidden="true" /> : <span className="mt-0.5 h-1.5 w-1.5" aria-hidden="true" />}
               </Link>
             </li>
           );
