@@ -50,3 +50,6 @@ drizzle/
 *.tsbuildinfo
 next-env.d.ts
 npm-cache/
+
+# claude-flow
+.claude-flow/
