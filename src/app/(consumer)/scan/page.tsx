@@ -60,6 +60,7 @@ export default function ScanPage() {
   }, []);
 
   /* ── Barcode navigation ── */
+  const navigateRef = useRef<((raw: string) => void) | null>(null);
   const navigateTo = useCallback(
     (rawValue: string) => {
       if (isNavigating) return;
@@ -83,6 +84,7 @@ export default function ScanPage() {
     },
     [isNavigating, router],
   );
+  navigateRef.current = navigateTo;
 
   /* ── Image upload barcode detection ── */
   const handleImageUpload = useCallback(
@@ -166,7 +168,7 @@ export default function ScanPage() {
     scanningRef.current = true;
 
     function scan() {
-      if (!scanningRef.current || !detectorRef.current || !videoRef.current || isNavigating) return;
+      if (!scanningRef.current || !detectorRef.current || !videoRef.current) return;
       const video = videoRef.current;
       if (video.readyState < 2) {
         rafRef.current = requestAnimationFrame(scan);
@@ -179,7 +181,7 @@ export default function ScanPage() {
           if (barcodes.length > 0 && scanningRef.current) {
             const rawValue = barcodes[0]?.rawValue;
             if (rawValue) {
-              navigateTo(rawValue);
+              navigateRef.current?.(rawValue);
               return;
             }
           }
@@ -196,7 +198,7 @@ export default function ScanPage() {
       scanningRef.current = false;
       cancelAnimationFrame(rafRef.current);
     };
-  }, [cameraState, navigateTo, isNavigating]);
+  }, [cameraState]);
 
   /* ── Auto-start camera if gate was previously dismissed ── */
   useEffect(() => {
