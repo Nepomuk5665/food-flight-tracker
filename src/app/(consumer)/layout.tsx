@@ -3,7 +3,7 @@ import { Camera, Bell, MessageCircle, PackageSearch } from "lucide-react";
 
 const NAV_ITEMS = [
   { href: "/scan", label: "Scan", icon: Camera },
-  { href: "/product/demo-barcode", label: "Product", icon: PackageSearch },
+  { href: "/scan", label: "Product", icon: PackageSearch },
   { href: "/chat", label: "Chat", icon: MessageCircle },
   { href: "/alerts", label: "Alerts", icon: Bell },
 ] as const;
