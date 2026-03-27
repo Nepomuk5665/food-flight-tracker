@@ -41,7 +41,7 @@ export default function MobileGate({ children }: { children: React.ReactNode }) 
           </p>
           <Link
             href="/overview"
-            className="mt-2 inline-block bg-[#003a5d] px-6 py-3 text-xs font-bold uppercase text-white shadow-[0_1px_1px_rgba(0,0,0,0.2)] transition-all hover:bg-[#9eca45]"
+            className="mt-2 inline-block border-2 border-[#003a5d] bg-white px-6 py-3 text-xs font-bold uppercase text-[#003a5d] shadow-[0_1px_1px_rgba(0,0,0,0.2)] transition-all hover:bg-[#003a5d] hover:text-white"
           >
             Open QA Dashboard
           </Link>
