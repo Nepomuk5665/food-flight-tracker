@@ -60,21 +60,17 @@ const parseJsonArray = (value?: string | null): string[] => {
   return [];
 };
 
-async function lookupOpenFoodFacts(barcode: string, allowFailure: boolean) {
+async function lookupOpenFoodFacts(barcode: string) {
   try {
     return await getOpenFoodFactsProduct(barcode);
-  } catch (error) {
-    if (allowFailure) {
-      return null;
-    }
-
-    throw error;
+  } catch {
+    return null;
   }
 }
 
 export async function resolveProductDetails(barcode: string): Promise<ResolvedProductDetails | null> {
   const internalProduct = getProductByBarcode(barcode);
-  const offProduct = await lookupOpenFoodFacts(barcode, Boolean(internalProduct));
+  const offProduct = await lookupOpenFoodFacts(barcode);
 
   if (!internalProduct && !offProduct) {
     return null;
