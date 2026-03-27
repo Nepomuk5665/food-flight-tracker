@@ -137,7 +137,7 @@ export default function BatchDetailPage({ params }: BatchDetailPageProps) {
               className={`whitespace-nowrap border-b-2 px-1 pb-4 text-sm font-bold uppercase tracking-wider transition-colors ${
                 activeTab === tab
                   ? "border-[#9eca45] text-[#003a5d]"
-                  : "border-transparent text-[#777777] hover:text-[#060606]"
+                  : "border-transparent text-[#424242] hover:text-[#003a5d]"
               }`}
             >
               {tab}

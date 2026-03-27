@@ -30,7 +30,7 @@ export function TabToggle({ activeTab, onTabChange, hiddenTabs = [] }: TabToggle
               className={`flex flex-1 items-center justify-center gap-1.5 py-3 text-xs font-bold uppercase tracking-wide transition-colors ${
                 isActive
                   ? "border-b-2 border-accent text-primary"
-                  : "border-b-2 border-transparent text-[#999999] hover:text-body"
+                  : "border-b-2 border-transparent text-muted hover:text-body"
               }`}
               aria-current={isActive ? "page" : undefined}
             >
