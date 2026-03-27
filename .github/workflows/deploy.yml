@@ -50,13 +50,14 @@ jobs:
 
           ssh -o StrictHostKeyChecking=no -i /tmp/deploy_key $EC2_USER@$EC2_HOST << 'DEPLOY_SCRIPT'
             set -e
+            export PATH="/usr/local/bin:$PATH"
 
             aws ecr get-login-password --region eu-west-2 | docker login --username AWS --password-stdin 445849136002.dkr.ecr.eu-west-2.amazonaws.com
 
             cd ~/app
 
-            docker compose pull nextjs 2>/dev/null || true
-            docker compose up -d
+            docker compose pull nextjs
+            docker compose up -d --remove-orphans
 
             echo "Deployment complete"
           DEPLOY_SCRIPT
