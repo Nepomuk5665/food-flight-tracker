@@ -156,6 +156,20 @@ export default function JourneyPage() {
 
       <AiInsights
         lotCode={lotCode}
+        context={[
+          `BATCH: ${payload.batch.lotCode} (${payload.batch.productName})`,
+          `Status: ${payload.batch.status}, Risk Score: ${payload.batch.riskScore}/100`,
+          `\nJOURNEY (${payload.journey.length} stages):`,
+          ...payload.journey.map((s) =>
+            `${s.sequenceOrder}. [${s.type}] ${s.name} — ${s.location.name}${s.anomalies.length > 0 ? ` ⚠ ${s.anomalies.length} anomal${s.anomalies.length === 1 ? "y" : "ies"}` : ""}`
+          ),
+          ...(payload.journey.some((s) => s.anomalies.length > 0) ? [
+            `\nANOMALIES:`,
+            ...payload.journey.flatMap((s) =>
+              s.anomalies.map((a) => `- [${a.severity.toUpperCase()}] ${a.type}: ${a.description}`)
+            ),
+          ] : []),
+        ].join("\n")}
         autoPrompt="Analyze this supply chain journey. Summarize the route, flag any anomalies or risks, and give an overall safety assessment."
         suggestions={[
           "Is there a cold chain issue?",

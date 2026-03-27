@@ -6,13 +6,14 @@ import { Sparkles, Send, ChevronDown } from "lucide-react";
 type Props = {
   lotCode?: string;
   barcode?: string;
+  context?: string;
   autoPrompt?: string;
   suggestions?: string[];
 };
 
 type Message = { role: "user" | "assistant"; content: string };
 
-export default function AiInsights({ lotCode, barcode, autoPrompt, suggestions = [] }: Props) {
+export default function AiInsights({ lotCode, barcode, context, autoPrompt, suggestions = [] }: Props) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [streaming, setStreaming] = useState(false);
@@ -45,7 +46,7 @@ export default function AiInsights({ lotCode, barcode, autoPrompt, suggestions =
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: apiMessages, lotCode, barcode }),
+        body: JSON.stringify({ messages: apiMessages, lotCode, barcode, context }),
       });
 
       if (!res.ok || !res.body) {

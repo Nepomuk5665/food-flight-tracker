@@ -126,6 +126,23 @@ export default async function ProductPage({ params }: ProductPageProps) {
   const { product, activeLot, supplyChain } = productDetails;
   const canGenerateJourney = Boolean(activeLot || product.inferredOrigins.length > 0);
 
+  const aiContext = [
+    `PRODUCT: ${product.name} by ${product.brand}`,
+    `Barcode: ${barcode}`,
+    `Source: ${product.source}`,
+    product.nutriScore ? `Nutri-Score: ${product.nutriScore}` : null,
+    product.ecoScore ? `Eco-Score: ${product.ecoScore}` : null,
+    product.ingredients.length > 0 ? `Ingredients: ${product.ingredients.join(", ")}` : null,
+    product.allergens.length > 0 ? `Allergens: ${product.allergens.join(", ")}` : null,
+    product.labels.length > 0 ? `Labels: ${product.labels.join(", ")}` : null,
+    product.origins.length > 0 ? `Declared Origins: ${product.origins.join(", ")}` : null,
+    product.manufacturingPlaces.length > 0 ? `Manufacturing: ${product.manufacturingPlaces.join(", ")}` : null,
+    product.inferredOrigins.length > 0 ? `Inferred Origins: ${product.inferredOrigins.map((o) => `${o.ingredient} → ${o.country}`).join(", ")}` : null,
+    activeLot ? `\nBATCH: ${activeLot.lotCode} (Status: ${activeLot.status}, Risk: ${activeLot.riskScore}/100)` : null,
+    supplyChain.length > 0 ? `\nSUPPLY CHAIN (${supplyChain.length} stages):\n${supplyChain.map((s) => `${s.sequenceOrder}. [${s.type}] ${s.name} — ${s.location.name}`).join("\n")}` : null,
+    supplyChain.some((s) => s.anomalies.length > 0) ? `\nANOMALIES:\n${supplyChain.flatMap((s) => s.anomalies.map((a) => `- [${a.severity.toUpperCase()}] ${a.type}: ${a.description}`)).join("\n")}` : null,
+  ].filter(Boolean).join("\n");
+
    return (
     <section className="space-y-4 font-sans">
       <SaveToHistory
@@ -270,6 +287,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
       <AiInsights
         barcode={barcode}
         lotCode={activeLot?.lotCode}
+        context={aiContext}
         autoPrompt={`Give a brief safety summary for this product${activeLot ? " including its supply chain status" : ""}. Mention any concerns.`}
         suggestions={[
           "Is this safe to eat?",

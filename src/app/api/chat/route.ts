@@ -98,12 +98,24 @@ RULES:
 - If asked about something not in the data above, say so honestly.`.trim();
 }
 
+const RULES = `
+RULES:
+- Reference specific data points (temperatures, dates, locations, scores) in your answers.
+- If anomalies exist, always mention them with severity and impact.
+- If the product is recalled, lead with a prominent warning.
+- Be concise but thorough. Under 200 words.
+- If asked about something not in the data above, say so honestly.`;
+
 export async function POST(request: Request) {
-  const { messages, lotCode, barcode } = await request.json();
+  const { messages, lotCode, barcode, context } = await request.json();
+
+  const system = context
+    ? `You are the AI food safety analyst for Project Trace. You have FULL access to all data below.\n\n${context}\n${RULES}`
+    : buildSystemPrompt(barcode, lotCode);
 
   const result = streamText({
     model: getChatModel(),
-    system: buildSystemPrompt(barcode, lotCode),
+    system,
     messages,
   });
 
