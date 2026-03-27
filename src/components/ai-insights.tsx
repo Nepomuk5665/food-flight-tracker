@@ -130,7 +130,7 @@ export default function AiInsights({ lotCode, barcode, context, autoPrompt, sugg
   const showLoader = streaming && messages.length === 0;
 
   return (
-    <div className="fixed inset-x-0 top-[100px] bottom-[72px] z-[55] flex flex-col bg-[#FAFAF8]">
+    <div className="fixed inset-x-0 top-[100px] bottom-[82px] z-[55] flex flex-col bg-[#FAFAF8]">
       <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-2">
         <div className="mx-auto max-w-lg space-y-2">
           {showLoader && (
