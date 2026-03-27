@@ -1,4 +1,4 @@
-import Image from "next/image";
+
 import type { ResolvedProduct } from "@/lib/product/resolve";
 import type { JourneyStage } from "@/lib/types";
 import { ProductPlaceholder } from "@/components/product/ProductPlaceholder";
@@ -123,15 +123,13 @@ export function ProductInfo({ product, activeLot, supplyChain }: ProductInfoProp
         </div>
       </header>
 
-      <div className="grid gap-4 border border-border bg-white p-4 rounded-none sm:grid-cols-[140px_1fr]">
-        <div className="relative min-h-[140px] overflow-hidden border border-border bg-surface">
+      <div className="grid gap-4 border border-border bg-white p-4 rounded-none sm:grid-cols-[180px_1fr]">
+        <div className="flex min-h-[180px] items-center justify-center overflow-hidden border border-border bg-white p-2">
           {product.imageUrl ? (
-            <Image
+            <img
               src={product.imageUrl}
               alt={product.name}
-              fill
-              sizes="(min-width: 640px) 140px, 100vw"
-              className="object-cover"
+              className="max-h-[180px] w-auto object-contain"
             />
           ) : (
             <ProductPlaceholder name={product.name} category={product.category} />
