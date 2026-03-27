@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, AlertCircle, Zap } from "lucide-react";
+import { ArrowLeft, AlertCircle } from "lucide-react";
 import Link from "next/link";
 import { parseGS1 } from "@/lib/scanner/gs1-parser";
 
@@ -16,7 +16,6 @@ export default function ScanPage() {
 
   const [error, setError] = useState<string | null>(null);
   const [barcodeInput, setBarcodeInput] = useState("");
-  const [fps, setFps] = useState(0);
   const [ready, setReady] = useState(false);
 
   const handleDetection = useCallback(
@@ -45,8 +44,6 @@ export default function ScanPage() {
 
   useEffect(() => {
     let stream: MediaStream | null = null;
-    let frameCount = 0;
-    let lastFpsTime = performance.now();
 
     async function init() {
       try {
@@ -93,14 +90,6 @@ export default function ScanPage() {
       try {
         const barcodes = await detectorRef.current.detect(video);
 
-        frameCount++;
-        const now = performance.now();
-        if (now - lastFpsTime >= 1000) {
-          setFps(frameCount);
-          frameCount = 0;
-          lastFpsTime = now;
-        }
-
         if (barcodes.length > 0 && scanningRef.current) {
           handleDetection(barcodes[0].rawValue);
           return;
@@ -139,13 +128,6 @@ export default function ScanPage() {
           <ArrowLeft className="h-5 w-5" />
         </Link>
       </div>
-
-      {ready && (
-        <div className="absolute right-4 top-4 z-20 flex items-center gap-1.5 bg-black/60 px-3 py-1.5 text-[10px] font-bold uppercase text-[#9eca45] backdrop-blur-sm">
-          <Zap className="h-3 w-3" />
-          {fps} FPS
-        </div>
-      )}
 
       <div className="relative flex-1">
         {error ? (
