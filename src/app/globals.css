@@ -1,106 +1,65 @@
 @import "tailwindcss";
 
-/* ============================================
-   AUTEXIS DESIGN SYSTEM — Tailwind CSS v4
-   Source: autexis.com/data/theme/css/style.css
-   ============================================ */
-
 @theme {
-  /* Primary brand */
-  --color-primary: #003a5d;
+  --color-background: #fafaf8;
+  --color-card: #ffffff;
+  --color-foreground: #1a1a1a;
+  --color-body: #374151;
+  --color-muted: #9ca3af;
+  --color-secondary: #6b7280;
+  --color-border: #e5e7eb;
+  --color-surface: #f3f4f6;
+  --color-primary: #16a34a;
   --color-primary-foreground: #ffffff;
-
-  /* Accent */
-  --color-accent: #9eca45;
+  --color-accent: #16a34a;
   --color-accent-foreground: #ffffff;
-  --color-accent-hover: #8bb83a;
-
-  /* Sub-brands */
-  --color-brand-control: #009ee3;
-  --color-brand-it: #3fa435;
-
-  /* Neutrals */
-  --color-foreground: #060606;
-  --color-body: #424242;
-  --color-muted: #777777;
-  --color-border: #dddddd;
-  --color-border-light: #eeeeee;
-  --color-surface: #f7f9fa;
-  --color-surface-dim: #f0f2f5;
-  --color-surface-alt: #f8f8f8;
-  --color-background: #ffffff;
-
-  /* Semantic */
-  --color-success: #3fa435;
+  --color-accent-hover: #15803d;
+  --color-success: #16a34a;
   --color-warning: #f59e0b;
   --color-danger: #dc2626;
-  --color-info: #009ee3;
-
-  /* Risk levels */
-  --color-risk-safe: #3fa435;
+  --color-info: #3b82f6;
+  --color-risk-safe: #16a34a;
   --color-risk-monitor: #f59e0b;
   --color-risk-review: #ea580c;
   --color-risk-critical: #dc2626;
-
-  /* Typography */
   --font-sans: var(--font-titillium), "Titillium Web", sans-serif;
-
-  /* Shadows */
-  --shadow-button: 0 1px 1px rgba(0, 0, 0, 0.2);
-  --shadow-nav: rgba(0, 0, 0, 0.118) 0 1px 3px;
-
-  /* Border radius — ZERO everywhere (Autexis design principle) */
-  --radius-sm: 0px;
-  --radius-md: 0px;
-  --radius-lg: 0px;
-  --radius-xl: 0px;
-  --radius-2xl: 0px;
-  --radius-3xl: 0px;
-  --radius-4xl: 0px;
-
-  /* Container */
-  --container-max-width: 1170px;
+  --shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.06);
+  --shadow-md: 0 10px 24px rgba(15, 23, 42, 0.1);
+  --shadow-lg: 0 18px 40px rgba(15, 23, 42, 0.12);
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 20px;
 }
 
-/* Text selection (Autexis: #fefac7 yellow) */
 ::selection {
-  background-color: #fefac7;
-  color: #555555;
+  background-color: #dcfce7;
+  color: #1a1a1a;
 }
 
 ::-moz-selection {
-  background-color: #fefac7;
-  color: #555555;
+  background-color: #dcfce7;
+  color: #1a1a1a;
 }
 
-/* Base styles */
 body {
   background: var(--color-background);
   color: var(--color-body);
   font-family: var(--font-sans);
   font-size: 16px;
-  line-height: 24px;
+  line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -webkit-text-size-adjust: 100%;
 }
 
-/* Headings */
 h1, h2, h3, h4, h5, h6 {
   color: var(--color-foreground);
   font-family: var(--font-sans);
-  font-weight: 400;
+  font-weight: 600;
   margin: 0;
 }
 
-h2 {
-  font-weight: 700;
-}
-
-h3 {
-  font-weight: 700;
-}
-
-/* Links */
 a {
   color: var(--color-primary);
   transition: all 200ms ease-in;
@@ -112,41 +71,31 @@ a:focus {
   text-decoration: none;
 }
 
-/* Section divider (Autexis pattern) */
-.section-divider {
-  display: inline-block;
-  width: 70px;
-  height: 1px;
-  border-top: 1px solid #bbb;
-  margin: 0 auto;
-}
-
 .ai-prose p { margin-top: 0.5rem; margin-bottom: 0.5rem; }
 .ai-prose p:first-child { margin-top: 0; }
 .ai-prose p:last-child { margin-bottom: 0; }
-.ai-prose strong { color: var(--color-primary); font-weight: 700; }
-.ai-prose em { font-style: italic; color: #555555; }
+.ai-prose strong { color: #1a1a1a; font-weight: 700; }
+.ai-prose em { font-style: italic; color: var(--color-secondary); }
 .ai-prose ul { margin: 0.5rem 0; padding-left: 1.25rem; list-style-type: disc; }
 .ai-prose ol { margin: 0.5rem 0; padding-left: 1.25rem; list-style-type: decimal; }
 .ai-prose li { margin: 0.25rem 0; }
 .ai-prose li > p { margin: 0; display: inline; }
 .ai-prose h1, .ai-prose h2, .ai-prose h3, .ai-prose h4 {
-  color: var(--color-primary);
+  color: var(--color-foreground);
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.025em;
   margin-top: 0.75rem;
   margin-bottom: 0.25rem;
 }
 .ai-prose h3 { font-size: 0.8125rem; }
 .ai-prose h4 { font-size: 0.75rem; }
 .ai-prose code {
-  background: var(--color-surface-dim);
+  background: var(--color-surface);
   border: 1px solid var(--color-border);
   padding: 0.125rem 0.375rem;
   font-size: 0.75rem;
+  border-radius: var(--radius-sm);
 }
-.ai-prose hr { border-color: var(--color-border-light); margin: 0.75rem 0; }
+.ai-prose hr { border-color: var(--color-border); margin: 0.75rem 0; }
 
 @keyframes shimmer {
   0% { transform: translateX(-100%); }

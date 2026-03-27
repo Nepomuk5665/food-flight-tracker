@@ -11,6 +11,7 @@ import { MapTab } from "@/components/product/MapTab";
 import AiInsights from "@/components/ai-insights";
 import SaveToHistory from "./save-to-history";
 import { useJourneyData } from "@/hooks/use-journey-data";
+import { useLineageData } from "@/hooks/use-lineage-data";
 import type { ResolvedProduct } from "@/lib/product/resolve";
 import type { JourneyStage } from "@/lib/types";
 
@@ -45,6 +46,7 @@ export default function ProductTabs({
   const activeTab: TabId = isValidTab(rawTab) ? rawTab : "info";
 
   const journey = useJourneyData(barcode, supplyChain, activeLot, product.name);
+  const lineage = useLineageData(activeLot?.lotCode, journey.payload?.journey ?? []);
 
   const handleTabChange = useCallback(
     (tab: TabId) => {
@@ -130,6 +132,7 @@ export default function ProductTabs({
           loading={journey.loading}
           error={journey.error}
           canGenerate={canGenerateJourney}
+          lineageTree={lineage.tree}
           onBack={() => handleTabChange("info")}
           onGenerate={journey.generate}
         />

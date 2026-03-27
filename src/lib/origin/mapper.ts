@@ -151,10 +151,6 @@ export function buildJourney(origins: OriginResult[], manufacturingPlace?: strin
         "transport",
         `Transport ${origin.country} → ${manufacturing.name}`,
         { name: `In transit to ${manufacturing.name}`, lat: manufacturing.lat, lng: manufacturing.lng },
-        [
-          [lat, lng],
-          [manufacturing.lat, manufacturing.lng],
-        ],
       ),
     );
   }

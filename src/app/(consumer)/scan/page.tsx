@@ -251,7 +251,7 @@ export default function ScanPage() {
     return (
       <div className="fixed inset-x-0 top-0 bottom-[52px] z-40 flex flex-col items-center justify-center bg-surface px-8 text-center">
         {fileInput}
-        <div className="flex h-20 w-20 items-center justify-center bg-primary">
+        <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-[#16A34A] shadow-sm">
           <Camera className="h-10 w-10 text-white" />
         </div>
         <h1 className="mt-6 text-xl font-bold text-[#060606]">Scan a Barcode</h1>
@@ -260,7 +260,7 @@ export default function ScanPage() {
         </p>
         <button
           onClick={handleAllowCamera}
-          className="mt-8 w-full max-w-[280px] bg-accent px-6 py-3.5 text-sm font-bold uppercase text-white shadow-button transition-colors hover:bg-accent-hover"
+          className="mt-8 w-full max-w-[280px] rounded-xl bg-[#16A34A] px-6 py-3.5 text-sm font-bold uppercase text-white shadow-sm transition-colors hover:bg-[#15803D]"
         >
           Allow Camera
         </button>
@@ -303,7 +303,7 @@ export default function ScanPage() {
     return (
       <div className="fixed inset-x-0 top-0 bottom-[52px] z-40 flex flex-col items-center justify-center bg-surface px-8 text-center">
         {fileInput}
-        <div className="flex h-20 w-20 items-center justify-center bg-danger">
+        <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-danger shadow-sm">
           <CameraOff className="h-10 w-10 text-white" />
         </div>
         <h1 className="mt-6 text-xl font-bold text-[#060606]">
@@ -317,7 +317,7 @@ export default function ScanPage() {
         <button
           onClick={() => fileInputRef.current?.click()}
           disabled={scanningImage || isNavigating}
-          className="mt-8 flex w-full max-w-[280px] items-center justify-center gap-2 bg-accent px-6 py-3.5 text-sm font-bold uppercase text-white shadow-button transition-colors hover:bg-accent-hover disabled:bg-[#b8c59a]"
+          className="mt-8 flex w-full max-w-[280px] items-center justify-center gap-2 rounded-xl bg-[#16A34A] px-6 py-3.5 text-sm font-bold uppercase text-white shadow-sm transition-colors hover:bg-[#15803D] disabled:bg-[#86efac]"
         >
           <Upload className="h-4 w-4" />
           {scanningImage ? "Scanning..." : "Upload Barcode Photo"}
@@ -362,7 +362,7 @@ export default function ScanPage() {
       {/* Drawer toggle button — upper right */}
       <button
         onClick={() => setDrawerOpen(true)}
-        className="absolute right-4 top-4 z-20 flex h-10 w-10 items-center justify-center bg-black/60 text-white backdrop-blur-sm transition-colors hover:bg-accent"
+        className="absolute right-4 top-4 z-20 flex h-10 w-10 items-center justify-center rounded-xl bg-black/60 text-white backdrop-blur-sm transition-colors hover:bg-[#16A34A]"
         aria-label="Enter barcode manually"
       >
         <Keyboard className="h-5 w-5" />
@@ -373,7 +373,7 @@ export default function ScanPage() {
         <button
           onClick={() => fileInputRef.current?.click()}
           disabled={scanningImage}
-          className="absolute right-16 top-4 z-20 flex items-center gap-1.5 bg-black/60 px-3 py-2.5 text-[10px] font-bold uppercase text-white backdrop-blur-sm transition-colors hover:bg-accent"
+          className="absolute right-16 top-4 z-20 flex items-center gap-1.5 rounded-xl bg-black/60 px-3 py-2.5 text-[10px] font-bold uppercase text-white backdrop-blur-sm transition-colors hover:bg-[#16A34A]"
         >
           <Upload className="h-3.5 w-3.5" />
           Upload
@@ -476,7 +476,7 @@ function ManualInputDrawer({
       {/* Drawer */}
       <div
         ref={drawerRef}
-        className={`fixed inset-x-0 bottom-[52px] z-50 bg-white px-5 pb-6 pt-3 shadow-[0_-4px_24px_rgba(0,0,0,0.12)] transition-transform duration-200 ease-out ${
+        className={`fixed inset-x-0 bottom-[52px] z-50 rounded-t-2xl bg-white px-5 pb-6 pt-3 shadow-[0_-4px_24px_rgba(0,0,0,0.12)] transition-transform duration-200 ease-out ${
           open ? "translate-y-0" : "translate-y-full"
         }`}
         onTouchStart={onTouchStart}
@@ -491,7 +491,7 @@ function ManualInputDrawer({
         {/* Close button */}
         <button
           onClick={onClose}
-          className="absolute right-4 top-3 flex h-8 w-8 items-center justify-center text-muted transition-colors hover:text-[#060606]"
+          className="absolute right-4 top-3 flex h-8 w-8 items-center justify-center rounded-xl text-muted transition-colors hover:bg-surface hover:text-[#060606]"
           aria-label="Close"
         >
           <X className="h-4 w-4" />
@@ -507,12 +507,12 @@ function ManualInputDrawer({
             value={value}
             onChange={(e) => onChange(e.target.value)}
             placeholder="e.g. 4012345000019 or (01)04012345..."
-            className="flex-1 border border-border bg-white px-4 py-3 text-sm text-body outline-none transition-colors focus:border-accent"
+            className="flex-1 rounded-xl border border-border bg-white px-4 py-3 text-sm text-body outline-none transition-colors focus:border-[#16A34A]"
           />
           <button
             type="submit"
             disabled={isNavigating || value.trim().length === 0}
-            className="bg-accent px-5 py-3 text-xs font-bold uppercase text-white shadow-button transition-colors hover:bg-accent-hover disabled:bg-[#b8c59a]"
+            className="rounded-xl bg-[#16A34A] px-5 py-3 text-xs font-bold uppercase text-white shadow-sm transition-colors hover:bg-[#15803D] disabled:bg-[#86efac]"
           >
             {isNavigating ? "..." : "Go"}
           </button>

@@ -1,6 +1,6 @@
 "use client";
 
-import { Info, Map, MessageCircle } from "lucide-react";
+import { Info, Map } from "lucide-react";
 
 export type TabId = "info" | "map" | "chat";
 
@@ -13,24 +13,23 @@ type TabToggleProps = {
 const TABS: { id: TabId; label: string; icon: typeof Info }[] = [
   { id: "info", label: "Info", icon: Info },
   { id: "map", label: "Map", icon: Map },
-  { id: "chat", label: "Chat", icon: MessageCircle },
 ];
 
 export function TabToggle({ activeTab, onTabChange, hiddenTabs = [] }: TabToggleProps) {
   const visibleTabs = TABS.filter((t) => !hiddenTabs.includes(t.id));
   return (
-    <div className="sticky top-0 z-20 -mx-4 mb-4 border-b border-border bg-white px-4">
-      <div className="flex">
+    <div className="sticky top-0 z-20 mb-4 bg-background py-1">
+      <div className="inline-flex rounded-full bg-[#F3F4F6] p-1">
         {visibleTabs.map(({ id, label, icon: Icon }) => {
           const isActive = activeTab === id;
           return (
             <button
               key={id}
               onClick={() => onTabChange(id)}
-              className={`flex flex-1 items-center justify-center gap-1.5 py-3 text-xs font-bold uppercase tracking-wide transition-colors ${
+              className={`flex min-w-[92px] items-center justify-center gap-1.5 rounded-full px-4 py-2 text-xs font-semibold tracking-wide transition-colors ${
                 isActive
-                  ? "border-b-2 border-accent text-primary"
-                  : "border-b-2 border-transparent text-muted hover:text-body"
+                  ? "bg-white text-foreground shadow-sm"
+                  : "text-[#9CA3AF] hover:text-body"
               }`}
               aria-current={isActive ? "page" : undefined}
             >
