@@ -1,10 +1,9 @@
 import Link from "next/link";
-import { Camera, Bell, PackageSearch, Sparkles } from "lucide-react";
+import { Camera, Bell, PackageSearch } from "lucide-react";
 
 const NAV_ITEMS = [
   { href: "/scan", label: "Scan", icon: Camera },
   { href: "/products", label: "Products", icon: PackageSearch },
-  { href: "/chat", label: "AI", icon: Sparkles },
   { href: "/alerts", label: "Alerts", icon: Bell },
 ] as const;
 
@@ -18,7 +17,7 @@ export default function ConsumerLayout({
       <main className="mx-auto w-full max-w-[480px] px-4 pb-24 pt-4">{children}</main>
 
       <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-[#dddddd] bg-white">
-        <ul className="mx-auto grid w-full max-w-[480px] grid-cols-4">
+        <ul className="mx-auto grid w-full max-w-[480px] grid-cols-3">
           {NAV_ITEMS.map(({ href, label, icon: Icon }) => (
             <li key={href}>
               <Link

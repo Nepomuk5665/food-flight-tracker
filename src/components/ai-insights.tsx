@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import { Sparkles, Send, Loader2 } from "lucide-react";
+import { useState, useRef, useEffect, useCallback } from "react";
+import { Sparkles, Send, ChevronDown } from "lucide-react";
 
 type Props = {
   lotCode?: string;
@@ -15,9 +15,12 @@ type Message = { role: "user" | "assistant"; content: string };
 export default function AiInsights({ lotCode, barcode, autoPrompt, suggestions = [] }: Props) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [streaming, setStreaming] = useState(false);
   const [autoFired, setAutoFired] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const messagesRef = useRef<Message[]>([]);
+
+  messagesRef.current = messages;
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -25,56 +28,55 @@ export default function AiInsights({ lotCode, barcode, autoPrompt, suggestions =
     }
   }, [messages]);
 
-  const sendMessage = async (text: string, showAsUser: boolean) => {
-    if (loading) return;
+  const sendMessage = useCallback(async (text: string, visible: boolean) => {
+    if (streaming) return;
+    setStreaming(true);
 
-    const userMsg: Message = { role: "user", content: text };
-    const updated = showAsUser ? [...messages, userMsg] : messages;
-    if (showAsUser) setMessages(updated);
-    setLoading(true);
+    const current = messagesRef.current;
+    const withUser = visible ? [...current, { role: "user" as const, content: text }] : current;
+    if (visible) setMessages(withUser);
+
+    const apiMessages = [
+      ...withUser.map((m) => ({ role: m.role, content: m.content })),
+      ...(visible ? [] : [{ role: "user" as const, content: text }]),
+    ];
 
     try {
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          messages: [...updated.map((m) => ({ role: m.role, content: m.content })), ...(showAsUser ? [] : [{ role: "user", content: text }])],
-          lotCode,
-          barcode,
-        }),
+        body: JSON.stringify({ messages: apiMessages, lotCode, barcode }),
       });
 
       if (!res.ok || !res.body) {
-        setMessages((prev) => [...prev, { role: "assistant", content: "Unable to analyze right now." }]);
+        const errMsg: Message = { role: "assistant", content: "Unable to analyze right now." };
+        setMessages([...withUser, errMsg]);
         return;
       }
 
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
-      let result = "";
-      const base = showAsUser ? updated : messages;
-      setMessages([...base, { role: "assistant", content: "" }]);
+      let streamed = "";
 
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
-        result += decoder.decode(value, { stream: true });
-        setMessages([...base, { role: "assistant", content: result }]);
+        streamed += decoder.decode(value, { stream: true });
+        setMessages([...withUser, { role: "assistant", content: streamed }]);
       }
     } catch {
       setMessages((prev) => [...prev, { role: "assistant", content: "Connection error." }]);
     } finally {
-      setLoading(false);
+      setStreaming(false);
     }
-  };
+  }, [streaming, lotCode, barcode]);
 
   useEffect(() => {
     if (autoPrompt && !autoFired) {
       setAutoFired(true);
       sendMessage(autoPrompt, false);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [autoPrompt, autoFired]);
+  }, [autoPrompt, autoFired, sendMessage]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -84,51 +86,88 @@ export default function AiInsights({ lotCode, barcode, autoPrompt, suggestions =
     sendMessage(text, true);
   };
 
+  const isFirstLoad = messages.length <= 1 && streaming;
+  const lastMsg = messages[messages.length - 1];
+  const isLastStreaming = streaming && lastMsg?.role === "assistant";
+
   return (
-    <div className="border border-[#dddddd] bg-white">
-      <div className="flex items-center gap-2 border-b border-[#dddddd] bg-[#003a5d] px-4 py-2.5">
-        <Sparkles className="h-4 w-4 text-[#9eca45]" />
-        <span className="text-xs font-bold uppercase tracking-wide text-white">AI Analysis</span>
+    <div className="overflow-hidden border border-[#dddddd] bg-[#fafbfc]">
+      <div className="flex items-center gap-2 bg-[#003a5d] px-4 py-2.5">
+        <div className="relative flex h-5 w-5 items-center justify-center">
+          <Sparkles className={`h-4 w-4 text-[#9eca45] ${streaming ? "animate-pulse" : ""}`} />
+          {streaming && (
+            <>
+              <span className="absolute inset-0 animate-ping rounded-full bg-[#9eca45]/30" />
+              <span className="absolute -inset-1 animate-[spin_3s_linear_infinite] rounded-full border border-dashed border-[#9eca45]/40" />
+            </>
+          )}
+        </div>
+        <span className="text-xs font-bold uppercase tracking-wide text-white">
+          {streaming ? "Analyzing" : "AI Analysis"}
+        </span>
+        {streaming && <span className="ml-1 text-xs text-[#9eca45] animate-pulse">●</span>}
       </div>
 
-      <div ref={scrollRef} className="max-h-[300px] overflow-y-auto">
-        {messages.length === 0 && loading && (
-          <div className="flex items-center gap-2 px-4 py-6 text-sm text-[#777777]">
-            <Loader2 className="h-4 w-4 animate-spin text-[#9eca45]" />
-            Analyzing...
+      <div ref={scrollRef} className="max-h-[400px] overflow-y-auto">
+        {isFirstLoad && !lastMsg?.content && (
+          <div className="flex items-center gap-3 px-4 py-5">
+            <div className="flex gap-1">
+              <span className="h-2 w-2 animate-[bounce_1s_infinite_0ms] rounded-full bg-[#9eca45]" />
+              <span className="h-2 w-2 animate-[bounce_1s_infinite_200ms] rounded-full bg-[#9eca45]" />
+              <span className="h-2 w-2 animate-[bounce_1s_infinite_400ms] rounded-full bg-[#9eca45]" />
+            </div>
+            <span className="text-sm text-[#777777]">Running analysis...</span>
           </div>
         )}
 
-        {messages.map((msg, i) => (
-          <div
-            key={i}
-            className={`px-4 py-3 text-sm ${
-              msg.role === "user"
-                ? "border-b border-[#eeeeee] bg-[#f7f9fa] text-xs font-bold uppercase text-[#003a5d]"
-                : "text-[#424242] leading-relaxed"
-            }`}
-          >
-            {msg.content || <Loader2 className="h-4 w-4 animate-spin text-[#9eca45]" />}
-          </div>
-        ))}
+        {messages.map((msg, i) => {
+          if (msg.role === "user") {
+            return (
+              <div key={i} className="border-b border-[#eeeeee] bg-[#f0f2f5] px-4 py-2.5">
+                <p className="text-xs font-bold uppercase text-[#003a5d]">{msg.content}</p>
+              </div>
+            );
+          }
+
+          const isThisStreaming = isLastStreaming && i === messages.length - 1;
+
+          return (
+            <div key={i} className="relative px-4 py-3">
+              {isThisStreaming && (
+                <div className="absolute bottom-0 left-0 h-[2px] w-full overflow-hidden bg-[#eeeeee]">
+                  <div className="h-full w-1/3 animate-[shimmer_1.5s_ease-in-out_infinite] bg-gradient-to-r from-transparent via-[#9eca45] to-transparent" />
+                </div>
+              )}
+              <p className="whitespace-pre-wrap text-sm leading-relaxed text-[#424242]">
+                {msg.content}
+                {isThisStreaming && <span className="ml-0.5 inline-block h-4 w-[2px] animate-[blink_1s_infinite] bg-[#9eca45]" />}
+              </p>
+            </div>
+          );
+        })}
       </div>
 
-      {suggestions.length > 0 && messages.length <= 1 && (
-        <div className="flex flex-wrap gap-1.5 border-t border-[#eeeeee] px-4 py-2.5">
-          {suggestions.map((s) => (
-            <button
-              key={s}
-              onClick={() => sendMessage(s, true)}
-              disabled={loading}
-              className="border border-[#dddddd] bg-[#f7f9fa] px-2.5 py-1.5 text-[11px] text-[#424242] transition-all hover:border-[#9eca45] hover:text-[#003a5d] disabled:opacity-50"
-            >
-              {s}
-            </button>
-          ))}
+      {suggestions.length > 0 && messages.length <= 1 && !streaming && (
+        <div className="border-t border-[#eeeeee] px-4 py-3">
+          <div className="mb-2 flex items-center gap-1 text-[10px] font-bold uppercase text-[#999999]">
+            <ChevronDown className="h-3 w-3" />
+            Ask a question
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            {suggestions.map((s) => (
+              <button
+                key={s}
+                onClick={() => sendMessage(s, true)}
+                className="border border-[#dddddd] bg-white px-2.5 py-1.5 text-[11px] text-[#424242] transition-all hover:border-[#9eca45] hover:bg-[#f3f9e7] hover:text-[#003a5d] active:scale-95"
+              >
+                {s}
+              </button>
+            ))}
+          </div>
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="flex gap-2 border-t border-[#dddddd] p-2.5">
+      <form onSubmit={handleSubmit} className="flex gap-2 border-t border-[#dddddd] bg-white p-2.5">
         <input
           type="text"
           value={input}
@@ -138,10 +177,10 @@ export default function AiInsights({ lotCode, barcode, autoPrompt, suggestions =
         />
         <button
           type="submit"
-          disabled={loading || !input.trim()}
-          className="flex items-center justify-center bg-[#9eca45] px-3.5 py-2 text-white transition-all hover:bg-[#333333] disabled:bg-[#b8c59a]"
+          disabled={streaming || !input.trim()}
+          className="flex items-center justify-center bg-[#9eca45] px-3.5 py-2 text-white transition-all hover:bg-[#333333] disabled:bg-[#b8c59a] active:scale-95"
         >
-          {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+          <Send className="h-4 w-4" />
         </button>
       </form>
     </div>
