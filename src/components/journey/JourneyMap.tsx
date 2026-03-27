@@ -12,6 +12,8 @@ import { StagePopup } from "./StagePopup";
 
 const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN ?? "";
 
+const MAP_CONTAINER_STYLE = { width: "100%", height: "100%" } as const;
+
 const routeLineStyle: LineLayerSpecification = {
   id: "route-line",
   type: "line",
@@ -116,6 +118,7 @@ export function JourneyMap({
   const animationRef = useRef<number | null>(null);
   const hasAnimated = useRef(false);
   const interacting = useRef(false);
+  const wasPinching = useRef(false);
 
   const routeGeoJSON = useMemo(() => buildRouteGeoJSON(stages), [stages]);
 
@@ -229,17 +232,23 @@ export function JourneyMap({
   }
 
   return (
-    <div className="relative h-full w-full">
+    <div className="relative h-full w-full" style={{ touchAction: "none" }}>
       <Map
         ref={mapRef}
         mapboxAccessToken={MAPBOX_TOKEN}
         mapStyle="mapbox://styles/mapbox/dark-v11"
         initialViewState={{ longitude: 10, latitude: 30, zoom: 2 }}
-        style={{ width: "100%", height: "100%" }}
+        style={MAP_CONTAINER_STYLE}
         onLoad={handleMapLoad}
         onMoveStart={() => { interacting.current = true; }}
-        onMoveEnd={() => { setTimeout(() => { interacting.current = false; }, 100); }}
-        onClick={() => { if (!interacting.current) onStageSelect(null); }}
+        onMoveEnd={() => { setTimeout(() => { interacting.current = false; }, 300); }}
+        onTouchStart={(e) => {
+          if (e.originalEvent.touches.length >= 2) wasPinching.current = true;
+        }}
+        onTouchEnd={() => { setTimeout(() => { wasPinching.current = false; }, 400); }}
+        onClick={() => {
+          if (!interacting.current && !wasPinching.current) onStageSelect(null);
+        }}
         attributionControl={false}
       >
         {mapLoaded && (
