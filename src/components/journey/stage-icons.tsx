@@ -7,6 +7,8 @@ import {
   Warehouse,
   Truck,
   Store,
+  Droplets,
+  CircleDot,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -29,8 +31,9 @@ function IconBadge({ icon: Icon, color }: { icon: LucideIcon; color: string }) {
   );
 }
 
-const STAGE_CONFIG: Record<StageType, { icon: LucideIcon; color: string }> = {
+const STAGE_CONFIG: Record<string, { icon: LucideIcon; color: string }> = {
   harvest:    { icon: Wheat,     color: "#2d6a4f" },
+  sourcing:   { icon: Droplets,  color: "#1a759f" },
   collection: { icon: MilkOff,   color: "#4a7c59" },
   processing: { icon: Factory,   color: "#6c4f3d" },
   packaging:  { icon: Package,   color: "#7b6b8a" },
@@ -39,11 +42,13 @@ const STAGE_CONFIG: Record<StageType, { icon: LucideIcon; color: string }> = {
   retail:     { icon: Store,     color: "#d4a843" },
 };
 
-export function getStageIcon(type: StageType) {
-  const config = STAGE_CONFIG[type];
+const FALLBACK = { icon: CircleDot, color: "#777777" };
+
+export function getStageIcon(type: string) {
+  const config = STAGE_CONFIG[type] ?? FALLBACK;
   return <IconBadge icon={config.icon} color={config.color} />;
 }
 
-export function getStageColor(type: StageType): string {
-  return STAGE_CONFIG[type].color;
+export function getStageColor(type: string): string {
+  return (STAGE_CONFIG[type] ?? FALLBACK).color;
 }
