@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { Sparkles, Send, ChevronDown } from "lucide-react";
 import Markdown from "react-markdown";
-import { getConversation, saveConversation, type AiMessage } from "@/lib/scan-history";
+import { getConversation, saveConversation, getScanHistory, type AiMessage } from "@/lib/scan-history";
 
 type Props = {
   lotCode?: string;
@@ -51,7 +51,16 @@ export default function AiInsights({ lotCode, barcode, context, autoPrompt, sugg
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: apiMessages, lotCode, barcode, context }),
+        body: JSON.stringify({
+          messages: apiMessages,
+          lotCode,
+          barcode,
+          context,
+          scanHistory: getScanHistory()
+            .filter((e) => e.barcode !== barcode)
+            .slice(0, 10)
+            .map((e) => ({ name: e.name, brand: e.brand, barcode: e.barcode, nutriScore: e.nutriScore, source: e.source })),
+        }),
       });
 
       if (!res.ok || !res.body) {

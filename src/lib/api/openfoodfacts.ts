@@ -63,12 +63,12 @@ export async function getProduct(barcode: string): Promise<OpenFoodFactsProduct 
     },
   });
 
-  if (response.status === 404) {
+  if (response.status === 404 || response.status === 429) {
     return null;
   }
 
   if (!response.ok) {
-    throw new Error(`OpenFoodFacts request failed with status ${response.status}`);
+    return null;
   }
 
   const payload = (await response.json()) as OpenFoodFactsResponse;

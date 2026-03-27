@@ -110,11 +110,19 @@ RULES:
 - If anomalies exist, mention them with severity. If recalled, warn prominently.
 - Sound like a knowledgeable friend, not a legal disclaimer.`;
 
+type HistoryItem = { name: string; brand: string; barcode: string; nutriScore: string | null; source: string };
+
+function buildHistoryContext(history: HistoryItem[]): string {
+  if (!history?.length) return "";
+  return `\nUSER'S RECENT SCAN HISTORY (other products they scanned):\n${history.map((h) => `- ${h.name} by ${h.brand} (Nutri-Score: ${h.nutriScore ?? "N/A"})`).join("\n")}`;
+}
+
 export async function POST(request: Request) {
-  const { messages, lotCode, barcode, context } = await request.json();
+  const { messages, lotCode, barcode, context, scanHistory } = await request.json();
+  const historyCtx = buildHistoryContext(scanHistory);
 
   const system = context
-    ? `You are the AI food analyst for Project Trace. Confident, concise, helpful. You have all the data you need below.\n\n${context}\n${RULES}`
+    ? `You are the AI food analyst for Project Trace. Confident, concise, helpful. You have all the data you need below.\n\n${context}${historyCtx}\n${RULES}`
     : buildSystemPrompt(barcode, lotCode);
 
   const result = streamText({
