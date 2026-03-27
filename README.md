@@ -131,35 +131,8 @@ Open **[foodflighttracker.com/overview](https://foodflighttracker.com/overview)*
 ---
 
 ## Architecture
+<img width="1580" height="1401" alt="https://excalidraw.com/#json=Awp0C5WT5hKTU3EbFSQTu,_jzfh53lbQQUXVD_9JyA8A" src="https://github.com/user-attachments/assets/5c67562c-1f6f-45f8-9bbe-8c7431309e0a" />
 
-```
-Consumer Phone                              Desktop Browser
-     │                                           │
-     ▼                                           ▼
-┌─────────────┐                         ┌──────────────────┐
-│ /scan       │                         │ /overview        │
-│ /product/*  │  ◄── Next.js 16 ──►    │ /batches         │
-│ /products   │     App Router          │ /batch/*         │
-│ /alerts     │                         │ /incidents       │
-└──────┬──────┘                         └────────┬─────────┘
-       │                                         │
-       ▼                                         ▼
-┌──────────────────────────────────────────────────────────┐
-│                     API Routes                           │
-│  /api/product/[barcode]  /api/batch/[lotCode]           │
-│  /api/chat (streaming)   /api/recalls                   │
-│  /api/dashboard/overview /api/journey/generate          │
-└──────────────────────────┬───────────────────────────────┘
-                           │
-            ┌──────────────┼──────────────┐
-            ▼              ▼              ▼
-      ┌──────────┐  ┌──────────┐  ┌──────────┐
-      │ SQLite   │  │ OpenFood │  │ Cerebras │
-      │ (Drizzle)│  │ Facts    │  │ AI       │
-      └──────────┘  └──────────┘  └──────────┘
-```
-
----
 
 ## Local Development
 
@@ -188,24 +161,7 @@ pnpm dev        # http://localhost:3000
 ---
 
 ## Infrastructure
-
-```
-GitHub (push to main)
-    │ automatic
-    ▼
-GitHub Actions
-    ├── Docker build (multi-stage, standalone output)
-    ├── Push to AWS ECR
-    └── SSH deploy to EC2
-         │
-         ▼
-AWS EC2 (t3.small, Ubuntu 24.04)
-    ├── Caddy (auto-HTTPS for foodflighttracker.com)
-    └── Next.js container (port 3000)
-         └── SQLite on Docker volume
-```
-
----
+<img width="1597" height="1081" alt="Infrastructure" src="https://github.com/user-attachments/assets/e9976dce-3681-41f6-9906-4b3cc6cf9824" />
 
 ## Feature Summary
 
