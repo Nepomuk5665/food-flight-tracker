@@ -4,8 +4,8 @@ import DeviceGate from "@/components/device-gate";
 export default function Home() {
   return (
     <div className="flex min-h-screen flex-col bg-surface-dim font-sans text-body">
-      <header className="bg-primary px-6 py-16 text-center text-white">
-        <h1 className="text-4xl font-bold uppercase tracking-wider md:text-5xl">Project Trace</h1>
+      <header className="bg-[#002a45] px-6 py-16 text-center text-white">
+        <h1 className="text-5xl font-bold uppercase tracking-wider md:text-6xl drop-shadow-lg">Project Trace</h1>
         <p className="mt-4 text-lg font-medium text-accent md:text-xl">Food Supply Chain Tracking</p>
       </header>
 
