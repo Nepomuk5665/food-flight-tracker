@@ -200,6 +200,14 @@ export default function ScanPage() {
     };
   }, [cameraState]);
 
+  /* ── Lock body scroll while scan page is mounted ── */
+  useEffect(() => {
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, []);
+
   /* ── Auto-start camera if gate was previously dismissed ── */
   useEffect(() => {
     if (cameraState === "loading") {
