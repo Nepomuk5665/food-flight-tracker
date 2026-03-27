@@ -13,8 +13,10 @@
     "db:studio": "drizzle-kit studio",
     "db:seed": "tsx scripts/seed.ts",
     "db:reset": "node scripts/reset-db.mjs",
-    "test": "vitest run",
-    "test:watch": "vitest"
+    "test": "vitest run --exclude tests/lineage-query.test.ts",
+    "test:watch": "vitest --exclude tests/lineage-query.test.ts",
+    "test:coverage": "vitest run --coverage --exclude tests/lineage-query.test.ts",
+    "test:integration": "vitest run"
   },
   "dependencies": {
     "@ai-sdk/openai-compatible": "^2.0.37",
@@ -43,6 +45,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@vitest/coverage-v8": "^4.1.2",
     "eslint": "^9",
     "eslint-config-next": "16.2.1",
     "tailwindcss": "^4",
