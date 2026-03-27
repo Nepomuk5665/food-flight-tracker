@@ -1,0 +1,281 @@
+{
+  "version": 1,
+  "updatedAt": 1774642999250,
+  "nodeCount": 24,
+  "nodes": {
+    "mem-feedback_no_coauthor----": {
+      "id": "mem-feedback_no_coauthor----",
+      "category": "feedback_no_coauthor",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1774606110025
+    },
+    "mem-feedback_priorities----": {
+      "id": "mem-feedback_priorities----",
+      "category": "feedback_priorities",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1774606110026
+    },
+    "mem-project_jeans_marketplace----": {
+      "id": "mem-project_jeans_marketplace----",
+      "category": "project_jeans_marketplace",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1774606110028
+    },
+    "mem-project_monolith_openclaw----": {
+      "id": "mem-project_monolith_openclaw----",
+      "category": "project_monolith_openclaw",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1774606110030
+    },
+    "mem-MEMORY-memory-index": {
+      "id": "mem-MEMORY-memory-index",
+      "category": "core",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1774606110051
+    },
+    "mem-project_arbor_openclaw----": {
+      "id": "mem-project_arbor_openclaw----",
+      "category": "project_arbor_openclaw",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1774606110038
+    },
+    "mem-project_arbor_openclaw-system-overview": {
+      "id": "mem-project_arbor_openclaw-system-overview",
+      "category": "project_arbor_openclaw",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1774606110038
+    },
+    "mem-project_arbor_openclaw-architecture--as-of-2026-03-13": {
+      "id": "mem-project_arbor_openclaw-architecture--as-of-2026-03-13",
+      "category": "project_arbor_openclaw",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1774606110038
+    },
+    "mem-project_arbor_openclaw-key-files": {
+      "id": "mem-project_arbor_openclaw-key-files",
+      "category": "project_arbor_openclaw",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1774606110038
+    },
+    "mem-project_arbor_openclaw-team": {
+      "id": "mem-project_arbor_openclaw-team",
+      "category": "project_arbor_openclaw",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1774606110039
+    },
+    "mem-project_arbor_openclaw-phases": {
+      "id": "mem-project_arbor_openclaw-phases",
+      "category": "project_arbor_openclaw",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1774606110039
+    },
+    "mem-project_team----": {
+      "id": "mem-project_team----",
+      "category": "project_team",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1774606110039
+    },
+    "mem-user_julian----": {
+      "id": "mem-user_julian----",
+      "category": "user_julian",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1774606110040
+    },
+    "mem-MEMORY-constants-location": {
+      "id": "mem-MEMORY-constants-location",
+      "category": "core",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1774606110042
+    },
+    "mem-MEMORY-timezone": {
+      "id": "mem-MEMORY-timezone",
+      "category": "core",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1774606110042
+    },
+    "mem-MEMORY-testing": {
+      "id": "mem-MEMORY-testing",
+      "category": "core",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1774606110042
+    },
+    "mem-MEMORY-order-status-enum": {
+      "id": "mem-MEMORY-order-status-enum",
+      "category": "core",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1774606110042
+    },
+    "mem-MEMORY-database---prisma": {
+      "id": "mem-MEMORY-database---prisma",
+      "category": "core",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1774606110042
+    },
+    "mem-MEMORY-sprint-tracker": {
+      "id": "mem-MEMORY-sprint-tracker",
+      "category": "core",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1774606110042
+    },
+    "mem-project_status----": {
+      "id": "mem-project_status----",
+      "category": "project_status",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1774606110053
+    },
+    "mem-user_projects_and_ecc----": {
+      "id": "mem-user_projects_and_ecc----",
+      "category": "user_projects_and_ecc",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1774606110054
+    },
+    "mem-MEMORY-feedback": {
+      "id": "mem-MEMORY-feedback",
+      "category": "core",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1774606110057
+    },
+    "mem-feedback_openpyxl_charts----": {
+      "id": "mem-feedback_openpyxl_charts----",
+      "category": "feedback_openpyxl_charts",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1774606110058
+    },
+    "insight-1774614546158-313a": {
+      "id": "insight-1774614546158-313a",
+      "category": "insights",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1774614546158
+    }
+  },
+  "edges": [
+    {
+      "sourceId": "mem-project_arbor_openclaw----",
+      "targetId": "mem-project_arbor_openclaw-system-overview",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-project_arbor_openclaw-system-overview",
+      "targetId": "mem-project_arbor_openclaw-architecture--as-of-2026-03-13",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-project_arbor_openclaw-architecture--as-of-2026-03-13",
+      "targetId": "mem-project_arbor_openclaw-key-files",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-project_arbor_openclaw-key-files",
+      "targetId": "mem-project_arbor_openclaw-team",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-project_arbor_openclaw-team",
+      "targetId": "mem-project_arbor_openclaw-phases",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-MEMORY-constants-location",
+      "targetId": "mem-MEMORY-timezone",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-MEMORY-timezone",
+      "targetId": "mem-MEMORY-testing",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-MEMORY-testing",
+      "targetId": "mem-MEMORY-order-status-enum",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-MEMORY-order-status-enum",
+      "targetId": "mem-MEMORY-database---prisma",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-MEMORY-database---prisma",
+      "targetId": "mem-MEMORY-sprint-tracker",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-MEMORY-memory-index",
+      "targetId": "mem-MEMORY-memory-index",
+      "type": "similar",
+      "weight": 0.4838709677419355
+    },
+    {
+      "sourceId": "mem-project_status----",
+      "targetId": "mem-project_status----",
+      "type": "similar",
+      "weight": 0.5608465608465608
+    },
+    {
+      "sourceId": "mem-user_projects_and_ecc----",
+      "targetId": "mem-user_projects_and_ecc----",
+      "type": "similar",
+      "weight": 0.7511520737327189
+    }
+  ],
+  "pageRanks": {
+    "mem-feedback_no_coauthor----": 0.01615023455408592,
+    "mem-feedback_priorities----": 0.01615023455408592,
+    "mem-project_jeans_marketplace----": 0.01615023455408592,
+    "mem-project_monolith_openclaw----": 0.01615023455408592,
+    "mem-MEMORY-memory-index": 0.1075275154032278,
+    "mem-project_arbor_openclaw----": 0.01615023455408592,
+    "mem-project_arbor_openclaw-system-overview": 0.029879084522916894,
+    "mem-project_arbor_openclaw-architecture--as-of-2026-03-13": 0.04154981911576534,
+    "mem-project_arbor_openclaw-key-files": 0.05147122127764081,
+    "mem-project_arbor_openclaw-team": 0.05990576248963563,
+    "mem-project_arbor_openclaw-phases": 0.06707654944172703,
+    "mem-project_team----": 0.01615023455408592,
+    "mem-user_julian----": 0.01615023455408592,
+    "mem-MEMORY-constants-location": 0.01615023455408592,
+    "mem-MEMORY-timezone": 0.029879084522916894,
+    "mem-MEMORY-testing": 0.04154981911576534,
+    "mem-MEMORY-order-status-enum": 0.05147122127764081,
+    "mem-MEMORY-database---prisma": 0.05990576248963563,
+    "mem-MEMORY-sprint-tracker": 0.06707654944172703,
+    "mem-project_status----": 0.1075275154032278,
+    "mem-user_projects_and_ecc----": 0.1075275154032278,
+    "mem-MEMORY-feedback": 0.01615023455408592,
+    "mem-feedback_openpyxl_charts----": 0.01615023455408592,
+    "insight-1774614546158-313a": 0.01615023455408592
+  }
+}

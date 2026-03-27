@@ -41,16 +41,16 @@ export default function ProductsPage() {
   if (history.length === 0) {
     return (
       <section className="flex min-h-[60vh] flex-col items-center justify-center space-y-6 text-center font-sans">
-        <div className="flex h-20 w-20 items-center justify-center bg-[#f7f9fa] text-[#777777]">
+        <div className="flex h-20 w-20 items-center justify-center bg-surface text-muted">
           <PackageSearch className="h-10 w-10" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold uppercase text-[#003a5d]">No Products Scanned</h1>
-          <p className="mt-2 text-[#424242]">Scan a barcode to see your history here.</p>
+          <h1 className="text-2xl font-bold uppercase text-primary">No Products Scanned</h1>
+          <p className="mt-2 text-body">Scan a barcode to see your history here.</p>
         </div>
         <Link
           href="/scan"
-          className="flex items-center gap-2 bg-[#9eca45] px-7 py-3.5 text-xs font-bold uppercase text-white shadow-[0_1px_1px_rgba(0,0,0,0.2)] transition-all hover:bg-[#333333]"
+          className="flex items-center gap-2 bg-accent px-7 py-3.5 text-xs font-bold uppercase text-white shadow-button transition-all hover:bg-[#333333]"
         >
           <Camera className="h-4 w-4" />
           Scan Product
@@ -62,10 +62,10 @@ export default function ProductsPage() {
   return (
     <section className="space-y-4 font-sans">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold uppercase tracking-wide text-[#003a5d]">Scan History</h1>
+        <h1 className="text-2xl font-bold uppercase tracking-wide text-primary">Scan History</h1>
         <button
           onClick={handleClear}
-          className="flex items-center gap-1.5 border border-[#dddddd] bg-white px-3 py-2 text-[10px] font-bold uppercase text-[#777777] transition-all hover:border-[#dc2626] hover:text-[#dc2626]"
+          className="flex items-center gap-1.5 border border-border bg-white px-3 py-2 text-[10px] font-bold uppercase text-muted transition-all hover:border-danger hover:text-danger"
         >
           <Trash2 className="h-3 w-3" />
           Clear
@@ -77,9 +77,9 @@ export default function ProductsPage() {
           <Link
             key={entry.barcode}
             href={`/product/${entry.barcode}`}
-            className="flex items-center gap-3 border border-[#dddddd] bg-white p-3 transition-all hover:border-[#9eca45]"
+            className="flex items-center gap-3 border border-border bg-white p-3 transition-all hover:border-accent"
           >
-            <div className="relative h-14 w-14 shrink-0 overflow-hidden border border-[#eeeeee] bg-[#f7f9fa]">
+            <div className="relative h-14 w-14 shrink-0 overflow-hidden border border-border-light bg-surface">
               {entry.imageUrl ? (
                 <Image src={entry.imageUrl} alt="" fill sizes="56px" className="object-cover" />
               ) : (
@@ -89,9 +89,9 @@ export default function ProductsPage() {
 
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-bold text-[#060606]">{entry.name}</p>
-              <p className="truncate text-xs text-[#777777]">{entry.brand}</p>
+              <p className="truncate text-xs text-muted">{entry.brand}</p>
               {entry.aiSummary ? (
-                <p className="mt-0.5 line-clamp-2 text-[10px] leading-tight text-[#9eca45]">✦ {entry.aiSummary.replace(/[*#_`]/g, "").slice(0, 120)}</p>
+                <p className="mt-0.5 line-clamp-2 text-[10px] leading-tight text-accent">✦ {entry.aiSummary.replace(/[*#_`]/g, "").slice(0, 120)}</p>
               ) : (
                 <p className="text-[10px] text-[#bbbbbb]">{entry.barcode}</p>
               )}
@@ -100,7 +100,7 @@ export default function ProductsPage() {
             <div className="flex shrink-0 flex-col items-end gap-1">
               {entry.nutriScore && (
                 <span
-                  className={`flex h-6 w-6 items-center justify-center text-[10px] font-bold text-white ${SCORE_COLORS[entry.nutriScore] ?? "bg-[#777777]"}`}
+                  className={`flex h-6 w-6 items-center justify-center text-[10px] font-bold text-white ${SCORE_COLORS[entry.nutriScore] ?? "bg-muted"}`}
                 >
                   {entry.nutriScore}
                 </span>

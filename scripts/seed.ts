@@ -72,7 +72,24 @@ const yogurt = db
   .returning()
   .get()!;
 
-console.log(`  Products: ${chocolate.name}, ${yogurt.name}`);
+const water = db
+  .insert(schema.products)
+  .values({
+    barcode: "7610235000329",
+    name: "Henniez Naturelle 1.5L",
+    brand: "Henniez (Nestlé Waters)",
+    category: "water",
+    imageUrl: "https://images.openfoodfacts.org/images/products/761/023/500/0329/front_fr.47.400.jpg",
+    source: "internal",
+    nutriScore: "A",
+    ecoScore: "B",
+    ingredients: "Natural mineral water",
+    allergens: JSON.stringify([]),
+  })
+  .returning()
+  .get()!;
+
+console.log(`  Products: ${chocolate.name}, ${yogurt.name}, ${water.name}`);
 
 // ---------------------------------------------------------------------------
 // 2. Batches — Chocolate (single linear chain)

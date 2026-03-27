@@ -15,17 +15,17 @@ export default async function ProductPage({ params }: ProductPageProps) {
   if (!productDetails) {
     return (
       <section className="space-y-4 font-sans">
-        <header className="border border-[#dddddd] bg-white p-4 rounded-none">
-          <h1 className="text-3xl font-bold uppercase tracking-wide text-[#003a5d]">Product Details</h1>
-          <p className="mt-2 text-sm text-[#777777]">Barcode: {barcode}</p>
+        <header className="border border-border bg-white p-4 rounded-none">
+          <h1 className="text-3xl font-bold uppercase tracking-wide text-primary">Product Details</h1>
+          <p className="mt-2 text-sm text-muted">Barcode: {barcode}</p>
         </header>
 
-        <div className="space-y-3 border border-[#dddddd] bg-[#f7f9fa] p-5 rounded-none">
-          <h2 className="text-xl font-bold uppercase tracking-wide text-[#003a5d]">Product Not Found</h2>
-          <p className="text-sm text-[#424242]">
+        <div className="space-y-3 border border-border bg-surface p-5 rounded-none">
+          <h2 className="text-xl font-bold uppercase tracking-wide text-primary">Product Not Found</h2>
+          <p className="text-sm text-body">
             This barcode is not in our database and OpenFoodFacts did not return a matching product.
           </p>
-          <Link href="/scan" className="flex items-center gap-1 text-sm text-[#9eca45]">
+          <Link href="/scan" className="flex items-center gap-1 text-sm text-accent">
             <ChevronLeft className="h-4 w-4" /> Back to scan
           </Link>
         </div>

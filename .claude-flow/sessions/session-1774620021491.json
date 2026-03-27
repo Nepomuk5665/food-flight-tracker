@@ -1,0 +1,21 @@
+{
+  "id": "session-1774620021491",
+  "startedAt": "2026-03-27T14:00:21.491Z",
+  "cwd": "/home/sysadmin/Projects/food-flight-tracker",
+  "context": {
+    "lastMatchedPatterns": [
+      "mem-project_status----",
+      "mem-project_status----",
+      "mem-project_arbor_openclaw-phases"
+    ]
+  },
+  "metrics": {
+    "edits": 31,
+    "commands": 0,
+    "tasks": 0,
+    "errors": 0
+  },
+  "updatedAt": "2026-03-27T14:35:21.821Z",
+  "endedAt": "2026-03-27T14:37:12.477Z",
+  "duration": 2210987
+}

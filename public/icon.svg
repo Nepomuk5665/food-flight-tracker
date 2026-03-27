@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <rect width="512" height="512" fill="#003a5d"/>
+  <path d="M160 160 L256 120 L352 160 L352 280 L256 320 L160 280Z" stroke="#9eca45" stroke-width="16" fill="none" stroke-linejoin="round"/>
+  <path d="M256 120 L256 320" stroke="#9eca45" stroke-width="8" opacity="0.5"/>
+  <path d="M160 160 L352 280" stroke="#9eca45" stroke-width="8" opacity="0.5"/>
+  <path d="M352 160 L160 280" stroke="#9eca45" stroke-width="8" opacity="0.5"/>
+  <circle cx="256" cy="220" r="28" fill="#9eca45"/>
+  <text x="256" y="400" text-anchor="middle" fill="#ffffff" font-family="sans-serif" font-weight="700" font-size="56" letter-spacing="4">TRACE</text>
+</svg>

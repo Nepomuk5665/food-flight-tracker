@@ -249,18 +249,18 @@ export default function ScanPage() {
   /* ── Permission gate screen ── */
   if (cameraState === "gate") {
     return (
-      <div className="fixed inset-x-0 top-0 bottom-[52px] z-40 flex flex-col items-center justify-center bg-[#f7f9fa] px-8 text-center">
+      <div className="fixed inset-x-0 top-0 bottom-[52px] z-40 flex flex-col items-center justify-center bg-surface px-8 text-center">
         {fileInput}
-        <div className="flex h-20 w-20 items-center justify-center bg-[#003a5d]">
+        <div className="flex h-20 w-20 items-center justify-center bg-primary">
           <Camera className="h-10 w-10 text-white" />
         </div>
         <h1 className="mt-6 text-xl font-bold text-[#060606]">Scan a Barcode</h1>
-        <p className="mt-2 text-sm text-[#777777]">
+        <p className="mt-2 text-sm text-muted">
           Allow camera access to scan product barcodes instantly.
         </p>
         <button
           onClick={handleAllowCamera}
-          className="mt-8 w-full max-w-[280px] bg-[#9eca45] px-6 py-3.5 text-sm font-bold uppercase text-white shadow-[0_1px_1px_rgba(0,0,0,0.2)] transition-colors hover:bg-[#8bb83a]"
+          className="mt-8 w-full max-w-[280px] bg-accent px-6 py-3.5 text-sm font-bold uppercase text-white shadow-button transition-colors hover:bg-accent-hover"
         >
           Allow Camera
         </button>
@@ -268,7 +268,7 @@ export default function ScanPage() {
           <button
             onClick={() => fileInputRef.current?.click()}
             disabled={scanningImage}
-            className="flex items-center gap-1.5 text-xs font-semibold text-[#777777] underline underline-offset-2"
+            className="flex items-center gap-1.5 text-xs font-semibold text-muted underline underline-offset-2"
           >
             <Upload className="h-3 w-3" />
             {scanningImage ? "Scanning..." : "Upload photo"}
@@ -276,7 +276,7 @@ export default function ScanPage() {
           <span className="text-[#dddddd]">|</span>
           <button
             onClick={() => setDrawerOpen(true)}
-            className="text-xs font-semibold text-[#777777] underline underline-offset-2"
+            className="text-xs font-semibold text-muted underline underline-offset-2"
           >
             Enter manually
           </button>
@@ -301,15 +301,15 @@ export default function ScanPage() {
   /* ── Camera denied / error screen ── */
   if (cameraState === "denied" || cameraState === "error") {
     return (
-      <div className="fixed inset-x-0 top-0 bottom-[52px] z-40 flex flex-col items-center justify-center bg-[#f7f9fa] px-8 text-center">
+      <div className="fixed inset-x-0 top-0 bottom-[52px] z-40 flex flex-col items-center justify-center bg-surface px-8 text-center">
         {fileInput}
-        <div className="flex h-20 w-20 items-center justify-center bg-[#dc2626]">
+        <div className="flex h-20 w-20 items-center justify-center bg-danger">
           <CameraOff className="h-10 w-10 text-white" />
         </div>
         <h1 className="mt-6 text-xl font-bold text-[#060606]">
           {cameraState === "denied" ? "Camera Blocked" : "Camera Error"}
         </h1>
-        <p className="mt-2 text-sm text-[#777777]">
+        <p className="mt-2 text-sm text-muted">
           {cameraState === "denied"
             ? "Go to your browser settings to allow camera access for this site."
             : errorMessage}
@@ -317,7 +317,7 @@ export default function ScanPage() {
         <button
           onClick={() => fileInputRef.current?.click()}
           disabled={scanningImage || isNavigating}
-          className="mt-8 flex w-full max-w-[280px] items-center justify-center gap-2 bg-[#9eca45] px-6 py-3.5 text-sm font-bold uppercase text-white shadow-[0_1px_1px_rgba(0,0,0,0.2)] transition-colors hover:bg-[#8bb83a] disabled:bg-[#b8c59a]"
+          className="mt-8 flex w-full max-w-[280px] items-center justify-center gap-2 bg-accent px-6 py-3.5 text-sm font-bold uppercase text-white shadow-button transition-colors hover:bg-accent-hover disabled:bg-[#b8c59a]"
         >
           <Upload className="h-4 w-4" />
           {scanningImage ? "Scanning..." : "Upload Barcode Photo"}
@@ -325,14 +325,14 @@ export default function ScanPage() {
         <div className="mt-4 flex items-center gap-4">
           <button
             onClick={() => setDrawerOpen(true)}
-            className="text-xs font-semibold text-[#777777] underline underline-offset-2"
+            className="text-xs font-semibold text-muted underline underline-offset-2"
           >
             Enter manually
           </button>
           <span className="text-[#dddddd]">|</span>
           <button
             onClick={() => startCamera()}
-            className="text-xs font-semibold text-[#777777] underline underline-offset-2"
+            className="text-xs font-semibold text-muted underline underline-offset-2"
           >
             Try camera again
           </button>
@@ -362,7 +362,7 @@ export default function ScanPage() {
       {/* Drawer toggle button — upper right */}
       <button
         onClick={() => setDrawerOpen(true)}
-        className="absolute right-4 top-4 z-20 flex h-10 w-10 items-center justify-center bg-black/60 text-white backdrop-blur-sm transition-colors hover:bg-[#9eca45]"
+        className="absolute right-4 top-4 z-20 flex h-10 w-10 items-center justify-center bg-black/60 text-white backdrop-blur-sm transition-colors hover:bg-accent"
         aria-label="Enter barcode manually"
       >
         <Keyboard className="h-5 w-5" />
@@ -373,7 +373,7 @@ export default function ScanPage() {
         <button
           onClick={() => fileInputRef.current?.click()}
           disabled={scanningImage}
-          className="absolute right-16 top-4 z-20 flex items-center gap-1.5 bg-black/60 px-3 py-2.5 text-[10px] font-bold uppercase text-white backdrop-blur-sm transition-colors hover:bg-[#9eca45]"
+          className="absolute right-16 top-4 z-20 flex items-center gap-1.5 bg-black/60 px-3 py-2.5 text-[10px] font-bold uppercase text-white backdrop-blur-sm transition-colors hover:bg-accent"
         >
           <Upload className="h-3.5 w-3.5" />
           Upload
@@ -485,13 +485,13 @@ function ManualInputDrawer({
       >
         {/* Swipe handle */}
         <div className="mb-4 flex justify-center">
-          <div className="h-1 w-10 bg-[#dddddd]" />
+          <div className="h-1 w-10 bg-border" />
         </div>
 
         {/* Close button */}
         <button
           onClick={onClose}
-          className="absolute right-4 top-3 flex h-8 w-8 items-center justify-center text-[#777777] transition-colors hover:text-[#060606]"
+          className="absolute right-4 top-3 flex h-8 w-8 items-center justify-center text-muted transition-colors hover:text-[#060606]"
           aria-label="Close"
         >
           <X className="h-4 w-4" />
@@ -507,12 +507,12 @@ function ManualInputDrawer({
             value={value}
             onChange={(e) => onChange(e.target.value)}
             placeholder="e.g. 4012345000019 or (01)04012345..."
-            className="flex-1 border border-[#dddddd] bg-white px-4 py-3 text-sm text-[#424242] outline-none transition-colors focus:border-[#9eca45]"
+            className="flex-1 border border-border bg-white px-4 py-3 text-sm text-body outline-none transition-colors focus:border-accent"
           />
           <button
             type="submit"
             disabled={isNavigating || value.trim().length === 0}
-            className="bg-[#9eca45] px-5 py-3 text-xs font-bold uppercase text-white shadow-[0_1px_1px_rgba(0,0,0,0.2)] transition-colors hover:bg-[#8bb83a] disabled:cursor-not-allowed disabled:bg-[#b8c59a]"
+            className="bg-accent px-5 py-3 text-xs font-bold uppercase text-white shadow-button transition-colors hover:bg-accent-hover disabled:bg-[#b8c59a]"
           >
             {isNavigating ? "..." : "Go"}
           </button>

@@ -1,0 +1,23 @@
+{
+  "id": "session-1774622232703",
+  "startedAt": "2026-03-27T14:37:12.703Z",
+  "cwd": "/home/sysadmin/Projects/food-flight-tracker",
+  "context": {
+    "lastMatchedPatterns": [
+      "mem-user_projects_and_ecc----",
+      "mem-MEMORY-memory-index",
+      "mem-user_projects_and_ecc----",
+      "mem-MEMORY-memory-index",
+      "mem-project_status----"
+    ]
+  },
+  "metrics": {
+    "edits": 3,
+    "commands": 0,
+    "tasks": 0,
+    "errors": 0
+  },
+  "updatedAt": "2026-03-27T14:50:59.340Z",
+  "endedAt": "2026-03-27T14:56:58.333Z",
+  "duration": 1185630
+}
