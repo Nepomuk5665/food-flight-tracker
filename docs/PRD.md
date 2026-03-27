@@ -40,7 +40,7 @@ PROJECT TRACE is a B2B Decentralized Quality Assurance SaaS platform that makes 
 
 The system consists of two applications:
 
-- **Consumer PWA** — A zero-install, account-free mobile web app where consumers scan a product barcode, see its full geographic journey on an interactive Mapbox map, and report quality issues.
+- **Consumer PWA** — A zero-install, account-free mobile web app with a built-in barcode scanner. Consumers open the web app, scan any existing product barcode with the in-app camera, and instantly see its full geographic journey on an interactive Mapbox map. No label changes, no QR codes, no manufacturer buy-in required — works with barcodes already on products.
 - **B2B QA Dashboard** — A desktop command center for QA teams showing an aggregate map of all active batches, AI-powered anomaly detection, root-cause traceback, and one-click recall triggers.
 
 **Core thesis:** Food is not a parcel — it splits, mixes, and merges. Our data model captures this reality. Our AI detects risks before consumers are harmed. Our real-time system ensures recalls happen in seconds, not days.
@@ -62,7 +62,7 @@ The system consists of two applications:
 ## 3. Solution Overview
 
 ```
-Consumer scans barcode
+Consumer opens PWA → scans barcode with in-app camera
         |
         v
   +-----------+        WebSocket         +------------------+
@@ -139,14 +139,26 @@ food-flight-tracker/
 
 ### 5.1 Consumer PWA
 
-**Purpose:** Zero-friction product scanning and traceability visualization for consumers. No app install, no account required.
+**Purpose:** Zero-friction product scanning and traceability visualization for consumers. No app install, no account required. Works with existing barcodes — no label changes needed.
 
-**Access method:** Native iOS/Android camera scans barcode → opens PWA URL → auto-resolves to active demo lot.
+**Access method:** Consumer opens PWA in mobile browser → taps "Scan Product" → in-app camera reads EAN barcode → API resolves barcode to active lot → journey map appears.
+
+**Barcode scanning library:** `@zxing/browser` (or `html5-qrcode`) — reads EAN-8, EAN-13, UPC-A, UPC-E barcodes via `navigator.mediaDevices.getUserMedia`.
 
 #### 5.1.1 Screens
 
-**Screen 1: Scan Landing**
-- URL: `/{productId}` (resolved from barcode lookup)
+**Screen 0: Home / Scan**
+- URL: `/`
+- Clean landing page with Project Trace branding
+- Prominent "Scan Product" button (full-width, primary action)
+- Brief tagline: "Know where your food comes from"
+- On tap: requests camera permission → opens full-screen camera viewfinder
+- Barcode detection runs in real-time on the video feed
+- On successful scan: auto-navigates to product journey screen
+- Also supports manual entry: "Enter barcode manually" text input as fallback (accessibility)
+
+**Screen 1: Product Journey**
+- URL: `/product/{barcode}` (resolved from barcode scan or manual entry)
 - Hero element: Full-screen Mapbox map showing the product's geographic journey
 - Map pins at each supply chain stage, connected by route lines
 - Tapping a pin opens a metadata popup (see 5.1.2)
@@ -230,6 +242,8 @@ food-flight-tracker/
 
 - Installable via "Add to Home Screen" but not required
 - Service worker for offline caching of map tiles (stretch goal)
+- Requires camera permission (`getUserMedia`) for barcode scanning — graceful fallback to manual barcode entry if denied
+- HTTPS required (camera API mandate) — AWS deployment must use TLS
 
 ---
 
@@ -368,7 +382,7 @@ food-flight-tracker/
 
 #### 5.3.2 Key API Behaviors
 
-**Product Barcode Resolution:**
+**Product Barcode Resolution (called after in-app barcode scan):**
 ```
 GET /api/products/4012345678901
 
@@ -1158,10 +1172,10 @@ Telemetry Event
 ### Act 1: The Happy Path (60 seconds)
 
 1. **Narrator:** "Imagine you're in a supermarket. You pick up a chocolate bar."
-2. Scan barcode with phone camera → PWA opens
-3. Map animates the journey: Ghana → Belgium → Germany
+2. Open Project Trace on phone → tap "Scan Product" → point at barcode on real chocolate bar
+3. Barcode detected instantly → map animates the journey: Ghana → Belgium → Germany
 4. Tap each pin: show harvest data, processing details, transport info
-5. "Every stage is verified. You know exactly where your food comes from."
+5. "No app download. No special QR code. Just scan the barcode that's already on the product."
 
 ### Act 2: The Crisis (90 seconds)
 
@@ -1243,6 +1257,7 @@ Hour 22-24: Demo Prep — script practice, fallback plans, presentation slides
 | **Frontend** | Next.js | 15.x | Both PWA and Dashboard |
 | **UI** | Tailwind CSS + shadcn/ui | latest | Rapid component development |
 | **Map** | Mapbox GL JS + react-map-gl | 7.x | Geographic visualization |
+| **Barcode Scanner** | @zxing/browser | latest | In-PWA barcode reading (EAN/UPC) |
 | **State** | Zustand | latest | Lightweight client state |
 | **Database** | PostgreSQL | 16 | Relational data storage |
 | **ORM** | Drizzle | latest | Type-safe database access |
@@ -1274,10 +1289,10 @@ Hour 22-24: Demo Prep — script practice, fallback plans, presentation slides
 
 | Item | Why | Future Consideration |
 |------|-----|---------------------|
-| Native mobile apps | Web-only constraint | Post-hackathon if traction |
+| Native mobile apps | PWA with in-app barcode scanner achieves same UX without install friction | Post-hackathon if traction |
 | User accounts (consumer) | Zero-friction principle | Could add for loyalty/gamification |
 | Real ML model training | 24h constraint | Rule-based is honest and effective |
-| GS1 Digital Link QR codes | Requires label printing infrastructure | Production roadmap |
+| QR codes / label changes | Works with existing barcodes — no manufacturer buy-in needed | GS1 Digital Link as optional enhancement |
 | Factory-side ingestion UI | No manual data entry principle | IoT/RFID integration in production |
 | Multi-tenant SaaS | Single demo manufacturer | Production architecture |
 | Internationalization (i18n) | Demo is in English | Production requirement |
@@ -1300,6 +1315,8 @@ Hour 22-24: Demo Prep — script practice, fallback plans, presentation slides
 | AWS deployment issues | Medium | High | Have local fallback ready (ngrok + local machine). Deploy early (Hour 1) |
 | Team member blocked/stuck | Medium | High | Clearly defined interfaces. Any person can work independently after Hour 1 sync |
 | Demo crashes on stage | Low | Critical | Full dry run at Hour 16 and 22. Pre-seeded DB backup ready to restore in 30s |
+| Camera permission denied on demo device | Low | High | Manual barcode entry fallback. Test on actual demo phone before pitch. HTTPS required. |
+| Barcode scanning latency / reliability | Medium | Medium | @zxing/browser is well-tested. Bring products with clean, flat barcodes. Good lighting in demo area. |
 | Scope creep ("let's also add...") | High | Medium | This PRD is the contract. Anything not listed is post-demo. Enforce ruthlessly |
 
 ---
