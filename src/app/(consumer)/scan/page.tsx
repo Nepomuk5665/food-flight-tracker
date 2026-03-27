@@ -47,14 +47,18 @@ export default function ScanPage() {
       if (rawValue.startsWith("(01)") || rawValue.startsWith("01")) {
         const parsed = parseGS1(rawValue);
 
-        if (parsed.batch) {
+        if (parsed.gtin) {
+          const barcode = parsed.gtin.trim();
+          if (!barcode || isNavigating) return;
           setIsNavigating(true);
-          router.push(`/journey/${encodeURIComponent(parsed.batch)}`);
+          router.push(`/product/${encodeURIComponent(barcode)}${parsed.batch ? "?tab=map" : ""}`);
           return;
         }
 
-        if (parsed.gtin) {
-          lookupBarcode(parsed.gtin);
+        if (parsed.batch) {
+          // GS1 with lot code but no GTIN — fall back to legacy journey route
+          setIsNavigating(true);
+          router.push(`/journey/${encodeURIComponent(parsed.batch)}`);
           return;
         }
       }

@@ -11,9 +11,10 @@ type Props = {
   context?: string;
   autoPrompt?: string;
   suggestions?: string[];
+  fullPage?: boolean;
 };
 
-export default function AiInsights({ lotCode, barcode, context, autoPrompt, suggestions = [] }: Props) {
+export default function AiInsights({ lotCode, barcode, context, autoPrompt, suggestions = [], fullPage = false }: Props) {
   const storageKey = barcode ?? lotCode ?? "";
   const [messages, setMessages] = useState<AiMessage[]>([]);
   const [input, setInput] = useState("");
@@ -123,7 +124,7 @@ export default function AiInsights({ lotCode, barcode, context, autoPrompt, sugg
   const isLastStreaming = streaming && lastMsg?.role === "assistant";
 
   return (
-    <div className="overflow-hidden border border-[#dddddd] bg-[#fafbfc]">
+    <div className={`overflow-hidden border border-[#dddddd] bg-[#fafbfc] ${fullPage ? "flex flex-1 flex-col" : ""}`}>
       <div className="flex items-center gap-2 bg-[#003a5d] px-4 py-2.5">
         <div className="relative flex h-5 w-5 items-center justify-center">
           <Sparkles className={`h-4 w-4 text-[#9eca45] ${streaming ? "animate-pulse" : ""}`} />
@@ -140,7 +141,7 @@ export default function AiInsights({ lotCode, barcode, context, autoPrompt, sugg
         {streaming && <span className="ml-1 text-xs text-[#9eca45] animate-pulse">●</span>}
       </div>
 
-      <div ref={scrollRef} className="max-h-[400px] overflow-y-auto">
+      <div ref={scrollRef} className={`overflow-y-auto ${fullPage ? "flex-1" : "max-h-[400px]"}`}>
         {isFirstLoad && !lastMsg?.content && (
           <div className="flex items-center gap-3 px-4 py-5">
             <div className="flex gap-1">

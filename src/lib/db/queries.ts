@@ -79,6 +79,14 @@ export function getBatchByLotCode(lotCode: string) {
   return db.select().from(batches).where(eq(batches.lotCode, lotCode)).get();
 }
 
+export function getBarcodeForLotCode(lotCode: string): string | null {
+  const batch = getBatchByLotCode(lotCode);
+  if (!batch) return null;
+
+  const product = db.select().from(products).where(eq(products.id, batch.productId)).get();
+  return product?.barcode ?? null;
+}
+
 export function getAllBatches() {
   return db
     .select({
@@ -149,8 +157,11 @@ export function getBatchJourney(lotCode: string) {
     };
   });
 
+  const product = db.select().from(products).where(eq(products.id, batch.productId)).get();
+
   return {
     batch,
+    product: product ? { name: product.name, brand: product.brand } : null,
     stages: stagesWithDetails,
   };
 }
