@@ -77,14 +77,19 @@ export default function ScanPage() {
 
         const mobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
         setIsMobile(mobile);
-        stream = await navigator.mediaDevices.getUserMedia({
-          video: {
-            facingMode: mobile ? { ideal: "environment" } : undefined,
-            width: { ideal: mobile ? 1920 : 1280 },
-            height: { ideal: mobile ? 1080 : 720 },
-          },
-          audio: false,
-        });
+
+        // Try ideal constraints first, fall back to bare minimum
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({
+            video: mobile
+              ? { facingMode: { ideal: "environment" }, width: { ideal: 1920 }, height: { ideal: 1080 } }
+              : { width: { ideal: 1280 }, height: { ideal: 720 } },
+            audio: false,
+          });
+        } catch {
+          // Fallback: just ask for any video
+          stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+        }
 
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
