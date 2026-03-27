@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import { Sparkles, Send, ChevronDown } from "lucide-react";
+import Markdown from "react-markdown";
 
 type Props = {
   lotCode?: string;
@@ -139,10 +140,10 @@ export default function AiInsights({ lotCode, barcode, context, autoPrompt, sugg
                   <div className="h-full w-1/3 animate-[shimmer_1.5s_ease-in-out_infinite] bg-gradient-to-r from-transparent via-[#9eca45] to-transparent" />
                 </div>
               )}
-              <p className="whitespace-pre-wrap text-sm leading-relaxed text-[#424242]">
-                {msg.content}
+              <div className="ai-prose text-sm leading-relaxed text-[#424242]">
+                <Markdown>{msg.content}</Markdown>
                 {isThisStreaming && <span className="ml-0.5 inline-block h-4 w-[2px] animate-[blink_1s_infinite] bg-[#9eca45]" />}
-              </p>
+              </div>
             </div>
           );
         })}
