@@ -144,7 +144,7 @@ food-flight-tracker/
 
 **Access method:** Consumer opens PWA in mobile browser → taps "Scan Product" → in-app camera reads EAN barcode → API resolves barcode to active lot → journey map appears.
 
-**Barcode scanning library:** `@zxing/browser` (or `html5-qrcode`) — reads EAN-8, EAN-13, UPC-A, UPC-E barcodes via `navigator.mediaDevices.getUserMedia`.
+**Barcode scanning library:** `react-zxing` (or `html5-qrcode`) — reads EAN-8, EAN-13, UPC-A, UPC-E barcodes via `navigator.mediaDevices.getUserMedia`.
 
 #### 5.1.1 Screens
 
@@ -1398,7 +1398,7 @@ Hour 22-24: Demo Prep — script practice, fallback plans, presentation slides
 | **Frontend** | Next.js | 15.x | Both PWA and Dashboard |
 | **UI** | Tailwind CSS + shadcn/ui | latest | Rapid component development |
 | **Map** | Mapbox GL JS + react-map-gl | 7.x | Geographic visualization |
-| **Barcode Scanner** | @zxing/browser | latest | In-PWA barcode reading (EAN/UPC) |
+| **Barcode Scanner** | react-zxing | latest | In-PWA barcode reading (EAN/UPC) |
 | **State** | Zustand | latest | Lightweight client state |
 | **Database** | PostgreSQL | 16 | Relational data storage |
 | **ORM** | Drizzle | latest | Type-safe database access |
@@ -1457,7 +1457,7 @@ Hour 22-24: Demo Prep — script practice, fallback plans, presentation slides
 | Team member blocked/stuck | Medium | High | Clearly defined interfaces. Any person can work independently after Hour 1 sync |
 | Demo crashes on stage | Low | Critical | Full dry run at Hour 16 and 22. Pre-seeded DB backup ready to restore in 30s |
 | Camera permission denied on demo device | Low | High | Manual barcode entry fallback. Test on actual demo phone before pitch. HTTPS required. |
-| Barcode scanning latency / reliability | Medium | Medium | @zxing/browser is well-tested. Bring products with clean, flat barcodes. Good lighting in demo area. |
+| Barcode scanning latency / reliability | Medium | Medium | react-zxing is well-tested. Bring products with clean, flat barcodes. Good lighting in demo area. |
 | Scope creep ("let's also add...") | High | Medium | This PRD is the contract. Anything not listed is post-demo. Enforce ruthlessly |
 
 ---

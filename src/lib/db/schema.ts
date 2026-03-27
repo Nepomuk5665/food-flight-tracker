@@ -11,6 +11,12 @@ export const products = sqliteTable("products", {
   brand: text("brand").notNull(),
   category: text("category").notNull(),
   imageUrl: text("image_url"),
+  source: text("source").default("internal"),
+  nutriScore: text("nutri_score"),
+  ecoScore: text("eco_score"),
+  ingredients: text("ingredients"),
+  allergens: text("allergens").default("[]"),
+  offData: text("off_data").default("{}"),
   createdAt: text("created_at").notNull().$defaultFn(nowIso),
 });
 
