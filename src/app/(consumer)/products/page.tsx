@@ -2,8 +2,10 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { PackageSearch, Trash2, Camera } from "lucide-react";
 import { getScanHistory, clearScanHistory, type ScanHistoryEntry } from "@/lib/scan-history";
+import { ProductPlaceholder } from "@/components/product/ProductPlaceholder";
 
 const SCORE_COLORS: Record<string, string> = {
   A: "bg-[#2e7d32]",
@@ -77,13 +79,11 @@ export default function ProductsPage() {
             href={`/product/${entry.barcode}`}
             className="flex items-center gap-3 border border-[#dddddd] bg-white p-3 transition-all hover:border-[#9eca45]"
           >
-            <div className="h-14 w-14 shrink-0 overflow-hidden border border-[#eeeeee] bg-[#f7f9fa]">
+            <div className="relative h-14 w-14 shrink-0 overflow-hidden border border-[#eeeeee] bg-[#f7f9fa]">
               {entry.imageUrl ? (
-                <img src={entry.imageUrl} alt="" className="h-full w-full object-cover" />
+                <Image src={entry.imageUrl} alt="" fill sizes="56px" className="object-cover" />
               ) : (
-                <div className="flex h-full items-center justify-center">
-                  <PackageSearch className="h-5 w-5 text-[#dddddd]" />
-                </div>
+                <ProductPlaceholder name={entry.name} iconSize={24} />
               )}
             </div>
 

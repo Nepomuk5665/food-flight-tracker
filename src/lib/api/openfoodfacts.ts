@@ -10,6 +10,7 @@ export interface OpenFoodFactsProduct {
   labels: string[];
   origins: string[];
   manufacturingPlaces: string[];
+  categories: string[];
 }
 
 interface OpenFoodFactsResponse {
@@ -34,7 +35,19 @@ interface OpenFoodFactsResponse {
     origins_tags?: string[];
     manufacturing_places?: string;
     manufacturing_places_tags?: string[];
+    categories_tags?: string[];
+    categories?: string;
   };
+}
+
+/**
+ * Rewrite an OFF image URL to request the full-resolution version.
+ * OFF URLs end with `.{rev}.{size}.jpg` where size is 100|200|400.
+ * Replacing the size segment with `full` returns the original upload.
+ */
+function toFullResUrl(url: string | null | undefined): string | null {
+  if (!url) return null;
+  return url.replace(/\.\d+\.jpg$/, ".full.jpg");
 }
 
 const splitCsv = (value?: string): string[] =>
@@ -92,7 +105,7 @@ export async function getProduct(barcode: string): Promise<OpenFoodFactsProduct 
   return {
     name: product.product_name?.trim() || "Unknown product",
     brand: product.brands?.trim() || "Unknown brand",
-    imageUrl: product.image_front_url ?? product.image_url ?? null,
+    imageUrl: toFullResUrl(product.image_front_url ?? product.image_url ?? null),
     ingredientsText: product.ingredients_text?.trim() || null,
     ingredients: ingredientsFromText.length > 0 ? ingredientsFromText : ingredientsFromTags,
     allergens,
@@ -110,5 +123,6 @@ export async function getProduct(barcode: string): Promise<OpenFoodFactsProduct 
       normalizeTags(product.manufacturing_places_tags).length > 0
         ? normalizeTags(product.manufacturing_places_tags)
         : normalizeTextValues(product.manufacturing_places),
+    categories: normalizeTags(product.categories_tags),
   };
 }

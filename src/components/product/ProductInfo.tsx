@@ -1,5 +1,7 @@
+import Image from "next/image";
 import type { ResolvedProduct } from "@/lib/product/resolve";
 import type { JourneyStage } from "@/lib/types";
+import { ProductPlaceholder } from "@/components/product/ProductPlaceholder";
 
 type ProductInfoProps = {
   product: ResolvedProduct;
@@ -122,17 +124,17 @@ export function ProductInfo({ product, activeLot, supplyChain }: ProductInfoProp
       </header>
 
       <div className="grid gap-4 border border-[#dddddd] bg-white p-4 rounded-none sm:grid-cols-[140px_1fr]">
-        <div className="overflow-hidden border border-[#dddddd] bg-[#f7f9fa]">
+        <div className="relative min-h-[140px] overflow-hidden border border-[#dddddd] bg-[#f7f9fa]">
           {product.imageUrl ? (
-            <img
+            <Image
               src={product.imageUrl}
               alt={product.name}
-              className="h-full w-full object-cover"
+              fill
+              sizes="(min-width: 640px) 140px, 100vw"
+              className="object-cover"
             />
           ) : (
-            <div className="flex h-full min-h-[140px] items-center justify-center text-xs font-bold uppercase text-[#777777]">
-              No image
-            </div>
+            <ProductPlaceholder name={product.name} category={product.category} />
           )}
         </div>
 

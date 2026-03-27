@@ -100,7 +100,7 @@ export async function resolveProductDetails(barcode: string): Promise<ResolvedPr
       barcode,
       name: internalProduct?.name ?? offProduct?.name ?? "Unknown product",
       brand: internalProduct?.brand ?? offProduct?.brand ?? "Unknown brand",
-      category: internalProduct?.category ?? null,
+      category: internalProduct?.category ?? offProduct?.categories[0] ?? null,
       imageUrl: internalProduct?.imageUrl ?? offProduct?.imageUrl ?? null,
       source: internalProduct && offProduct ? "merged" : internalProduct ? "internal" : "open_food_facts",
       ingredientsText: offProduct?.ingredientsText ?? internalProduct?.ingredients ?? null,
