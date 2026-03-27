@@ -94,3 +94,97 @@ export interface ApiError {
     message: string;
   };
 }
+
+// ---------------------------------------------------------------------------
+// Lineage (merge/split batch relationships)
+// ---------------------------------------------------------------------------
+
+export type PathRole = "parent" | "main" | "child";
+
+export interface LineageBatchJourney {
+  lotCode: string;
+  pathRole: PathRole;
+  relationship: "merge" | "split" | null;
+  ratio: number | null;
+  stages: JourneyStage[];
+}
+
+export interface LineageTree {
+  main: LineageBatchJourney;
+  parents: LineageBatchJourney[];
+  children: LineageBatchJourney[];
+}
+
+// ---------------------------------------------------------------------------
+// God View (admin dashboard overview)
+// ---------------------------------------------------------------------------
+
+export type RiskLevel = "safe" | "warning" | "critical";
+
+export function deriveRiskLevel(riskScore: number): RiskLevel {
+  if (riskScore <= 20) return "safe";
+  if (riskScore <= 60) return "warning";
+  return "critical";
+}
+
+export interface GodViewBatchStage {
+  stageId: string;
+  type: StageType;
+  name: string;
+  location: { name: string; lat: number; lng: number };
+  routeCoordinates?: [number, number][];
+  sequenceOrder: number;
+  anomalyCount: number;
+}
+
+export interface GodViewBatch {
+  lotCode: string;
+  productName: string;
+  productBrand: string;
+  status: BatchStatus;
+  riskScore: number;
+  riskLevel: RiskLevel;
+  unitCount: number | null;
+  stageCount: number;
+  anomalyCount: number;
+  maxSeverity: Severity | null;
+  stages: GodViewBatchStage[];
+  lastLocation: { name: string; lat: number; lng: number } | null;
+  updatedAt: string;
+}
+
+export interface GodViewAlert {
+  id: string;
+  batchLotCode: string;
+  productName: string;
+  severity: Severity;
+  anomalyType: AnomalyType;
+  description: string;
+  detectedAt: string;
+  stageType: StageType;
+  locationName: string;
+  lat: number;
+  lng: number;
+}
+
+export interface GodViewMetrics {
+  activeBatches: number;
+  openIncidents: number;
+  avgRiskScore: number;
+  recalledBatches: number;
+}
+
+export interface GodViewReport {
+  id: string;
+  lotCode: string;
+  category: string;
+  description: string | null;
+  createdAt: string;
+}
+
+export interface GodViewData {
+  batches: GodViewBatch[];
+  alerts: GodViewAlert[];
+  recentReports: GodViewReport[];
+  metrics: GodViewMetrics;
+}

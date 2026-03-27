@@ -234,16 +234,6 @@ const chocStages = db
       locationName: "Port of Antwerp, Belgium",
       latitude: 51.2194,
       longitude: 4.4025,
-      routeCoords: JSON.stringify([
-        [6.6885, -1.6244],
-        [5.6037, -0.187],
-        [5.3364, -4.0083],
-        [14.6937, -17.4441],
-        [36.7783, -10.0],
-        [43.2965, -5.3698],
-        [48.8566, -1.0],
-        [51.2194, 4.4025],
-      ]),
       operator: "MaerskLine Logistics",
       metadata: JSON.stringify({
         vesselName: "Maersk Harmony",
@@ -294,13 +284,6 @@ const chocStages = db
       locationName: "Munich Distribution Center, Germany",
       latitude: 48.1351,
       longitude: 11.582,
-      routeCoords: JSON.stringify([
-        [50.8503, 4.3517],
-        [50.9375, 6.9603],
-        [49.4521, 8.4519],
-        [48.7758, 9.1829],
-        [48.1351, 11.582],
-      ]),
       operator: "DHL Freight",
       metadata: JSON.stringify({
         vehicleType: "Refrigerated truck",
@@ -451,12 +434,6 @@ const dairyStages = db
       locationName: "Munich, Germany",
       latitude: 48.1351,
       longitude: 11.582,
-      routeCoords: JSON.stringify([
-        [47.7267, 10.3168],
-        [47.8388, 10.8687],
-        [47.9837, 11.1746],
-        [48.1351, 11.582],
-      ]),
       operator: "Kühne + Nagel",
       metadata: JSON.stringify({
         vehicleType: "Refrigerated truck",
@@ -637,13 +614,312 @@ db.insert(schema.stageAnomalies)
   .run();
 
 // ---------------------------------------------------------------------------
+// 9. Product — Allgäu Bio-Käse (Cheese with full merge + split lineage)
+// ---------------------------------------------------------------------------
+
+console.log("Seeding cheese product with lineage...");
+
+const cheese = db
+  .insert(schema.products)
+  .values({
+    barcode: "4099887766550",
+    name: "Allgäu Bio-Bergkäse 250g",
+    brand: "AlpenMilch",
+    category: "dairy",
+    imageUrl: "/images/cheese.jpg",
+    source: "internal",
+    nutriScore: "C",
+    ecoScore: "A",
+    ingredients: "Pasteurized milk, salt, rennet, cultures (Lactococcus lactis, Lactobacillus helveticus)",
+    allergens: JSON.stringify(["milk"]),
+  })
+  .returning()
+  .get()!;
+
+// Batches: two source farms merge → cheese making → splits into slices + wheels
+
+const cheeseFarmH = db
+  .insert(schema.batches)
+  .values({
+    lotCode: "K-FARM-H",
+    productId: cheese.id,
+    status: "active",
+    riskScore: 0,
+    unitCount: 1200,
+    createdAt: iso("2026-02-10T05:00:00Z"),
+    updatedAt: iso("2026-02-10T08:00:00Z"),
+  })
+  .returning()
+  .get()!;
+
+const cheeseFarmS = db
+  .insert(schema.batches)
+  .values({
+    lotCode: "K-FARM-S",
+    productId: cheese.id,
+    status: "active",
+    riskScore: 0,
+    unitCount: 900,
+    createdAt: iso("2026-02-10T05:30:00Z"),
+    updatedAt: iso("2026-02-10T08:30:00Z"),
+  })
+  .returning()
+  .get()!;
+
+const cheeseMake = db
+  .insert(schema.batches)
+  .values({
+    lotCode: "K-MAKE-001",
+    productId: cheese.id,
+    status: "active",
+    riskScore: 12,
+    unitCount: 420,
+    createdAt: iso("2026-03-20T06:00:00Z"),
+    updatedAt: iso("2026-03-20T12:00:00Z"),
+  })
+  .returning()
+  .get()!;
+
+const cheeseSlice = db
+  .insert(schema.batches)
+  .values({
+    lotCode: "K-SLICE-001",
+    productId: cheese.id,
+    status: "active",
+    riskScore: 5,
+    unitCount: 1680,
+    createdAt: iso("2026-03-16T06:00:00Z"),
+    updatedAt: iso("2026-03-20T12:00:00Z"),
+  })
+  .returning()
+  .get()!;
+
+const cheeseWheel = db
+  .insert(schema.batches)
+  .values({
+    lotCode: "K-WHEEL-001",
+    productId: cheese.id,
+    status: "active",
+    riskScore: 0,
+    unitCount: 42,
+    createdAt: iso("2026-03-16T07:00:00Z"),
+    updatedAt: iso("2026-03-18T10:00:00Z"),
+  })
+  .returning()
+  .get()!;
+
+// Lineage: 2 farms merge → cheese → splits into slices + wheels
+db.insert(schema.batchLineage).values([
+  { parentBatchId: cheeseFarmH.id, childBatchId: cheeseMake.id, relationship: "merge", ratio: 0.57 },
+  { parentBatchId: cheeseFarmS.id, childBatchId: cheeseMake.id, relationship: "merge", ratio: 0.43 },
+  { parentBatchId: cheeseMake.id, childBatchId: cheeseSlice.id, relationship: "split", ratio: 0.8 },
+  { parentBatchId: cheeseMake.id, childBatchId: cheeseWheel.id, relationship: "split", ratio: 0.2 },
+]).run();
+
+// Stages
+
+const cheeseStages = db
+  .insert(schema.batchStages)
+  .values([
+    // Farm Huber collection
+    {
+      batchId: cheeseFarmH.id,
+      stageType: "collection",
+      name: "Milk Collection — Farm Huber",
+      locationName: "Bauernhof Huber, Oberstdorf, Germany",
+      latitude: 47.4095,
+      longitude: 10.2789,
+      operator: "Farm Huber",
+      metadata: JSON.stringify({ volume: "1,200L raw milk", fatContent: "4.2%", organic: true }),
+      startedAt: iso("2026-02-10T05:00:00Z"),
+      completedAt: iso("2026-02-10T07:00:00Z"),
+      sequenceOrder: 1,
+    },
+    // Farm Schneider collection
+    {
+      batchId: cheeseFarmS.id,
+      stageType: "collection",
+      name: "Milk Collection — Farm Schneider",
+      locationName: "Bauernhof Schneider, Sonthofen, Germany",
+      latitude: 47.5148,
+      longitude: 10.2817,
+      operator: "Farm Schneider",
+      metadata: JSON.stringify({ volume: "900L raw milk", fatContent: "3.9%", organic: true }),
+      startedAt: iso("2026-02-10T05:30:00Z"),
+      completedAt: iso("2026-02-10T07:30:00Z"),
+      sequenceOrder: 1,
+    },
+    // Cheese making — Processing
+    {
+      batchId: cheeseMake.id,
+      stageType: "processing",
+      name: "Curdling & Pressing",
+      locationName: "AlpenMilch Käserei, Kempten, Germany",
+      latitude: 47.7267,
+      longitude: 10.3168,
+      operator: "AlpenMilch GmbH",
+      metadata: JSON.stringify({
+        process: "Pasteurization, rennet addition, curd cutting, pressing into wheels",
+        volume: "2,100L milk → 420 wheels",
+        temperature: "32°C curdling, 52°C scalding",
+      }),
+      startedAt: iso("2026-02-11T06:00:00Z"),
+      completedAt: iso("2026-02-11T18:00:00Z"),
+      sequenceOrder: 2,
+    },
+    // Cheese making — Aging
+    {
+      batchId: cheeseMake.id,
+      stageType: "storage",
+      name: "Cave Aging (4 weeks)",
+      locationName: "AlpenMilch Aging Cellar, Kempten, Germany",
+      latitude: 47.7280,
+      longitude: 10.3190,
+      operator: "AlpenMilch GmbH",
+      metadata: JSON.stringify({
+        duration: "28 days",
+        temperature: "12-14°C",
+        humidity: "92-95%",
+        treatment: "Brine wash twice weekly",
+      }),
+      startedAt: iso("2026-02-12T00:00:00Z"),
+      completedAt: iso("2026-03-12T00:00:00Z"),
+      sequenceOrder: 3,
+    },
+    // Cheese making — Quality check
+    {
+      batchId: cheeseMake.id,
+      stageType: "inspection",
+      name: "Quality Inspection",
+      locationName: "AlpenMilch QA Lab, Kempten, Germany",
+      latitude: 47.7267,
+      longitude: 10.3168,
+      operator: "AlpenMilch QA",
+      metadata: JSON.stringify({
+        tests: "Moisture 38%, fat 48% FDM, pH 5.3, rind integrity OK",
+        grade: "A — Premium",
+        passRate: "97.6% (10 wheels rejected)",
+      }),
+      startedAt: iso("2026-03-12T08:00:00Z"),
+      completedAt: iso("2026-03-12T16:00:00Z"),
+      sequenceOrder: 4,
+    },
+    // Sliced batch — Packaging
+    {
+      batchId: cheeseSlice.id,
+      stageType: "packaging",
+      name: "Slicing & Vacuum Packing",
+      locationName: "AlpenMilch Packaging, Kempten, Germany",
+      latitude: 47.7267,
+      longitude: 10.3168,
+      operator: "AlpenMilch GmbH",
+      metadata: JSON.stringify({
+        packagingType: "250g vacuum pack",
+        unitsProduced: "1,680 packs",
+        bestBefore: "2026-05-12",
+      }),
+      startedAt: iso("2026-03-16T06:00:00Z"),
+      completedAt: iso("2026-03-16T14:00:00Z"),
+      sequenceOrder: 5,
+    },
+    // Sliced batch — Transport
+    {
+      batchId: cheeseSlice.id,
+      stageType: "transport",
+      name: "Refrigerated Transport → Munich",
+      locationName: "Munich, Germany",
+      latitude: 48.1351,
+      longitude: 11.582,
+      operator: "Kühne + Nagel",
+      metadata: JSON.stringify({ vehicleType: "Refrigerated truck", targetTemp: "4-8°C" }),
+      startedAt: iso("2026-03-17T04:00:00Z"),
+      completedAt: iso("2026-03-17T08:00:00Z"),
+      sequenceOrder: 6,
+    },
+    // Sliced batch — Retail
+    {
+      batchId: cheeseSlice.id,
+      stageType: "retail",
+      name: "Retail Shelf",
+      locationName: "REWE Munich-Pasing, Germany",
+      latitude: 48.1418,
+      longitude: 11.4614,
+      operator: "REWE Group",
+      metadata: JSON.stringify({ shelfLocation: "Deli Cooler, Row 3", retailPrice: "€4.99" }),
+      startedAt: iso("2026-03-18T06:00:00Z"),
+      completedAt: null,
+      sequenceOrder: 7,
+    },
+    // Whole wheel batch — Deli distribution
+    {
+      batchId: cheeseWheel.id,
+      stageType: "transport",
+      name: "Deli Distribution → Augsburg",
+      locationName: "Augsburg, Germany",
+      latitude: 48.3706,
+      longitude: 10.8978,
+      operator: "Regional Logistics",
+      metadata: JSON.stringify({ vehicleType: "Refrigerated van", targetTemp: "4-8°C", units: "42 wheels" }),
+      startedAt: iso("2026-03-16T08:00:00Z"),
+      completedAt: iso("2026-03-16T12:00:00Z"),
+      sequenceOrder: 5,
+    },
+    // Whole wheel batch — Specialty shop
+    {
+      batchId: cheeseWheel.id,
+      stageType: "retail",
+      name: "Specialty Cheese Shop",
+      locationName: "Käsehaus Augsburg, Germany",
+      latitude: 48.3654,
+      longitude: 10.8947,
+      operator: "Käsehaus Augsburg",
+      metadata: JSON.stringify({ shelfLocation: "Alpine section", retailPrice: "€32.00/kg" }),
+      startedAt: iso("2026-03-17T09:00:00Z"),
+      completedAt: null,
+      sequenceOrder: 6,
+    },
+  ])
+  .returning()
+  .all();
+
+// Telemetry for cheese aging (temperature + humidity over 28 days)
+const cheeseAgingStage = cheeseStages[3]; // Cave Aging stage
+const cheeseAgingReadings = [];
+for (let day = 0; day < 28; day += 2) {
+  const time = new Date("2026-02-12T00:00:00Z");
+  time.setDate(time.getDate() + day);
+  cheeseAgingReadings.push(
+    {
+      stageId: cheeseAgingStage.id,
+      readingType: "temperature" as const,
+      value: Math.round((12.5 + Math.random() * 1.5) * 10) / 10,
+      unit: "°C",
+      recordedAt: time.toISOString(),
+    },
+    {
+      stageId: cheeseAgingStage.id,
+      readingType: "humidity" as const,
+      value: Math.round((92 + Math.random() * 3) * 10) / 10,
+      unit: "%",
+      recordedAt: time.toISOString(),
+    },
+  );
+}
+db.insert(schema.telemetryReadings).values(cheeseAgingReadings).run();
+
+console.log(`  Cheese: ${cheese.name}`);
+console.log(`  Cheese batches: ${cheeseFarmH.lotCode}, ${cheeseFarmS.lotCode}, ${cheeseMake.lotCode}, ${cheeseSlice.lotCode}, ${cheeseWheel.lotCode}`);
+console.log(`  Cheese lineage: 2 merges + 2 splits`);
+console.log(`  Cheese stages: ${cheeseStages.length}, telemetry: ${cheeseAgingReadings.length}`);
+
+// ---------------------------------------------------------------------------
 // Done
 // ---------------------------------------------------------------------------
 
 console.log("\nSeed complete!");
-console.log(`  2 products, 5 batches, 3 lineage links`);
-console.log(`  ${chocStages.length + dairyStages.length} stages`);
-console.log(`  ${telemetryValues.length + dairyReadings.length} telemetry readings`);
+console.log(`  3 products, 10 batches, 7 lineage links`);
+console.log(`  ${chocStages.length + dairyStages.length + cheeseStages.length} stages`);
+console.log(`  ${telemetryValues.length + dairyReadings.length + cheeseAgingReadings.length} telemetry readings`);
 console.log(`  1 anomaly (cold chain break)`);
 
 sqlite.close();

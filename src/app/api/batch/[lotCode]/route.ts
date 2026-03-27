@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server";
-import { getBatchJourney, getBatchLineage } from "@/lib/db/queries";
+import { getBatchJourney, getBatchLineage, getFullLineageTree } from "@/lib/db/queries";
 
 type Ctx = { params: Promise<{ lotCode: string }> };
 
-export async function GET(_request: Request, context: Ctx) {
+export async function GET(request: Request, context: Ctx) {
   const { lotCode } = await context.params;
+  const url = new URL(request.url);
+  const includeLineageStages = url.searchParams.get("include") === "lineage-stages";
 
   const journey = getBatchJourney(lotCode);
 
@@ -47,6 +49,10 @@ export async function GET(_request: Request, context: Ctx) {
     };
   });
 
+  const lineageTree = includeLineageStages
+    ? getFullLineageTree(lotCode)
+    : undefined;
+
   return NextResponse.json({
     success: true,
     data: {
@@ -65,6 +71,7 @@ export async function GET(_request: Request, context: Ctx) {
           ratio: c.lineage.ratio,
         })),
       },
+      ...(lineageTree ? { lineageTree } : {}),
     },
   });
 }

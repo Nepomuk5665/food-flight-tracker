@@ -5,7 +5,7 @@ import dynamic from "next/dynamic";
 import { ChevronLeft, List, X } from "lucide-react";
 
 import { JourneyTimeline } from "@/components/journey/JourneyTimeline";
-import type { JourneyStage } from "@/lib/types";
+import type { JourneyStage, LineageTree } from "@/lib/types";
 
 const JourneyMap = dynamic(
   () => import("@/components/journey/JourneyMap").then((m) => m.JourneyMap),
@@ -20,11 +20,12 @@ type MapTabProps = {
   loading: boolean;
   error: string | null;
   canGenerate: boolean;
+  lineageTree?: LineageTree | null;
   onBack: () => void;
   onGenerate: () => void;
 };
 
-export function MapTab({ journey, productName, loading, error, canGenerate, onBack, onGenerate }: MapTabProps) {
+export function MapTab({ journey, productName, loading, error, canGenerate, lineageTree, onBack, onGenerate }: MapTabProps) {
   const [selectedStage, setSelectedStage] = useState<JourneyStage | null>(null);
   const [drawer, setDrawer] = useState<DrawerState>("closed");
   const [dragHeight, setDragHeight] = useState<number | null>(null);
@@ -157,6 +158,7 @@ export function MapTab({ journey, productName, loading, error, canGenerate, onBa
       <div className="absolute inset-0">
         <JourneyMap
           stages={journey}
+          lineageTree={lineageTree}
           selectedStage={selectedStage}
           onStageSelect={handleStageSelect}
         />
@@ -219,6 +221,7 @@ export function MapTab({ journey, productName, loading, error, canGenerate, onBa
               stages={journey}
               activeStageId={selectedStage?.stageId ?? null}
               onStageClick={handleTimelineStageClick}
+              lineageTree={lineageTree}
             />
           </div>
         )}

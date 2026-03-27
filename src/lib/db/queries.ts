@@ -197,6 +197,64 @@ export function getBatchLineage(batchId: string) {
 }
 
 // ---------------------------------------------------------------------------
+// Full Lineage Tree (stages for all related batches)
+// ---------------------------------------------------------------------------
+
+function serializeStages(rawStages: ReturnType<typeof getBatchJourney> extends infer R ? R extends { stages: infer S } ? S : never : never) {
+  return rawStages.map((stage) => ({
+    stageId: stage.id,
+    type: stage.stageType,
+    name: stage.name,
+    location: { name: stage.locationName, lat: stage.latitude, lng: stage.longitude },
+    routeCoordinates: stage.routeCoords,
+    startedAt: stage.startedAt,
+    completedAt: stage.completedAt,
+    operator: stage.operator,
+    metadata: stage.metadata,
+    sequenceOrder: stage.sequenceOrder,
+    telemetry: {},
+    anomalies: stage.anomalies,
+  }));
+}
+
+export function getFullLineageTree(lotCode: string) {
+  const mainJourney = getBatchJourney(lotCode);
+  if (!mainJourney) return null;
+
+  const lineage = getBatchLineage(mainJourney.batch.id);
+
+  const parents = lineage.parents
+    .map((p) => {
+      const journey = getBatchJourney(p.parentBatch.lotCode);
+      if (!journey) return null;
+      return {
+        lotCode: p.parentBatch.lotCode,
+        pathRole: "parent" as const,
+        relationship: p.lineage.relationship as "merge" | "split",
+        ratio: p.lineage.ratio,
+        stages: serializeStages(journey.stages),
+      };
+    })
+    .filter((x): x is NonNullable<typeof x> => x !== null);
+
+  const children = lineage.children
+    .map((c) => {
+      const journey = getBatchJourney(c.childBatch.lotCode);
+      if (!journey) return null;
+      return {
+        lotCode: c.childBatch.lotCode,
+        pathRole: "child" as const,
+        relationship: c.lineage.relationship as "merge" | "split",
+        ratio: c.lineage.ratio,
+        stages: serializeStages(journey.stages),
+      };
+    })
+    .filter((x): x is NonNullable<typeof x> => x !== null);
+
+  return { parents, children };
+}
+
+// ---------------------------------------------------------------------------
 // Consumer Reports
 // ---------------------------------------------------------------------------
 
@@ -323,6 +381,141 @@ export function endRecall(recallId: string) {
       .where(eq(batches.id, lot.batchId))
       .run();
   }
+}
+
+// ---------------------------------------------------------------------------
+// Anomalies
+// ---------------------------------------------------------------------------
+
+// ---------------------------------------------------------------------------
+// God View (admin dashboard overview)
+// ---------------------------------------------------------------------------
+
+export function getGodViewData() {
+  const allBatchRows = getAllBatches();
+
+  const godBatches = allBatchRows.map(({ batch, product }) => {
+    const stages = db
+      .select()
+      .from(batchStages)
+      .where(eq(batchStages.batchId, batch.id))
+      .orderBy(asc(batchStages.sequenceOrder))
+      .all();
+
+    const anomalies = db
+      .select()
+      .from(stageAnomalies)
+      .where(eq(stageAnomalies.batchId, batch.id))
+      .all();
+
+    const anomalyCountByStage = new Map<string, number>();
+    let maxSev: string | null = null;
+    const sevRank: Record<string, number> = { low: 1, medium: 2, high: 3, critical: 4 };
+
+    for (const a of anomalies) {
+      anomalyCountByStage.set(a.stageId, (anomalyCountByStage.get(a.stageId) ?? 0) + 1);
+      if (!maxSev || (sevRank[a.severity] ?? 0) > (sevRank[maxSev] ?? 0)) {
+        maxSev = a.severity;
+      }
+    }
+
+    const lastStage = stages.length > 0 ? stages[stages.length - 1] : null;
+
+    const riskLevel =
+      batch.riskScore <= 20 ? "safe" as const :
+      batch.riskScore <= 60 ? "warning" as const :
+      "critical" as const;
+
+    return {
+      lotCode: batch.lotCode,
+      productName: product.name,
+      productBrand: product.brand,
+      status: batch.status as "active" | "under_review" | "recalled",
+      riskScore: batch.riskScore,
+      riskLevel,
+      unitCount: batch.unitCount,
+      stageCount: stages.length,
+      anomalyCount: anomalies.length,
+      maxSeverity: (maxSev as "low" | "medium" | "high" | "critical") ?? null,
+      stages: stages.map((s) => ({
+        stageId: s.id,
+        type: s.stageType as "harvest" | "collection" | "processing" | "packaging" | "storage" | "transport" | "retail",
+        name: s.name,
+        location: {
+          name: s.locationName ?? "",
+          lat: s.latitude ?? 0,
+          lng: s.longitude ?? 0,
+        },
+        routeCoordinates: s.routeCoords ? JSON.parse(s.routeCoords) : undefined,
+        sequenceOrder: s.sequenceOrder,
+        anomalyCount: anomalyCountByStage.get(s.id) ?? 0,
+      })),
+      lastLocation: lastStage && lastStage.latitude && lastStage.longitude
+        ? { name: lastStage.locationName ?? "", lat: lastStage.latitude, lng: lastStage.longitude }
+        : null,
+      updatedAt: batch.updatedAt,
+    };
+  });
+
+  // Alerts: all anomalies joined with batch + product + stage info
+  const alertRows = db
+    .select({
+      anomaly: stageAnomalies,
+      batch: batches,
+      product: products,
+      stage: batchStages,
+    })
+    .from(stageAnomalies)
+    .innerJoin(batches, eq(stageAnomalies.batchId, batches.id))
+    .innerJoin(products, eq(batches.productId, products.id))
+    .innerJoin(batchStages, eq(stageAnomalies.stageId, batchStages.id))
+    .orderBy(desc(stageAnomalies.detectedAt))
+    .limit(50)
+    .all();
+
+  const alerts = alertRows.map((r) => ({
+    id: r.anomaly.id,
+    batchLotCode: r.batch.lotCode,
+    productName: r.product.name,
+    severity: r.anomaly.severity as "low" | "medium" | "high" | "critical",
+    anomalyType: r.anomaly.anomalyType as "cold_chain_break" | "humidity_spike" | "delayed_transport" | "contamination_risk" | "temperature_high" | "temperature_low",
+    description: r.anomaly.description,
+    detectedAt: r.anomaly.detectedAt,
+    stageType: r.stage.stageType as "harvest" | "collection" | "processing" | "packaging" | "storage" | "transport" | "retail",
+    locationName: r.stage.locationName ?? "",
+    lat: r.stage.latitude ?? 0,
+    lng: r.stage.longitude ?? 0,
+  }));
+
+  // Recent consumer reports
+  const reports = db
+    .select()
+    .from(consumerReports)
+    .orderBy(desc(consumerReports.createdAt))
+    .limit(20)
+    .all()
+    .map((r) => ({
+      id: r.id,
+      lotCode: r.lotCode,
+      category: r.category,
+      description: r.description,
+      createdAt: r.createdAt,
+    }));
+
+  // Metrics
+  const activeBatches = godBatches.filter((b) => b.status === "active").length;
+  const recalledBatches = godBatches.filter((b) => b.status === "recalled").length;
+  const openIncidents = alerts.filter((a) => a.severity === "critical" || a.severity === "high").length;
+  const avgRiskScore = godBatches.length > 0
+    ? Math.round(godBatches.reduce((sum, b) => sum + b.riskScore, 0) / godBatches.length)
+    : 0;
+
+  return {
+    batches: godBatches,
+    alerts,
+    recentReports: reports,
+    metrics: { activeBatches, openIncidents, avgRiskScore, recalledBatches },
+  };
 }
 
 // ---------------------------------------------------------------------------

@@ -12,9 +12,8 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
-const ICON_SIZE = 32;
-const LUCIDE_SIZE = 16;
-const OFFSET = (ICON_SIZE - LUCIDE_SIZE) / 2;
+const ICON_SIZE = 36;
+const LUCIDE_SIZE = 18;
 
 function IconBadge({ icon: Icon, color }: { icon: LucideIcon; color: string }) {
   return (
