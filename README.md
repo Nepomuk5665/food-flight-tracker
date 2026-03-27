@@ -35,7 +35,15 @@ Welcome to **Project Trace**. This guide walks you through every feature and how
 
 ### 1. Consumer App (use your phone)
 
-Open **[foodflighttracker.com](https://foodflighttracker.com)** on your phone and tap **"Scan Product"**.
+Scan this QR code with your phone to open the scanner directly:
+
+<p align="center">
+  <img src="public/qr-scan.png" alt="QR Code — foodflighttracker.com/scan" width="200" />
+  <br/>
+  <em>foodflighttracker.com/scan</em>
+</p>
+
+Or open **[foodflighttracker.com](https://foodflighttracker.com)** on your phone and tap **"Scan Product"**.
 
 #### Scan a barcode
 - Point your camera at **any food product barcode** (EAN-13)
