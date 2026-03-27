@@ -1,5 +1,8 @@
 const STORAGE_KEY = "fft:scan-history";
+const CHAT_KEY = "fft:ai-conversations";
 const MAX_ENTRIES = 50;
+
+export type AiMessage = { role: "user" | "assistant"; content: string };
 
 export interface ScanHistoryEntry {
   barcode: string;
@@ -35,22 +38,40 @@ export function addToScanHistory(entry: Omit<ScanHistoryEntry, "scannedAt">) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
 }
 
-export function updateAiSummary(barcode: string, aiSummary: string) {
-  if (typeof window === "undefined") return;
-  const history = getScanHistory();
-  const entry = history.find((e) => e.barcode === barcode);
-  if (entry) {
-    entry.aiSummary = aiSummary;
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
-  }
-}
-
-export function getAiSummary(barcode: string): string | null {
-  if (typeof window === "undefined") return null;
-  return getScanHistory().find((e) => e.barcode === barcode)?.aiSummary ?? null;
-}
-
 export function clearScanHistory() {
   if (typeof window === "undefined") return;
   localStorage.removeItem(STORAGE_KEY);
+  localStorage.removeItem(CHAT_KEY);
+}
+
+function getChatStore(): Record<string, AiMessage[]> {
+  if (typeof window === "undefined") return {};
+  try {
+    const raw = localStorage.getItem(CHAT_KEY);
+    return raw ? (JSON.parse(raw) as Record<string, AiMessage[]>) : {};
+  } catch {
+    return {};
+  }
+}
+
+export function getConversation(key: string): AiMessage[] {
+  return getChatStore()[key] ?? [];
+}
+
+export function saveConversation(key: string, messages: AiMessage[]) {
+  if (typeof window === "undefined") return;
+  const store = getChatStore();
+  store[key] = messages;
+
+  const entry = getScanHistory().find((e) => e.barcode === key);
+  if (entry) {
+    const firstAssistant = messages.find((m) => m.role === "assistant");
+    if (firstAssistant) {
+      entry.aiSummary = firstAssistant.content;
+      const history = getScanHistory().map((e) => (e.barcode === key ? entry : e));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
+    }
+  }
+
+  localStorage.setItem(CHAT_KEY, JSON.stringify(store));
 }

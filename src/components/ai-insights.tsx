@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { Sparkles, Send, ChevronDown } from "lucide-react";
 import Markdown from "react-markdown";
-import { getAiSummary, updateAiSummary } from "@/lib/scan-history";
+import { getConversation, saveConversation, type AiMessage } from "@/lib/scan-history";
 
 type Props = {
   lotCode?: string;
@@ -13,15 +13,14 @@ type Props = {
   suggestions?: string[];
 };
 
-type Message = { role: "user" | "assistant"; content: string };
-
 export default function AiInsights({ lotCode, barcode, context, autoPrompt, suggestions = [] }: Props) {
-  const [messages, setMessages] = useState<Message[]>([]);
+  const storageKey = barcode ?? lotCode ?? "";
+  const [messages, setMessages] = useState<AiMessage[]>([]);
   const [input, setInput] = useState("");
   const [streaming, setStreaming] = useState(false);
-  const [autoFired, setAutoFired] = useState(false);
+  const [initialized, setInitialized] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const messagesRef = useRef<Message[]>([]);
+  const messagesRef = useRef<AiMessage[]>([]);
 
   messagesRef.current = messages;
 
@@ -31,7 +30,11 @@ export default function AiInsights({ lotCode, barcode, context, autoPrompt, sugg
     }
   }, [messages]);
 
-  const sendMessage = useCallback(async (text: string, visible: boolean, isAuto = false) => {
+  const persist = useCallback((msgs: AiMessage[]) => {
+    if (storageKey) saveConversation(storageKey, msgs);
+  }, [storageKey]);
+
+  const sendMessage = useCallback(async (text: string, visible: boolean) => {
     if (streaming) return;
     setStreaming(true);
 
@@ -52,8 +55,9 @@ export default function AiInsights({ lotCode, barcode, context, autoPrompt, sugg
       });
 
       if (!res.ok || !res.body) {
-        const errMsg: Message = { role: "assistant", content: "Unable to analyze right now." };
-        setMessages([...withUser, errMsg]);
+        const final = [...withUser, { role: "assistant" as const, content: "Unable to analyze right now." }];
+        setMessages(final);
+        persist(final);
         return;
       }
 
@@ -68,31 +72,34 @@ export default function AiInsights({ lotCode, barcode, context, autoPrompt, sugg
         setMessages([...withUser, { role: "assistant", content: streamed }]);
       }
 
-      if (isAuto && barcode && streamed) {
-        updateAiSummary(barcode, streamed);
-      }
+      const final = [...withUser, { role: "assistant" as const, content: streamed }];
+      setMessages(final);
+      persist(final);
     } catch {
-      setMessages((prev) => [...prev, { role: "assistant", content: "Connection error." }]);
+      const final = [...messagesRef.current, { role: "assistant" as const, content: "Connection error." }];
+      setMessages(final);
+      persist(final);
     } finally {
       setStreaming(false);
     }
-  }, [streaming, lotCode, barcode, context]);
+  }, [streaming, lotCode, barcode, context, persist]);
 
   useEffect(() => {
-    if (autoPrompt && !autoFired) {
-      setAutoFired(true);
+    if (initialized) return;
+    setInitialized(true);
 
-      if (barcode) {
-        const cached = getAiSummary(barcode);
-        if (cached) {
-          setMessages([{ role: "assistant", content: cached }]);
-          return;
-        }
+    if (storageKey) {
+      const cached = getConversation(storageKey);
+      if (cached.length > 0) {
+        setMessages(cached);
+        return;
       }
-
-      sendMessage(autoPrompt, false, true);
     }
-  }, [autoPrompt, autoFired, sendMessage, barcode]);
+
+    if (autoPrompt) {
+      sendMessage(autoPrompt, false);
+    }
+  }, [initialized, storageKey, autoPrompt, sendMessage]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
