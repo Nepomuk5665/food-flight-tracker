@@ -17,6 +17,7 @@ export default function ScanPage() {
     useRef<InstanceType<typeof import("barcode-detector/ponyfill").BarcodeDetector> | null>(null);
   const rafRef = useRef<number>(0);
   const scanningRef = useRef(true);
+  const retryCountRef = useRef(0);
   const streamRef = useRef<MediaStream | null>(null);
 
   const [cameraState, setCameraState] = useState<CameraState>(() => {
@@ -155,6 +156,11 @@ export default function ScanPage() {
         setCameraState("denied");
         setErrorMessage("Camera access was denied.");
       } else {
+        retryCountRef.current += 1;
+        if (retryCountRef.current < 3) {
+          await new Promise((r) => setTimeout(r, 500 * retryCountRef.current));
+          return startCamera();
+        }
         setCameraState("error");
         setErrorMessage(e.message);
       }
