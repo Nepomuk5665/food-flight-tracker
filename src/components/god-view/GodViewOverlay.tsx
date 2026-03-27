@@ -13,13 +13,21 @@ import {
 } from "lucide-react";
 import type { GodViewMetrics, GodViewAlert, GodViewReport, Severity } from "@/lib/types";
 
-/* ── Severity utils ────────────────────────────────────────── */
+/* ── Glass card base ─────────────────────────────────────── */
+
+const GLASS =
+  "border border-white/[0.08] bg-white/[0.03] backdrop-blur-2xl shadow-[0_0_1px_0_rgba(255,255,255,0.05),0_8px_32px_-8px_rgba(0,0,0,0.5)] rounded-none";
+
+const GLASS_INNER =
+  "shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)]";
+
+/* ── Severity utils ──────────────────────────────────────── */
 
 const SEVERITY_COLOR: Record<Severity, string> = {
-  critical: "#e74c3c",
-  high: "#f5a623",
-  medium: "#f5a623",
-  low: "#9eca45",
+  critical: "#ff4d4f",
+  high: "#faad14",
+  medium: "#faad14",
+  low: "#52c41a",
 };
 
 const SEVERITY_ORDER: Record<Severity, number> = {
@@ -27,6 +35,13 @@ const SEVERITY_ORDER: Record<Severity, number> = {
   high: 3,
   medium: 2,
   low: 1,
+};
+
+const SEVERITY_GLOW: Record<Severity, string> = {
+  critical: "shadow-[0_0_12px_-2px_rgba(255,77,79,0.4)]",
+  high: "shadow-[0_0_8px_-2px_rgba(250,173,20,0.3)]",
+  medium: "",
+  low: "",
 };
 
 function anomalyIcon(type: string) {
@@ -53,33 +68,37 @@ function timeAgo(iso: string): string {
   return `${Math.floor(hrs / 24)}d ago`;
 }
 
-/* ── MetricsCards ──────────────────────────────────────────── */
+/* ── MetricsCards ─────────────────────────────────────────── */
 
 function MetricsCards({ metrics }: { metrics: GodViewMetrics }) {
   const cards = [
     {
       label: "Active Batches",
       value: metrics.activeBatches,
-      icon: <Activity size={16} className="text-[#9eca45]" />,
-      color: "text-white",
+      icon: <Activity size={14} className="text-white/50" />,
+      accent: "text-white",
+      glow: "",
     },
     {
       label: "Open Incidents",
       value: metrics.openIncidents,
-      icon: <AlertTriangle size={16} className="text-[#f5a623]" />,
-      color: metrics.openIncidents > 0 ? "text-[#f5a623]" : "text-white",
+      icon: <AlertTriangle size={14} className="text-[#faad14]" />,
+      accent: metrics.openIncidents > 0 ? "text-[#faad14]" : "text-white",
+      glow: metrics.openIncidents > 0 ? "shadow-[0_0_20px_-4px_rgba(250,173,20,0.25)]" : "",
     },
     {
       label: "Avg Risk Score",
       value: metrics.avgRiskScore,
-      icon: <BarChart3 size={16} className="text-[#8b9db6]" />,
-      color: metrics.avgRiskScore > 60 ? "text-[#e74c3c]" : metrics.avgRiskScore > 20 ? "text-[#f5a623]" : "text-white",
+      icon: <BarChart3 size={14} className="text-white/40" />,
+      accent: metrics.avgRiskScore > 60 ? "text-[#ff4d4f]" : metrics.avgRiskScore > 20 ? "text-[#faad14]" : "text-white",
+      glow: "",
     },
     {
       label: "Recalled",
       value: metrics.recalledBatches,
-      icon: <ShieldAlert size={16} className="text-[#e74c3c]" />,
-      color: metrics.recalledBatches > 0 ? "text-[#e74c3c]" : "text-white",
+      icon: <ShieldAlert size={14} className="text-[#ff4d4f]/60" />,
+      accent: metrics.recalledBatches > 0 ? "text-[#ff4d4f]" : "text-white/60",
+      glow: metrics.recalledBatches > 0 ? "shadow-[0_0_20px_-4px_rgba(255,77,79,0.3)]" : "",
     },
   ];
 
@@ -88,22 +107,24 @@ function MetricsCards({ metrics }: { metrics: GodViewMetrics }) {
       {cards.map((card) => (
         <div
           key={card.label}
-          className="border border-[#1e2a3a] bg-[#0f1923]/90 px-3 py-2 backdrop-blur-sm rounded-none"
+          className={`${GLASS} ${GLASS_INNER} ${card.glow} px-3 py-3 transition-all duration-300 hover:bg-white/[0.06] hover:border-white/[0.12]`}
         >
           <div className="flex items-center gap-1.5">
             {card.icon}
-            <span className="text-[10px] font-semibold uppercase tracking-wide text-[#8b9db6]">
+            <span className="text-[10px] font-medium uppercase tracking-wider text-white/40">
               {card.label}
             </span>
           </div>
-          <p className={`mt-1 text-2xl font-bold ${card.color}`}>{card.value}</p>
+          <p className={`mt-1.5 text-2xl font-bold tracking-tight ${card.accent}`}>
+            {card.value}
+          </p>
         </div>
       ))}
     </div>
   );
 }
 
-/* ── AlertsPanel ──────────────────────────────────────────── */
+/* ── AlertsPanel ─────────────────────────────────────────── */
 
 function AlertsPanel({
   alerts,
@@ -117,10 +138,10 @@ function AlertsPanel({
   );
 
   return (
-    <div className="border border-[#1e2a3a] bg-[#0f1923]/90 backdrop-blur-sm rounded-none">
-      <div className="flex items-center gap-1.5 border-b border-[#1e2a3a] px-3 py-2">
-        <AlertTriangle size={14} className="text-[#f5a623]" />
-        <span className="text-[10px] font-bold uppercase tracking-wide text-[#8b9db6]">
+    <div className={`${GLASS} overflow-hidden`}>
+      <div className={`${GLASS_INNER} flex items-center gap-1.5 border-b border-white/[0.06] px-3 py-2.5`}>
+        <AlertTriangle size={13} className="text-[#faad14]" />
+        <span className="text-[10px] font-semibold uppercase tracking-wider text-white/50">
           Active Alerts ({alerts.length})
         </span>
       </div>
@@ -130,7 +151,7 @@ function AlertsPanel({
             <button
               type="button"
               onClick={() => onAlertClick(alert)}
-              className="flex w-full items-start gap-2 border-b border-[#1e2a3a]/50 px-3 py-2 text-left transition-colors hover:bg-[#162433] rounded-none"
+              className={`flex w-full items-start gap-2 border-b border-white/[0.04] px-3 py-2.5 text-left transition-all duration-200 hover:bg-white/[0.04] rounded-none ${SEVERITY_GLOW[alert.severity]}`}
             >
               <span
                 className="mt-0.5 flex-shrink-0"
@@ -139,33 +160,38 @@ function AlertsPanel({
                 {anomalyIcon(alert.anomalyType)}
               </span>
               <div className="min-w-0 flex-1">
-                <p className="truncate text-xs font-medium text-white">
+                <p className="truncate text-xs font-medium text-white/90">
                   {alert.description}
                 </p>
-                <p className="mt-0.5 text-[10px] text-[#8b9db6]">
+                <p className="mt-0.5 text-[10px] text-white/30">
                   {alert.batchLotCode} &bull; {alert.locationName} &bull;{" "}
-                  <span style={{ color: SEVERITY_COLOR[alert.severity] }}>
+                  <span
+                    className="font-medium"
+                    style={{ color: SEVERITY_COLOR[alert.severity] }}
+                  >
                     {alert.severity}
                   </span>
                 </p>
               </div>
-              <span className="flex-shrink-0 text-[10px] text-[#5a6a7a]">
+              <span className="flex-shrink-0 text-[10px] text-white/20">
                 {timeAgo(alert.detectedAt)}
               </span>
             </button>
           </li>
         ))}
         {alerts.length === 0 && (
-          <li className="px-3 py-4 text-center text-xs text-[#5a6a7a]">No active alerts</li>
+          <li className="px-3 py-4 text-center text-xs text-white/20">No active alerts</li>
         )}
       </ul>
     </div>
   );
 }
 
-/* ── ReportsPanel ─────────────────────────────────────────── */
+/* ── ReportsPanel ────────────────────────────────────────── */
 
 function ReportsPanel({ reports }: { reports: GodViewReport[] }) {
+  if (reports.length === 0) return null;
+
   const categoryLabel: Record<string, string> = {
     taste_quality: "Taste",
     appearance: "Appearance",
@@ -176,10 +202,10 @@ function ReportsPanel({ reports }: { reports: GodViewReport[] }) {
   };
 
   return (
-    <div className="border border-[#1e2a3a] bg-[#0f1923]/90 backdrop-blur-sm rounded-none">
-      <div className="flex items-center gap-1.5 border-b border-[#1e2a3a] px-3 py-2">
-        <MessageSquareWarning size={14} className="text-[#8b9db6]" />
-        <span className="text-[10px] font-bold uppercase tracking-wide text-[#8b9db6]">
+    <div className={`${GLASS} overflow-hidden`}>
+      <div className={`${GLASS_INNER} flex items-center gap-1.5 border-b border-white/[0.06] px-3 py-2.5`}>
+        <MessageSquareWarning size={13} className="text-white/40" />
+        <span className="text-[10px] font-semibold uppercase tracking-wider text-white/50">
           Recent Reports ({reports.length})
         </span>
       </div>
@@ -187,31 +213,28 @@ function ReportsPanel({ reports }: { reports: GodViewReport[] }) {
         {reports.slice(0, 10).map((r) => (
           <li
             key={r.id}
-            className="flex items-start gap-2 border-b border-[#1e2a3a]/50 px-3 py-2"
+            className="flex items-start gap-2 border-b border-white/[0.04] px-3 py-2.5 transition-colors hover:bg-white/[0.03]"
           >
-            <Clock size={12} className="mt-0.5 flex-shrink-0 text-[#5a6a7a]" />
+            <Clock size={12} className="mt-0.5 flex-shrink-0 text-white/20" />
             <div className="min-w-0 flex-1">
-              <p className="truncate text-xs text-white">
-                <span className="font-medium text-[#f5a623]">
+              <p className="truncate text-xs text-white/80">
+                <span className="font-medium text-[#faad14]">
                   {categoryLabel[r.category] ?? r.category}
                 </span>{" "}
                 &mdash; {r.description ?? "No description"}
               </p>
-              <p className="mt-0.5 text-[10px] text-[#5a6a7a]">
+              <p className="mt-0.5 text-[10px] text-white/20">
                 {r.lotCode} &bull; {timeAgo(r.createdAt)}
               </p>
             </div>
           </li>
         ))}
-        {reports.length === 0 && (
-          <li className="px-3 py-4 text-center text-xs text-[#5a6a7a]">No reports yet</li>
-        )}
       </ul>
     </div>
   );
 }
 
-/* ── Main Overlay ─────────────────────────────────────────── */
+/* ── Main Overlay ────────────────────────────────────────── */
 
 interface GodViewOverlayProps {
   metrics: GodViewMetrics;
@@ -227,7 +250,7 @@ export function GodViewOverlay({
   onAlertClick,
 }: GodViewOverlayProps) {
   return (
-    <div className="pointer-events-none absolute left-4 top-4 z-10 flex w-72 flex-col gap-3">
+    <div className="pointer-events-none absolute right-4 top-4 z-10 flex w-72 flex-col gap-3">
       <div className="pointer-events-auto">
         <MetricsCards metrics={metrics} />
       </div>

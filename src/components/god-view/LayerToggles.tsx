@@ -23,11 +23,11 @@ export function LayerToggles({ layers, onChange }: LayerTogglesProps) {
             key={t.key}
             type="button"
             onClick={() => onChange({ ...layers, [t.key]: !active })}
-            className={`flex items-center gap-1.5 border px-3 py-1.5 text-[10px] font-bold uppercase tracking-wide transition-colors rounded-none ${
+            className={`flex items-center gap-1.5 border px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider transition-all duration-200 rounded-none backdrop-blur-2xl ${
               active
-                ? "border-[#9eca45] bg-[#9eca45]/15 text-[#9eca45]"
-                : "border-[#1e2a3a] bg-[#0f1923]/90 text-[#5a6a7a] hover:text-[#8b9db6]"
-            } backdrop-blur-sm`}
+                ? "border-white/20 bg-white/[0.08] text-white/80 shadow-[0_0_12px_-4px_rgba(255,255,255,0.15)]"
+                : "border-white/[0.06] bg-white/[0.03] text-white/30 hover:text-white/50 hover:border-white/10"
+            }`}
           >
             {t.icon}
             {t.label}

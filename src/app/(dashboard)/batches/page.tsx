@@ -15,25 +15,27 @@ type Batch = {
 };
 
 const getRiskColor = (score: number) => {
-  if (score <= 25) return "#3fa435"; // Green
-  if (score <= 50) return "#f59e0b"; // Yellow
-  if (score <= 75) return "#ea580c"; // Orange
-  return "#dc2626"; // Red
+  if (score <= 25) return "#52c41a";
+  if (score <= 50) return "#faad14";
+  if (score <= 75) return "#fa8c16";
+  return "#ff4d4f";
 };
 
 const getStatusBadge = (status: string) => {
-  switch (status.toLowerCase()) {
-    case "active":
-      return <span className="bg-[#3fa435] text-white text-[10px] font-bold uppercase px-2 py-1">Active</span>;
-    case "under_review":
-      return <span className="bg-[#ea580c] text-white text-[10px] font-bold uppercase px-2 py-1">Under Review</span>;
-    case "recalled":
-      return <span className="bg-[#dc2626] text-white text-[10px] font-bold uppercase px-2 py-1">Recalled</span>;
-    case "consumed":
-      return <span className="bg-[#777777] text-white text-[10px] font-bold uppercase px-2 py-1">Consumed</span>;
-    default:
-      return <span className="bg-[#003a5d] text-white text-[10px] font-bold uppercase px-2 py-1">{status}</span>;
-  }
+  const styles: Record<string, string> = {
+    active: "border-white/20 text-white/80 bg-white/[0.06]",
+    under_review: "border-[#faad14]/30 text-[#faad14] bg-[#faad14]/[0.06]",
+    recalled: "border-[#ff4d4f]/30 text-[#ff4d4f] bg-[#ff4d4f]/[0.06]",
+    consumed: "border-white/10 text-white/40 bg-white/[0.03]",
+  };
+
+  const style = styles[status.toLowerCase()] ?? "border-white/10 text-white/50 bg-white/[0.03]";
+
+  return (
+    <span className={`border text-[10px] font-bold uppercase tracking-wider px-2 py-1 ${style}`}>
+      {status.replace("_", " ")}
+    </span>
+  );
 };
 
 export default function BatchesPage() {
@@ -87,9 +89,9 @@ export default function BatchesPage() {
 
   if (loading) {
     return (
-      <div className="space-y-6">
-        <div className="h-12 bg-white border border-[#e2e8f0] animate-pulse" />
-        <div className="h-[600px] bg-white border border-[#e2e8f0] animate-pulse" />
+      <div className="space-y-6 p-6">
+        <div className="h-12 border border-white/[0.06] bg-white/[0.02] animate-pulse" />
+        <div className="h-[600px] border border-white/[0.06] bg-white/[0.02] animate-pulse" />
       </div>
     );
   }
@@ -99,70 +101,56 @@ export default function BatchesPage() {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, ease: "easeOut" }}
-      className="space-y-6"
+      className="space-y-6 p-6"
     >
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <h1 className="text-2xl font-bold uppercase tracking-wide text-[#060606]">Batch Directory</h1>
-        
+        <h1 className="text-2xl font-bold uppercase tracking-wider text-white">Batch Directory</h1>
+
         <div className="flex w-full md:w-auto gap-2">
           <div className="relative flex-1 md:w-64">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[#777777]" size={16} />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30" size={16} />
             <input
               type="text"
               placeholder="Search lot code or product..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 border border-[#e2e8f0] bg-white text-sm focus:outline-none focus:border-[#003a5d] transition-colors"
+              className="w-full pl-9 pr-4 py-2.5 border border-white/[0.08] bg-white/[0.03] backdrop-blur-2xl text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-white/20 transition-colors"
             />
           </div>
-          <button className="bg-white border border-[#e2e8f0] p-2 text-[#424242] hover:bg-[#f8fafc] transition-colors flex items-center gap-2">
+          <button className="border border-white/[0.08] bg-white/[0.03] backdrop-blur-2xl p-2.5 text-white/40 hover:bg-white/[0.06] hover:text-white/60 transition-all flex items-center gap-2">
             <Filter size={16} />
             <span className="text-xs font-bold uppercase hidden md:inline">Filter</span>
           </button>
         </div>
       </div>
 
-      <div className="bg-white border border-[#e2e8f0] overflow-hidden">
+      <div className="border border-white/[0.08] bg-white/[0.02] backdrop-blur-2xl overflow-hidden shadow-[0_8px_32px_-8px_rgba(0,0,0,0.5)]">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
-            <thead className="bg-[#f8fafc] border-b border-[#e2e8f0] text-xs font-bold uppercase text-[#003a5d]">
+            <thead className="border-b border-white/[0.06] text-[10px] font-bold uppercase tracking-wider text-white/40">
               <tr>
-                <th className="px-6 py-4 cursor-pointer hover:bg-[#f1f5f9] transition-colors" onClick={() => handleSort("lotCode")}>
-                  <div className="flex items-center gap-1">
-                    Lot Code
-                    {sortConfig.key === "lotCode" && (sortConfig.direction === "asc" ? <ChevronUp size={14} /> : <ChevronDown size={14} />)}
-                  </div>
-                </th>
-                <th className="px-6 py-4 cursor-pointer hover:bg-[#f1f5f9] transition-colors" onClick={() => handleSort("productName")}>
-                  <div className="flex items-center gap-1">
-                    Product
-                    {sortConfig.key === "productName" && (sortConfig.direction === "asc" ? <ChevronUp size={14} /> : <ChevronDown size={14} />)}
-                  </div>
-                </th>
-                <th className="px-6 py-4 cursor-pointer hover:bg-[#f1f5f9] transition-colors" onClick={() => handleSort("status")}>
-                  <div className="flex items-center gap-1">
-                    Status
-                    {sortConfig.key === "status" && (sortConfig.direction === "asc" ? <ChevronUp size={14} /> : <ChevronDown size={14} />)}
-                  </div>
-                </th>
-                <th className="px-6 py-4 cursor-pointer hover:bg-[#f1f5f9] transition-colors" onClick={() => handleSort("riskScore")}>
-                  <div className="flex items-center gap-1">
-                    Risk Score
-                    {sortConfig.key === "riskScore" && (sortConfig.direction === "asc" ? <ChevronUp size={14} /> : <ChevronDown size={14} />)}
-                  </div>
-                </th>
-                <th className="px-6 py-4 cursor-pointer hover:bg-[#f1f5f9] transition-colors" onClick={() => handleSort("unitCount")}>
-                  <div className="flex items-center gap-1">
-                    Units
-                    {sortConfig.key === "unitCount" && (sortConfig.direction === "asc" ? <ChevronUp size={14} /> : <ChevronDown size={14} />)}
-                  </div>
-                </th>
-                <th className="px-6 py-4 cursor-pointer hover:bg-[#f1f5f9] transition-colors" onClick={() => handleSort("createdAt")}>
-                  <div className="flex items-center gap-1">
-                    Created
-                    {sortConfig.key === "createdAt" && (sortConfig.direction === "asc" ? <ChevronUp size={14} /> : <ChevronDown size={14} />)}
-                  </div>
-                </th>
+                {(
+                  [
+                    { key: "lotCode" as const, label: "Lot Code" },
+                    { key: "productName" as const, label: "Product" },
+                    { key: "status" as const, label: "Status" },
+                    { key: "riskScore" as const, label: "Risk Score" },
+                    { key: "unitCount" as const, label: "Units" },
+                    { key: "createdAt" as const, label: "Created" },
+                  ] as const
+                ).map((col) => (
+                  <th
+                    key={col.key}
+                    className="px-6 py-4 cursor-pointer hover:bg-white/[0.03] hover:text-white/60 transition-colors"
+                    onClick={() => handleSort(col.key)}
+                  >
+                    <div className="flex items-center gap-1">
+                      {col.label}
+                      {sortConfig.key === col.key &&
+                        (sortConfig.direction === "asc" ? <ChevronUp size={14} /> : <ChevronDown size={14} />)}
+                    </div>
+                  </th>
+                ))}
               </tr>
             </thead>
             <tbody>
@@ -170,39 +158,39 @@ export default function BatchesPage() {
                 <tr
                   key={batch.lotCode}
                   onClick={() => router.push(`/batch/${batch.lotCode}`)}
-                  className={`
-                    cursor-pointer border-b border-[#e2e8f0] last:border-0 hover:bg-[#f1f5f9] transition-colors
-                    ${index % 2 === 0 ? "bg-white" : "bg-[#f8fafc]"}
-                  `}
+                  className={`cursor-pointer border-b border-white/[0.04] last:border-0 hover:bg-white/[0.04] transition-colors ${
+                    index % 2 === 0 ? "" : "bg-white/[0.01]"
+                  }`}
                 >
-                  <td className="px-6 py-4 font-bold text-[#060606]">{batch.lotCode}</td>
-                  <td className="px-6 py-4 text-[#424242]">{batch.productName}</td>
+                  <td className="px-6 py-4 font-bold text-white">{batch.lotCode}</td>
+                  <td className="px-6 py-4 text-white/60">{batch.productName}</td>
                   <td className="px-6 py-4">{getStatusBadge(batch.status)}</td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
                       <span className="w-8 text-right font-bold" style={{ color: getRiskColor(batch.riskScore) }}>
                         {batch.riskScore}
                       </span>
-                      <div className="w-24 h-1.5 bg-[#e2e8f0]">
+                      <div className="w-24 h-1 bg-white/[0.06] overflow-hidden">
                         <div
                           className="h-full transition-all duration-500"
                           style={{
                             width: `${batch.riskScore}%`,
                             backgroundColor: getRiskColor(batch.riskScore),
+                            boxShadow: `0 0 8px ${getRiskColor(batch.riskScore)}40`,
                           }}
                         />
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4 text-[#424242]">{batch.unitCount.toLocaleString()}</td>
-                  <td className="px-6 py-4 text-[#777777] text-xs">
+                  <td className="px-6 py-4 text-white/50">{batch.unitCount.toLocaleString()}</td>
+                  <td className="px-6 py-4 text-white/30 text-xs">
                     {new Date(batch.createdAt).toLocaleDateString()}
                   </td>
                 </tr>
               ))}
               {filteredBatches.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center text-[#777777]">
+                  <td colSpan={6} className="px-6 py-12 text-center text-white/20">
                     No batches found matching your search.
                   </td>
                 </tr>

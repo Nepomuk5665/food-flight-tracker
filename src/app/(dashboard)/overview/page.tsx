@@ -42,10 +42,10 @@ export default function OverviewPage() {
 
   if (loading && !data) {
     return (
-      <div className="flex h-[calc(100vh-57px)] items-center justify-center">
+      <div className="flex h-screen items-center justify-center bg-black">
         <div className="text-center">
-          <div className="mx-auto mb-3 h-8 w-8 animate-spin border-2 border-[#9eca45] border-t-transparent" />
-          <p className="text-xs font-semibold uppercase tracking-wide text-[#8b9db6]">
+          <div className="mx-auto mb-3 h-8 w-8 animate-spin border-2 border-white/30 border-t-white" />
+          <p className="text-xs font-semibold uppercase tracking-wider text-white/30">
             Loading God View...
           </p>
         </div>
@@ -55,10 +55,10 @@ export default function OverviewPage() {
 
   if (error) {
     return (
-      <div className="flex h-[calc(100vh-57px)] items-center justify-center">
-        <div className="border border-[#e74c3c] bg-[#e74c3c]/10 px-6 py-4 text-center">
-          <p className="text-sm font-bold text-[#e74c3c]">Failed to load overview</p>
-          <p className="mt-1 text-xs text-[#8b9db6]">{error}</p>
+      <div className="flex h-screen items-center justify-center bg-black">
+        <div className="border border-[#ff4d4f]/20 bg-[#ff4d4f]/5 px-6 py-4 text-center backdrop-blur-2xl">
+          <p className="text-sm font-bold text-[#ff4d4f]">Failed to load overview</p>
+          <p className="mt-1 text-xs text-white/40">{error}</p>
         </div>
       </div>
     );
@@ -67,10 +67,10 @@ export default function OverviewPage() {
   if (!data) return null;
 
   return (
-    <div className="relative h-[calc(100vh-57px)] w-full overflow-hidden">
+    <div className="relative h-screen w-full overflow-hidden">
       {/* Title overlay */}
       <div className="pointer-events-none absolute left-1/2 top-4 z-10 -translate-x-1/2">
-        <h1 className="text-sm font-bold uppercase tracking-widest text-white/60">
+        <h1 className="text-sm font-bold uppercase tracking-[0.3em] bg-gradient-to-r from-white/50 to-white/20 bg-clip-text text-transparent">
           God View
         </h1>
       </div>

@@ -341,6 +341,9 @@ export function GodViewMap({
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       interactiveLayerIds={["god-view-clusters", "god-view-unclustered"]}
+      dragRotate={false}
+      touchPitch={false}
+      pitchWithRotate={false}
       attributionControl={false}
       logoPosition="bottom-right"
     >
