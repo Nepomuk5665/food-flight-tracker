@@ -31,6 +31,10 @@ Welcome to **Project Trace**. This guide walks you through every feature and how
 
 ---
 
+> **Who wants to wait for an AI to give an answer? No one.** So we implemented the fastest AI inference on the planet — [Cerebras](https://cerebras.ai/) running at **~2,000 tokens/second**. Responses stream instantly. No spinners, no waiting, no "generating..." screens. You ask, you get an answer. Immediately.
+
+---
+
 ## How to Test — Step by Step
 
 ### 1. Consumer App (use your phone)
