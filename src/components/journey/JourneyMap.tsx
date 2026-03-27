@@ -574,89 +574,117 @@ export function JourneyMap({
           </>
         )}
 
-        {/* Stage markers — clustered when overlapping */}
-        {(clusters.length > 0 ? clusters : markerStages.map((s) => ({ stages: [s], lng: s.location.lng, lat: s.location.lat }))).map((cluster) => {
-          // Single marker — render normally
-          if (cluster.stages.length === 1) {
-            const stage = cluster.stages[0];
-            const hasAnomaly = stage.anomalies.length > 0;
-            const role = stage._pathRole;
-            const isSecondary = role === "parent" || role === "child";
-            const size = isSecondary ? 24 : 36;
-            const ringColor = role === "parent"
-              ? "ring-[#003a5d]/60"
-              : role === "child"
-                ? "ring-[#777777]/60"
-                : hasAnomaly
-                  ? "ring-red-500"
-                  : "ring-[#9eca45]/50";
+        {/* Stage markers — always mounted, visibility animated via CSS transitions */}
+        {(() => {
+          const activeClusters = clusters.length > 0
+            ? clusters
+            : markerStages.map((s) => ({ stages: [s], lng: s.location.lng, lat: s.location.lat }));
 
-            return (
-              <Marker
-                key={stage.stageId}
-                longitude={stage.location.lng}
-                latitude={stage.location.lat}
-                anchor="center"
-                onClick={(e) => {
-                  e.originalEvent.stopPropagation();
-                  handleMarkerClick(stage);
-                }}
-              >
-                <div
-                  className={`relative cursor-pointer transition-transform duration-200 hover:scale-110 ${isSecondary ? "opacity-70" : ""}`}
-                  style={{ width: size, height: size }}
-                >
-                  {hasAnomaly && !isSecondary && (
-                    <span className="pointer-events-none absolute -inset-3 animate-ping rounded-full bg-red-500 opacity-40" />
-                  )}
-                  <div
-                    className={`h-full w-full rounded-full ring-2 ${ringColor} shadow-[0_0_12px_rgba(158,202,69,0.3)]`}
-                  >
-                    {getStageIcon(stage.type)}
-                  </div>
-                </div>
-              </Marker>
-            );
+          // Build lookup: stageId → its cluster (only for multi-member clusters)
+          const clusterOf = new globalThis.Map<string, ClusterGroup>();
+          for (const c of activeClusters) {
+            if (c.stages.length > 1) {
+              for (const s of c.stages) clusterOf.set(s.stageId, c);
+            }
           }
 
-          // Cluster badge — show top icon with "+N" count
-          const topStage = cluster.stages[0];
-          const hasAnyAnomaly = cluster.stages.some((s) => s.anomalies.length > 0);
-          const clusterKey = cluster.stages.map((s) => s.stageId).join(",");
-
           return (
-            <Marker
-              key={`cluster-${clusterKey}`}
-              longitude={cluster.lng}
-              latitude={cluster.lat}
-              anchor="center"
-              onClick={(e) => {
-                e.originalEvent.stopPropagation();
-                // Zoom in to expand the cluster
-                mapRef.current?.flyTo({
-                  center: [cluster.lng, cluster.lat],
-                  zoom: (mapRef.current.getZoom() ?? 4) + 2.5,
-                  duration: 600,
-                });
-              }}
-            >
-              <div className="relative cursor-pointer transition-transform duration-200 hover:scale-110" style={{ width: 40, height: 40 }}>
-                {hasAnyAnomaly && (
-                  <span className="pointer-events-none absolute -inset-3 animate-ping rounded-full bg-red-500 opacity-40" />
-                )}
-                <div
-                  className={`h-full w-full rounded-full ring-2 ${hasAnyAnomaly ? "ring-red-500" : "ring-[#9eca45]/50"} shadow-[0_0_12px_rgba(158,202,69,0.3)]`}
-                >
-                  {getStageIcon(topStage.type)}
-                </div>
-                {/* "+N" badge */}
-                <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-[#003a5d] px-1 text-[10px] font-bold text-white shadow-md">
-                  +{cluster.stages.length - 1}
-                </span>
-              </div>
-            </Marker>
+            <>
+              {/* Individual markers — fade/scale in when unclustered */}
+              {markerStages.map((stage) => {
+                const isClustered = clusterOf.has(stage.stageId);
+                const hasAnomaly = stage.anomalies.length > 0;
+                const role = stage._pathRole;
+                const isSecondary = role === "parent" || role === "child";
+                const size = isSecondary ? 24 : 36;
+                const ringColor = role === "parent"
+                  ? "ring-[#003a5d]/60"
+                  : role === "child"
+                    ? "ring-[#777777]/60"
+                    : hasAnomaly
+                      ? "ring-red-500"
+                      : "ring-[#9eca45]/50";
+
+                return (
+                  <Marker
+                    key={stage.stageId}
+                    longitude={stage.location.lng}
+                    latitude={stage.location.lat}
+                    anchor="center"
+                    onClick={(e) => {
+                      e.originalEvent.stopPropagation();
+                      if (!isClustered) handleMarkerClick(stage);
+                    }}
+                  >
+                    <div
+                      className="relative cursor-pointer"
+                      style={{
+                        width: size,
+                        height: size,
+                        opacity: isClustered ? 0 : isSecondary ? 0.7 : 1,
+                        transform: isClustered ? "scale(0.3)" : "scale(1)",
+                        transition: "opacity 280ms ease-out, transform 280ms ease-out",
+                        pointerEvents: isClustered ? "none" : "auto",
+                      }}
+                    >
+                      {hasAnomaly && !isSecondary && !isClustered && (
+                        <span className="pointer-events-none absolute -inset-3 animate-ping rounded-full bg-red-500 opacity-40" />
+                      )}
+                      <div className={`h-full w-full rounded-full ring-2 ${ringColor} shadow-[0_0_12px_rgba(158,202,69,0.3)]`}>
+                        {getStageIcon(stage.type)}
+                      </div>
+                    </div>
+                  </Marker>
+                );
+              })}
+
+              {/* Cluster badges — fade/scale in when formed */}
+              {activeClusters
+                .filter((c) => c.stages.length > 1)
+                .map((cluster) => {
+                  const topStage = cluster.stages[0];
+                  const hasAnyAnomaly = cluster.stages.some((s) => s.anomalies.length > 0);
+                  const clusterKey = cluster.stages.map((s) => s.stageId).sort().join(",");
+
+                  return (
+                    <Marker
+                      key={`cluster-${clusterKey}`}
+                      longitude={cluster.lng}
+                      latitude={cluster.lat}
+                      anchor="center"
+                      onClick={(e) => {
+                        e.originalEvent.stopPropagation();
+                        mapRef.current?.flyTo({
+                          center: [cluster.lng, cluster.lat],
+                          zoom: (mapRef.current.getZoom() ?? 4) + 2.5,
+                          duration: 600,
+                        });
+                      }}
+                    >
+                      <div
+                        className="relative cursor-pointer"
+                        style={{
+                          width: 40,
+                          height: 40,
+                          transition: "opacity 280ms ease-out, transform 280ms ease-out",
+                        }}
+                      >
+                        {hasAnyAnomaly && (
+                          <span className="pointer-events-none absolute -inset-3 animate-ping rounded-full bg-red-500 opacity-40" />
+                        )}
+                        <div className={`h-full w-full rounded-full ring-2 ${hasAnyAnomaly ? "ring-red-500" : "ring-[#9eca45]/50"} shadow-[0_0_12px_rgba(158,202,69,0.3)]`}>
+                          {getStageIcon(topStage.type)}
+                        </div>
+                        <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-[#003a5d] px-1 text-[10px] font-bold text-white shadow-md">
+                          +{cluster.stages.length - 1}
+                        </span>
+                      </div>
+                    </Marker>
+                  );
+                })}
+            </>
           );
-        })}
+        })()}
 
         {selectedStage && (
           <Popup
