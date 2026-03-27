@@ -15,12 +15,12 @@ export default async function ProductPage({ params }: ProductPageProps) {
   if (!productDetails) {
     return (
       <section className="space-y-4 font-sans">
-        <header className="border border-border bg-white p-4 rounded-none">
+        <header className="border border-border bg-white p-4 rounded-xl">
           <h1 className="text-3xl font-bold uppercase tracking-wide text-primary">Product Details</h1>
           <p className="mt-2 text-sm text-muted">Barcode: {barcode}</p>
         </header>
 
-        <div className="space-y-3 border border-border bg-surface p-5 rounded-none">
+        <div className="space-y-3 border border-border bg-surface p-5 rounded-xl">
           <h2 className="text-xl font-bold uppercase tracking-wide text-primary">Product Not Found</h2>
           <p className="text-sm text-body">
             This barcode is not in our database and OpenFoodFacts did not return a matching product.

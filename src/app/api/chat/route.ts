@@ -1,5 +1,3 @@
-import { streamText } from "ai";
-import { getChatModel } from "@/lib/ai/cerebras";
 import { getBatchJourney, getProductByBarcode, getProductById, getActiveLotForProduct } from "@/lib/db/queries";
 
 function buildSystemPrompt(barcode?: string, lotCode?: string): string {
@@ -125,11 +123,71 @@ export async function POST(request: Request) {
     ? `You are the AI food analyst for Project Trace. Confident, concise, helpful. You have all the data you need below.\n\n${context}${historyCtx}\n${RULES}`
     : buildSystemPrompt(barcode, lotCode);
 
-  const result = streamText({
-    model: getChatModel(),
-    system,
-    messages,
+  const cerebrasRes = await fetch("https://api.cerebras.ai/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${process.env.CEREBRAS_API_KEY}`,
+    },
+    body: JSON.stringify({
+      model: "zai-glm-4.7",
+      stream: true,
+      max_tokens: 1024,
+      temperature: 0.2,
+      messages: [
+        { role: "system", content: system },
+        ...messages,
+      ],
+    }),
   });
 
-  return result.toTextStreamResponse();
+  if (!cerebrasRes.ok || !cerebrasRes.body) {
+    return new Response("AI service error", { status: 502 });
+  }
+
+  const encoder = new TextEncoder();
+  const readable = new ReadableStream({
+    async start(controller) {
+      const reader = cerebrasRes.body!.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() ?? "";
+
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (!trimmed.startsWith("data: ")) continue;
+          const data = trimmed.slice(6);
+          if (data === "[DONE]") continue;
+
+          try {
+            const parsed = JSON.parse(data);
+            const content = parsed.choices?.[0]?.delta?.content;
+            if (content) {
+              controller.enqueue(encoder.encode(content));
+            }
+          } catch {
+            continue;
+          }
+        }
+      }
+
+      controller.close();
+    },
+  });
+
+  return new Response(readable, {
+    headers: {
+      "Content-Type": "text/plain; charset=utf-8",
+      "Transfer-Encoding": "chunked",
+      "Cache-Control": "no-cache",
+      Connection: "keep-alive",
+    },
+  });
 }

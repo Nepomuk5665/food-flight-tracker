@@ -249,7 +249,7 @@ export default function ScanPage() {
   /* ── Permission gate screen ── */
   if (cameraState === "gate") {
     return (
-      <div className="fixed inset-x-0 top-0 bottom-[52px] z-40 flex flex-col items-center justify-center bg-surface px-8 text-center">
+      <div className="fixed inset-0 z-[55] flex flex-col items-center justify-center bg-surface px-8 text-center">
         {fileInput}
         <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-[#16A34A] shadow-sm">
           <Camera className="h-10 w-10 text-white" />
@@ -301,7 +301,7 @@ export default function ScanPage() {
   /* ── Camera denied / error screen ── */
   if (cameraState === "denied" || cameraState === "error") {
     return (
-      <div className="fixed inset-x-0 top-0 bottom-[52px] z-40 flex flex-col items-center justify-center bg-surface px-8 text-center">
+      <div className="fixed inset-0 z-[55] flex flex-col items-center justify-center bg-surface px-8 text-center">
         {fileInput}
         <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-danger shadow-sm">
           <CameraOff className="h-10 w-10 text-white" />
@@ -356,7 +356,7 @@ export default function ScanPage() {
 
   /* ── Active camera / loading viewfinder ── */
   return (
-    <div className="fixed inset-x-0 top-0 bottom-[52px] z-40 flex flex-col bg-black">
+    <div className="fixed inset-0 z-[55] flex flex-col bg-black">
       {fileInput}
 
       {/* Drawer toggle button — upper right */}
@@ -466,7 +466,7 @@ function ManualInputDrawer({
     <>
       {/* Backdrop */}
       <div
-        className={`fixed inset-0 z-50 bg-black/40 transition-opacity duration-200 ${
+        className={`fixed inset-0 z-[75] bg-black/40 transition-opacity duration-200 ${
           open ? "opacity-100" : "pointer-events-none opacity-0"
         }`}
         onClick={onClose}
@@ -476,7 +476,7 @@ function ManualInputDrawer({
       {/* Drawer */}
       <div
         ref={drawerRef}
-        className={`fixed inset-x-0 bottom-[52px] z-50 rounded-t-2xl bg-white px-5 pb-6 pt-3 shadow-[0_-4px_24px_rgba(0,0,0,0.12)] transition-transform duration-200 ease-out ${
+        className={`fixed inset-x-0 bottom-0 z-[80] h-[85vh] rounded-t-2xl bg-white px-5 pb-10 pt-3 shadow-[0_-4px_24px_rgba(0,0,0,0.12)] transition-transform duration-200 ease-out ${
           open ? "translate-y-0" : "translate-y-full"
         }`}
         onTouchStart={onTouchStart}

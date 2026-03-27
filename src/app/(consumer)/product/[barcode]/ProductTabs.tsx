@@ -113,7 +113,7 @@ export default function ProductTabs({
         </Link>
       </div>
 
-      {activeTab !== "map" && (
+      {activeTab !== "map" && activeTab !== "chat" && (
         <TabToggle activeTab={activeTab} onTabChange={handleTabChange} hiddenTabs={canGenerateJourney ? [] : ["map"]} />
       )}
 
@@ -132,28 +132,28 @@ export default function ProductTabs({
           loading={journey.loading}
           error={journey.error}
           canGenerate={canGenerateJourney}
-          lineageTree={lineage.tree}
+          
           onBack={() => handleTabChange("info")}
           onGenerate={journey.generate}
         />
       )}
 
       {activeTab === "chat" && (
-        <div className="flex flex-1 flex-col" style={{ minHeight: "calc(100vh - 180px)" }}>
-          <AiInsights
-            barcode={barcode}
-            lotCode={activeLot?.lotCode}
-            context={fullAiContext}
-            
-            autoPrompt={`Give a brief safety summary for this product${activeLot ? " including its supply chain status" : ""}. Mention any concerns.`}
-            suggestions={[
-              "Is this safe to eat?",
-              "Tell me about the ingredients",
-              "Any allergen concerns?",
-              journey.payload ? "Explain the supply chain" : "Where do the ingredients come from?",
-            ]}
-          />
-        </div>
+        <AiInsights
+          barcode={barcode}
+          lotCode={activeLot?.lotCode}
+          context={fullAiContext}
+          autoPrompt={`Give a brief safety summary for this product${activeLot ? " including its supply chain status" : ""}. Mention any concerns.`}
+          suggestions={[
+            "Is this safe to eat?",
+            "Tell me about the ingredients",
+            "Any allergen concerns?",
+            journey.payload ? "Explain the supply chain" : "Where do the ingredients come from?",
+          ]}
+          activeTab={activeTab}
+          onTabChange={handleTabChange}
+          hiddenTabs={canGenerateJourney ? [] : ["map"]}
+        />
       )}
     </>
   );

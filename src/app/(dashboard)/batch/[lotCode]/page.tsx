@@ -191,7 +191,7 @@ export default function BatchDetailPage({ params }: BatchDetailPageProps) {
                   lotCode={batch.lotCode}
                   autoPrompt="Analyze this batch. Assess risk, flag anomalies, recommend actions."
                   context={JSON.stringify(data)}
-                  fullPage={true}
+                  
                 />
               </div>
             )}
