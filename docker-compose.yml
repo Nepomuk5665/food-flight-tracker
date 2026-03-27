@@ -1,0 +1,32 @@
+services:
+  caddy:
+    image: caddy:2-alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - nextjs
+    restart: unless-stopped
+
+  nextjs:
+    image: ${ECR_REGISTRY:-445849136002.dkr.ecr.eu-west-2.amazonaws.com}/food-flight-tracker:${TAG:-latest}
+    expose:
+      - "3000"
+    volumes:
+      - app_data:/app/data
+    environment:
+      - DATABASE_URL=file:/app/data/trace.db
+      - CEREBRAS_API_KEY=${CEREBRAS_API_KEY}
+      - NEXT_PUBLIC_MAPBOX_TOKEN=${NEXT_PUBLIC_MAPBOX_TOKEN}
+      - NEXT_PUBLIC_APP_URL=https://foodflighttracker.com
+      - NODE_ENV=production
+    restart: unless-stopped
+
+volumes:
+  caddy_data:
+  caddy_config:
+  app_data:

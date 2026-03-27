@@ -1,0 +1,12 @@
+node_modules
+.next
+.git
+.gitignore
+*.md
+docs/
+drizzle/
+data/
+.env
+.env.local
+.env.production
+.DS_Store

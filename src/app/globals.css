@@ -1,0 +1,121 @@
+@import "tailwindcss";
+
+/* ============================================
+   AUTEXIS DESIGN SYSTEM — Tailwind CSS v4
+   Source: autexis.com/data/theme/css/style.css
+   ============================================ */
+
+@theme {
+  /* Primary brand */
+  --color-primary: #003a5d;
+  --color-primary-foreground: #ffffff;
+
+  /* Accent */
+  --color-accent: #9eca45;
+  --color-accent-foreground: #ffffff;
+  --color-accent-hover: #8bb83a;
+
+  /* Sub-brands */
+  --color-brand-control: #009ee3;
+  --color-brand-it: #3fa435;
+
+  /* Neutrals */
+  --color-foreground: #060606;
+  --color-body: #424242;
+  --color-muted: #777777;
+  --color-border: #dddddd;
+  --color-border-light: #eeeeee;
+  --color-surface: #f7f9fa;
+  --color-surface-alt: #f8f8f8;
+  --color-background: #ffffff;
+
+  /* Semantic */
+  --color-success: #3fa435;
+  --color-warning: #f59e0b;
+  --color-danger: #dc2626;
+  --color-info: #009ee3;
+
+  /* Risk levels */
+  --color-risk-safe: #3fa435;
+  --color-risk-monitor: #f59e0b;
+  --color-risk-review: #ea580c;
+  --color-risk-critical: #dc2626;
+
+  /* Typography */
+  --font-sans: var(--font-titillium), "Titillium Web", sans-serif;
+
+  /* Shadows */
+  --shadow-button: 0 1px 1px rgba(0, 0, 0, 0.2);
+  --shadow-nav: rgba(0, 0, 0, 0.118) 0 1px 3px;
+
+  /* Border radius — ZERO everywhere (Autexis design principle) */
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
+  --radius-xl: 0px;
+  --radius-2xl: 0px;
+  --radius-3xl: 0px;
+  --radius-4xl: 0px;
+
+  /* Container */
+  --container-max-width: 1170px;
+}
+
+/* Text selection (Autexis: #fefac7 yellow) */
+::selection {
+  background-color: #fefac7;
+  color: #555555;
+}
+
+::-moz-selection {
+  background-color: #fefac7;
+  color: #555555;
+}
+
+/* Base styles */
+body {
+  background: var(--color-background);
+  color: var(--color-body);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 24px;
+  -webkit-font-smoothing: antialiased;
+  -webkit-text-size-adjust: 100%;
+}
+
+/* Headings */
+h1, h2, h3, h4, h5, h6 {
+  color: var(--color-foreground);
+  font-family: var(--font-sans);
+  font-weight: 400;
+  margin: 0;
+}
+
+h2 {
+  font-weight: 700;
+}
+
+h3 {
+  font-weight: 700;
+}
+
+/* Links */
+a {
+  color: var(--color-primary);
+  transition: all 200ms ease-in;
+}
+
+a:hover,
+a:focus {
+  color: #000000;
+  text-decoration: none;
+}
+
+/* Section divider (Autexis pattern) */
+.section-divider {
+  display: inline-block;
+  width: 70px;
+  height: 1px;
+  border-top: 1px solid #bbb;
+  margin: 0 auto;
+}

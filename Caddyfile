@@ -1,0 +1,3 @@
+foodflighttracker.com {
+	reverse_proxy nextjs:3000
+}
