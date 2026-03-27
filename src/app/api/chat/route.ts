@@ -1,5 +1,5 @@
 import { streamText } from "ai";
-import { chatModel } from "@/lib/ai/cerebras";
+import { getChatModel } from "@/lib/ai/cerebras";
 import { getBatchJourney, getProductById } from "@/lib/db/queries";
 
 export async function POST(request: Request) {
@@ -44,7 +44,7 @@ Rules:
   }
 
   const result = streamText({
-    model: chatModel,
+    model: getChatModel(),
     system: systemPrompt,
     messages,
   });
