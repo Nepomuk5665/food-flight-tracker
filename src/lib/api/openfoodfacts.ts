@@ -69,60 +69,88 @@ const normalizeTags = (values?: string[]): string[] => dedupe((values ?? []).map
 
 const normalizeTextValues = (value?: string): string[] => dedupe(splitCsv(value).map(cleanEntry).filter(Boolean));
 
+const MAX_RETRIES = 5;
+const BASE_DELAY_MS = 400;
+
 export async function getProduct(barcode: string): Promise<OpenFoodFactsProduct | null> {
-  const response = await fetch(`https://world.openfoodfacts.org/api/v2/product/${barcode}.json`, {
-    headers: {
-      "User-Agent": "FoodFlightTracker/1.0",
-    },
-  });
+  let lastError: unknown = null;
 
-  if (response.status === 404 || response.status === 429) {
-    return null;
+  for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+    if (attempt > 0) {
+      await new Promise((r) => setTimeout(r, BASE_DELAY_MS * Math.pow(2, attempt - 1)));
+    }
+
+    let response: Response;
+    try {
+      response = await fetch(`https://world.openfoodfacts.org/api/v2/product/${barcode}.json`, {
+        headers: { "User-Agent": "FoodFlightTracker/1.0" },
+      });
+    } catch (err) {
+      lastError = err;
+      continue;
+    }
+
+    if (response.status === 404) {
+      return null;
+    }
+
+    if (response.status === 429 || response.status >= 500) {
+      lastError = new Error(`HTTP ${response.status}`);
+      continue;
+    }
+
+    if (!response.ok) {
+      return null;
+    }
+
+    let payload: OpenFoodFactsResponse;
+    try {
+      payload = (await response.json()) as OpenFoodFactsResponse;
+    } catch {
+      lastError = new Error("Invalid JSON");
+      continue;
+    }
+
+    if (!payload.product || payload.status === 0) {
+      return null;
+    }
+
+    const product = payload.product;
+
+    const ingredientsFromText = splitCsv(product.ingredients_text);
+    const ingredientsFromTags = normalizeTags(product.ingredients_tags);
+    const allergens = dedupe([
+      ...normalizeTags(product.allergens_tags),
+      ...normalizeTextValues(product.allergens),
+      ...normalizeTextValues(product.allergens_from_ingredients),
+      ...normalizeTags(product.traces_tags),
+      ...normalizeTextValues(product.traces),
+    ]);
+
+    return {
+      name: product.product_name?.trim() || "Unknown product",
+      brand: product.brands?.trim() || "Unknown brand",
+      imageUrl: toFullResUrl(product.image_front_url ?? product.image_url ?? null),
+      ingredientsText: product.ingredients_text?.trim() || null,
+      ingredients: ingredientsFromText.length > 0 ? ingredientsFromText : ingredientsFromTags,
+      allergens,
+      nutriScore: product.nutriscore_grade?.toUpperCase() || null,
+      ecoScore: product.ecoscore_grade?.toUpperCase() || null,
+      labels:
+        normalizeTags(product.labels_tags).length > 0
+          ? normalizeTags(product.labels_tags)
+          : normalizeTextValues(product.labels),
+      origins:
+        normalizeTags(product.origins_tags).length > 0
+          ? normalizeTags(product.origins_tags)
+          : normalizeTextValues(product.origins),
+      manufacturingPlaces:
+        normalizeTags(product.manufacturing_places_tags).length > 0
+          ? normalizeTags(product.manufacturing_places_tags)
+          : normalizeTextValues(product.manufacturing_places),
+      categories: normalizeTags(product.categories_tags),
+    };
   }
 
-  if (!response.ok) {
-    return null;
-  }
-
-  const payload = (await response.json()) as OpenFoodFactsResponse;
-
-  if (!payload.product || payload.status === 0) {
-    return null;
-  }
-
-  const product = payload.product;
-
-  const ingredientsFromText = splitCsv(product.ingredients_text);
-  const ingredientsFromTags = normalizeTags(product.ingredients_tags);
-  const allergens = dedupe([
-    ...normalizeTags(product.allergens_tags),
-    ...normalizeTextValues(product.allergens),
-    ...normalizeTextValues(product.allergens_from_ingredients),
-    ...normalizeTags(product.traces_tags),
-    ...normalizeTextValues(product.traces),
-  ]);
-
-  return {
-    name: product.product_name?.trim() || "Unknown product",
-    brand: product.brands?.trim() || "Unknown brand",
-    imageUrl: toFullResUrl(product.image_front_url ?? product.image_url ?? null),
-    ingredientsText: product.ingredients_text?.trim() || null,
-    ingredients: ingredientsFromText.length > 0 ? ingredientsFromText : ingredientsFromTags,
-    allergens,
-    nutriScore: product.nutriscore_grade?.toUpperCase() || null,
-    ecoScore: product.ecoscore_grade?.toUpperCase() || null,
-    labels:
-      normalizeTags(product.labels_tags).length > 0
-        ? normalizeTags(product.labels_tags)
-        : normalizeTextValues(product.labels),
-    origins:
-      normalizeTags(product.origins_tags).length > 0
-        ? normalizeTags(product.origins_tags)
-        : normalizeTextValues(product.origins),
-    manufacturingPlaces:
-      normalizeTags(product.manufacturing_places_tags).length > 0
-        ? normalizeTags(product.manufacturing_places_tags)
-        : normalizeTextValues(product.manufacturing_places),
-    categories: normalizeTags(product.categories_tags),
-  };
+  return null;
 }
