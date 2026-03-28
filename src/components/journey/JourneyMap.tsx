@@ -24,7 +24,7 @@ const routeGhostStyle: LineLayerSpecification = {
   type: "line",
   filter: ["==", ["get", "pathRole"], "main"],
   paint: {
-    "line-color": "#9eca45",
+    "line-color": "#16A34A",
     "line-width": 1,
     "line-opacity": 0.12,
     "line-dasharray": [2, 4],
@@ -40,9 +40,9 @@ const routeLineStyle: LineLayerSpecification = {
   paint: {
     "line-color": [
       "match", ["get", "pathRole"],
-      "parent", "#003a5d",
-      "child", "#777777",
-      "#9eca45",
+      "parent", "#1A1A1A",
+      "child", "#9CA3AF",
+      "#16A34A",
     ] as unknown as string,
     "line-width": [
       "match", ["get", "pathRole"],
@@ -66,7 +66,7 @@ const drawnGlowOuterStyle: LineLayerSpecification = {
   id: "drawn-glow-outer",
   type: "line",
   paint: {
-    "line-color": "#9eca45",
+    "line-color": "#16A34A",
     "line-width": 14,
     "line-opacity": 0.08,
     "line-blur": 8,
@@ -79,7 +79,7 @@ const drawnGlowStyle: LineLayerSpecification = {
   id: "drawn-glow",
   type: "line",
   paint: {
-    "line-color": "#9eca45",
+    "line-color": "#16A34A",
     "line-width": 6,
     "line-opacity": 0.25,
     "line-blur": 3,
@@ -92,7 +92,7 @@ const drawnLineStyle: LineLayerSpecification = {
   id: "drawn-line",
   type: "line",
   paint: {
-    "line-color": "#9eca45",
+    "line-color": "#16A34A",
     "line-width": 2.5,
     "line-opacity": 0.9,
   },
@@ -109,7 +109,7 @@ const routeCompleteGlowStyle: LineLayerSpecification = {
   type: "line",
   filter: ["==", ["get", "pathRole"], "main"],
   paint: {
-    "line-color": "#9eca45",
+    "line-color": "#16A34A",
     "line-width": 8,
     "line-opacity": 0.15,
     "line-blur": 4,
@@ -122,7 +122,7 @@ const routeCompleteLineStyle: LineLayerSpecification = {
   type: "line",
   filter: ["==", ["get", "pathRole"], "main"],
   paint: {
-    "line-color": "#9eca45",
+    "line-color": "#16A34A",
     "line-width": 2.5,
     "line-dasharray": [4, 3],
     "line-opacity": 0.8,
@@ -140,7 +140,7 @@ const animatedDotHaloStyle: CircleLayerSpecification = {
   type: "circle",
   paint: {
     "circle-radius": 14,
-    "circle-color": "#9eca45",
+    "circle-color": "#16A34A",
     "circle-opacity": 0.2,
     "circle-blur": 1,
   },
@@ -155,7 +155,7 @@ const animatedDotStyle: CircleLayerSpecification = {
     "circle-radius": 5,
     "circle-color": "#ffffff",
     "circle-stroke-width": 2,
-    "circle-stroke-color": "#9eca45",
+    "circle-stroke-color": "#16A34A",
     "circle-opacity": 1,
   },
   source: "animated-dot",
@@ -479,7 +479,7 @@ export function JourneyMap({
     const map = mapRef.current?.getMap();
     if (map) {
       map.setFog({
-        color: "rgb(15, 15, 25)",
+        color: "rgb(12, 15, 20)",
         "high-color": "rgb(35, 45, 75)",
         "horizon-blend": 0.06,
         "star-intensity": 0.12,
@@ -598,12 +598,12 @@ export function JourneyMap({
                 const isSecondary = role === "parent" || role === "child";
                 const size = isSecondary ? 24 : 36;
                 const ringColor = role === "parent"
-                  ? "ring-[#003a5d]/60"
+                  ? "ring-[#1A1A1A]/60"
                   : role === "child"
-                    ? "ring-[#777777]/60"
+                    ? "ring-[#9CA3AF]/60"
                     : hasAnomaly
                       ? "ring-red-500"
-                      : "ring-[#9eca45]/50";
+                      : "ring-[#16A34A]/50";
 
                 const markerZ = isClustered ? 0 : isSecondary ? 1 : 2;
 
@@ -633,7 +633,7 @@ export function JourneyMap({
                       {hasAnomaly && !isSecondary && !isClustered && (
                         <span className="pointer-events-none absolute -inset-3 animate-ping rounded-full bg-red-500 opacity-40" />
                       )}
-                      <div className={`h-full w-full rounded-full ring-2 ${ringColor} shadow-[0_0_12px_rgba(158,202,69,0.3)]`}>
+                      <div className={`h-full w-full rounded-full ring-2 ${ringColor} shadow-[0_0_12px_rgba(22,163,74,0.3)]`}>
                         {getStageIcon(stage.type)}
                       </div>
                     </div>
@@ -676,10 +676,10 @@ export function JourneyMap({
                         {hasAnyAnomaly && (
                           <span className="pointer-events-none absolute -inset-3 animate-ping rounded-full bg-red-500 opacity-40" />
                         )}
-                        <div className={`h-full w-full rounded-full ring-2 ${hasAnyAnomaly ? "ring-red-500" : "ring-[#9eca45]/50"} shadow-[0_0_12px_rgba(158,202,69,0.3)]`}>
+                        <div className={`h-full w-full rounded-full ring-2 ${hasAnyAnomaly ? "ring-red-500" : "ring-[#16A34A]/50"} shadow-[0_0_12px_rgba(22,163,74,0.3)]`}>
                           {getStageIcon(topStage.type)}
                         </div>
-                        <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-[#003a5d] px-1 text-[10px] font-bold text-white shadow-md">
+                        <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-[#1A1A1A] px-1 text-[10px] font-bold text-white shadow-md">
                           +{cluster.stages.length - 1}
                         </span>
                       </div>

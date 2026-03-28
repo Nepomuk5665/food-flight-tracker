@@ -39,7 +39,7 @@ function StageCard({
   const lightClass = hasAnomaly
     ? "bg-red-50 shadow-sm ring-1 ring-red-200"
     : isActive
-      ? "bg-white shadow-md ring-1 ring-[#9eca45]/30"
+      ? "bg-white shadow-md ring-1 ring-[#16A34A]/30"
       : "bg-white shadow-sm ring-1 ring-black/[0.04]";
 
   const darkClass = hasAnomaly
@@ -73,7 +73,7 @@ function StageCard({
 
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
-          <p className={`mb-0.5 font-semibold ${dark ? "text-white/80" : "text-[#1a1a2e]"} ${compact ? "text-[13px]" : "text-[15px]"}`}>
+          <p className={`mb-0.5 font-semibold ${dark ? "text-white/80" : "text-[#1A1A1A]"} ${compact ? "text-[13px]" : "text-[15px]"}`}>
             {stage.name}
           </p>
           <p className={`mb-0.5 text-xs ${dark ? "text-white/40" : "text-[#6b7280]"}`}>{stage.location.name}</p>
@@ -103,17 +103,17 @@ function LineageAnnotation({
 
   const borderColor = dark
     ? (isMerge ? "border-white/10" : "border-white/[0.06]")
-    : (isMerge ? "border-[#003a5d]/30" : "border-[#777777]/30");
+    : (isMerge ? "border-[#1A1A1A]/30" : "border-[#9CA3AF]/30");
   const bgColor = dark
     ? "bg-white/[0.03]"
-    : (isMerge ? "bg-[#003a5d]/5" : "bg-[#777777]/5");
+    : (isMerge ? "bg-[#1A1A1A]/5" : "bg-[#9CA3AF]/5");
   const iconColor = dark
     ? "text-white/50"
-    : (isMerge ? "text-[#003a5d]" : "text-[#777777]");
+    : (isMerge ? "text-[#1A1A1A]" : "text-[#9CA3AF]");
 
   return (
     <li className="relative pb-5 pl-7 last:pb-0">
-      <span className={`absolute -left-[7px] top-1 flex h-3 w-3 items-center justify-center rounded-full ${dark ? "ring-[3px] ring-black" : "ring-[3px] ring-[#fafafa]"} ${isMerge ? (dark ? "bg-white/40" : "bg-[#003a5d]") : (dark ? "bg-white/20" : "bg-[#777777]")}`} />
+      <span className={`absolute -left-[7px] top-1 flex h-3 w-3 items-center justify-center rounded-full ${dark ? "ring-[3px] ring-black" : "ring-[3px] ring-[#fafafa]"} ${isMerge ? (dark ? "bg-white/40" : "bg-[#1A1A1A]") : (dark ? "bg-white/20" : "bg-[#9CA3AF]")}`} />
 
       <button
         type="button"
@@ -122,7 +122,7 @@ function LineageAnnotation({
       >
         <div className="flex items-center gap-2">
           <Icon className={`h-4 w-4 ${iconColor}`} />
-          <span className={`text-sm font-semibold ${dark ? "text-white/70" : "text-[#1a1a2e]"}`}>{label}</span>
+          <span className={`text-sm font-semibold ${dark ? "text-white/70" : "text-[#1A1A1A]"}`}>{label}</span>
           <ChevronDown
             className={`ml-auto h-4 w-4 ${dark ? "text-white/20" : "text-[#9ca3af]"} transition-transform ${expanded ? "rotate-180" : ""}`}
           />
