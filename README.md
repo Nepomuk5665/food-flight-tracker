@@ -44,7 +44,7 @@ Project Trace hat zwei Seiten: eine **Consumer App** fürs Handy und ein **QA Da
 Öffnet [foodflighttracker.com/scan](https://foodflighttracker.com/scan) auf dem Handy (oder QR-Code scannen). Barcode `7613031085385` eingeben — ihr seht die komplette Reise der Schokolade von der Elfenbeinküste bis München.
 
 <p align="center">
-  <img src="public/qr-scan.png" alt="QR-Code" width="140" />
+  <img src="docs/demos/barcode.png" alt="Barcode 7613031085385" width="250" />
 </p>
 
 <p align="center">
