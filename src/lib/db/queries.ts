@@ -10,6 +10,8 @@ import {
   consumerReports,
   recalls,
   recallLots,
+  pushSubscriptions,
+  deviceScans,
   type NewConsumerReport,
 } from "./schema";
 
@@ -803,4 +805,65 @@ export function getAllCriticalAnomalies() {
     .where(eq(stageAnomalies.severity, "critical"))
     .orderBy(desc(stageAnomalies.detectedAt))
     .all();
+}
+
+// ---------------------------------------------------------------------------
+// Push Subscriptions
+// ---------------------------------------------------------------------------
+
+export function upsertPushSubscription(data: {
+  deviceId: string;
+  endpoint: string;
+  auth: string;
+  p256dh: string;
+}): { created: boolean } {
+  const existing = db.select().from(pushSubscriptions)
+    .where(eq(pushSubscriptions.endpoint, data.endpoint)).get();
+  if (existing) {
+    db.update(pushSubscriptions)
+      .set({ deviceId: data.deviceId, auth: data.auth, p256dh: data.p256dh })
+      .where(eq(pushSubscriptions.endpoint, data.endpoint)).run();
+    return { created: false };
+  }
+  db.insert(pushSubscriptions).values({
+    deviceId: data.deviceId,
+    endpoint: data.endpoint,
+    auth: data.auth,
+    p256dh: data.p256dh,
+  }).run();
+  return { created: true };
+}
+
+export function deletePushSubscription(endpoint: string) {
+  db.delete(pushSubscriptions).where(eq(pushSubscriptions.endpoint, endpoint)).run();
+}
+
+export function getSubscriptionsForDevices(deviceIds: string[]) {
+  if (deviceIds.length === 0) return [];
+  return db.select().from(pushSubscriptions)
+    .where(inArray(pushSubscriptions.deviceId, deviceIds)).all();
+}
+
+// ---------------------------------------------------------------------------
+// Device Scans
+// ---------------------------------------------------------------------------
+
+export function recordDeviceScan(deviceId: string, barcode: string): { created: boolean } {
+  const existing = db.select().from(deviceScans)
+    .where(and(eq(deviceScans.deviceId, deviceId), eq(deviceScans.barcode, barcode))).get();
+  if (existing) {
+    db.update(deviceScans)
+      .set({ scannedAt: new Date().toISOString() })
+      .where(and(eq(deviceScans.deviceId, deviceId), eq(deviceScans.barcode, barcode))).run();
+    return { created: false };
+  }
+  db.insert(deviceScans).values({ deviceId, barcode }).run();
+  return { created: true };
+}
+
+export function getDeviceIdsByBarcode(barcode: string): string[] {
+  const rows = db.select({ deviceId: deviceScans.deviceId })
+    .from(deviceScans)
+    .where(eq(deviceScans.barcode, barcode)).all();
+  return [...new Set(rows.map(r => r.deviceId))];
 }

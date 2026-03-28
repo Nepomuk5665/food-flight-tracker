@@ -19,10 +19,6 @@ function getDb() {
 }
 
 function ensureTables(db: BetterSQLite3Database<typeof schema>) {
-  const hasProducts = db
-    .get<{ cnt: number }>(sql`SELECT count(*) as cnt FROM sqlite_master WHERE type='table' AND name='products'`);
-  if (hasProducts && hasProducts.cnt > 0) return;
-
   db.run(sql`CREATE TABLE IF NOT EXISTS products (
     id TEXT PRIMARY KEY,
     barcode TEXT NOT NULL UNIQUE,
@@ -130,6 +126,23 @@ function ensureTables(db: BetterSQLite3Database<typeof schema>) {
     recall_id TEXT NOT NULL REFERENCES recalls(id),
     batch_id TEXT NOT NULL REFERENCES batches(id),
     PRIMARY KEY (recall_id, batch_id)
+  )`);
+
+  db.run(sql`CREATE TABLE IF NOT EXISTS push_subscriptions (
+    id TEXT PRIMARY KEY,
+    device_id TEXT NOT NULL,
+    endpoint TEXT NOT NULL UNIQUE,
+    auth TEXT NOT NULL,
+    p256dh TEXT NOT NULL,
+    created_at TEXT NOT NULL
+  )`);
+
+  db.run(sql`CREATE TABLE IF NOT EXISTS device_scans (
+    id TEXT PRIMARY KEY,
+    device_id TEXT NOT NULL,
+    barcode TEXT NOT NULL,
+    scanned_at TEXT NOT NULL,
+    UNIQUE(device_id, barcode)
   )`);
 }
 

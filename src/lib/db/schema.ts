@@ -1,5 +1,5 @@
 import { InferInsertModel, InferSelectModel } from "drizzle-orm";
-import { integer, primaryKey, real, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import { integer, primaryKey, real, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 
 const nowIso = () => new Date().toISOString();
 const defaultId = () => crypto.randomUUID();
@@ -134,6 +134,26 @@ export const recallLots = sqliteTable(
   (table) => [primaryKey({ columns: [table.recallId, table.batchId] })],
 );
 
+export const pushSubscriptions = sqliteTable("push_subscriptions", {
+  id: text("id").primaryKey().$defaultFn(defaultId),
+  deviceId: text("device_id").notNull(),
+  endpoint: text("endpoint").notNull().unique(),
+  auth: text("auth").notNull(),
+  p256dh: text("p256dh").notNull(),
+  createdAt: text("created_at").notNull().$defaultFn(nowIso),
+});
+
+export const deviceScans = sqliteTable(
+  "device_scans",
+  {
+    id: text("id").primaryKey().$defaultFn(defaultId),
+    deviceId: text("device_id").notNull(),
+    barcode: text("barcode").notNull(),
+    scannedAt: text("scanned_at").notNull().$defaultFn(nowIso),
+  },
+  (table) => [uniqueIndex("device_scans_device_barcode_idx").on(table.deviceId, table.barcode)],
+);
+
 export type Product = InferSelectModel<typeof products>;
 export type NewProduct = InferInsertModel<typeof products>;
 
@@ -160,3 +180,9 @@ export type NewRecall = InferInsertModel<typeof recalls>;
 
 export type RecallLot = InferSelectModel<typeof recallLots>;
 export type NewRecallLot = InferInsertModel<typeof recallLots>;
+
+export type PushSubscription = InferSelectModel<typeof pushSubscriptions>;
+export type NewPushSubscription = InferInsertModel<typeof pushSubscriptions>;
+
+export type DeviceScan = InferSelectModel<typeof deviceScans>;
+export type NewDeviceScan = InferInsertModel<typeof deviceScans>;
