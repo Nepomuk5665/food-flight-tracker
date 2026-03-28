@@ -3,7 +3,7 @@
 import { useCallback, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { ChevronLeft } from "lucide-react";
 
 import { TabToggle, type TabId } from "@/components/product/TabToggle";
@@ -121,52 +121,48 @@ export default function ProductTabs({
         </div>
       </div>
 
-      <AnimatePresence mode="wait" initial={false}>
-        {activeTab === "info" && (
-          <motion.div
-            key="info"
-            initial={{ opacity: 0, y: 6 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -6 }}
-            transition={{ duration: 0.15, ease: "easeOut" }}
-            className="pt-[100px]"
-          >
-            <ProductInfo
-              product={product}
-              activeLot={activeLot}
-              supplyChain={supplyChain}
-            />
-          </motion.div>
-        )}
+      {activeTab === "info" && (
+        <motion.div
+          key="info"
+          initial={{ opacity: 0, y: 4 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.12, ease: "easeOut" }}
+          className="pt-[100px]"
+        >
+          <ProductInfo
+            product={product}
+            activeLot={activeLot}
+            supplyChain={supplyChain}
+          />
+        </motion.div>
+      )}
 
-        {activeTab === "map" && (
-          <motion.div
-            key="map"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.15, ease: "easeOut" }}
-            className="fixed inset-0 z-[50]"
-          >
-            <MapTab
-              journey={journey.payload?.journey ?? []}
-              loading={journey.loading}
-              error={journey.error}
-              canGenerate={canGenerateJourney}
-              onBack={() => handleTabChange("info")}
-              onGenerate={journey.generate}
-            />
-          </motion.div>
-        )}
+      {activeTab === "map" && (
+        <motion.div
+          key="map"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.12, ease: "easeOut" }}
+          className="fixed inset-0 z-[50]"
+        >
+          <MapTab
+            journey={journey.payload?.journey ?? []}
+            loading={journey.loading}
+            error={journey.error}
+            canGenerate={canGenerateJourney}
+            onBack={() => handleTabChange("info")}
+            onGenerate={journey.generate}
+          />
+        </motion.div>
+      )}
 
-        {activeTab === "chat" && (
-          <motion.div
-            key="chat"
-            initial={{ opacity: 0, y: 6 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -6 }}
-            transition={{ duration: 0.15, ease: "easeOut" }}
-          >
+      {activeTab === "chat" && (
+        <motion.div
+          key="chat"
+          initial={{ opacity: 0, y: 4 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.12, ease: "easeOut" }}
+        >
             <AiInsights
               barcode={barcode}
               lotCode={activeLot?.lotCode}
@@ -181,8 +177,6 @@ export default function ProductTabs({
             />
           </motion.div>
         )}
-      </AnimatePresence>
-
       {activeLot && activeLot.status !== "recalled" && (
         <>
           <button
