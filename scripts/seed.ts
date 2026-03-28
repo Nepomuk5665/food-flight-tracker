@@ -46,7 +46,7 @@ const chocolate = db
     name: "Chocolat au lait",
     brand: "Nestlé",
     category: "chocolate",
-    imageUrl: null,
+    imageUrl: "https://images.openfoodfacts.org/images/products/761/303/108/5385/front_fr.45.400.jpg",
     source: "internal",
     nutriScore: "D",
     ecoScore: "C",
