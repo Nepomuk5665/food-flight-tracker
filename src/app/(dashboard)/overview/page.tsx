@@ -25,6 +25,21 @@ export default function OverviewPage() {
     [data, selectedLotCode],
   );
 
+  // All batches in the same chain group as the selected batch
+  const chainBatches = useMemo(() => {
+    if (!selectedBatch || !data) return [];
+    return data.batches.filter((b) => b.chainGroup === selectedBatch.chainGroup);
+  }, [data, selectedBatch]);
+
+  // Lineage edges scoped to the chain group
+  const chainEdges = useMemo(() => {
+    if (!data || chainBatches.length <= 1) return [];
+    const lotCodes = new Set(chainBatches.map((b) => b.lotCode));
+    return data.lineageEdges.filter(
+      (e) => lotCodes.has(e.parentLotCode) && lotCodes.has(e.childLotCode),
+    );
+  }, [data, chainBatches]);
+
   const handleAlertClick = useCallback((alert: GodViewAlert) => {
     setSelectedLotCode(alert.batchLotCode);
     setFlyTarget({ lng: alert.lng, lat: alert.lat });
@@ -78,13 +93,14 @@ export default function OverviewPage() {
       {/* Map */}
       <GodViewMap
         batches={data.batches}
+        lineageEdges={data.lineageEdges}
         selectedBatchLotCode={selectedLotCode}
         onBatchSelect={handleBatchSelect}
         layers={layers}
         flyToTarget={flyTarget}
       />
 
-      {/* Overlay panels (left side) */}
+      {/* Overlay panels */}
       <GodViewOverlay
         metrics={data.metrics}
         alerts={data.alerts}
@@ -92,11 +108,16 @@ export default function OverviewPage() {
         onAlertClick={handleAlertClick}
       />
 
-      {/* Layer toggles (bottom right) */}
       <LayerToggles layers={layers} onChange={setLayers} />
 
-      {/* Batch detail slide-in (right side) */}
-      <BatchDetailPanel batch={selectedBatch} onClose={() => setSelectedLotCode(null)} />
+      <BatchDetailPanel
+        batch={selectedBatch}
+        chainBatches={chainBatches}
+        lineageEdges={chainEdges}
+        onClose={() => setSelectedLotCode(null)}
+        onNodeClick={(lng, lat) => setFlyTarget({ lng, lat })}
+        onBatchSelect={(lotCode) => handleBatchSelect(lotCode)}
+      />
     </div>
   );
 }

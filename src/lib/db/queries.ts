@@ -392,7 +392,79 @@ export function endRecall(recallId: string) {
 // ---------------------------------------------------------------------------
 
 export function getGodViewData() {
-  const allBatchRows = getAllBatches();
+  // Limit batches sent to the globe map to keep the visualization readable.
+  // Pull all critical/warning first, then fill remaining slots with safe batches
+  // so the map always shows a representative mix.
+  const highRisk = db
+    .select({ batch: batches, product: products })
+    .from(batches)
+    .innerJoin(products, eq(batches.productId, products.id))
+    .where(sql`${batches.riskScore} > 20`)
+    .orderBy(desc(batches.riskScore))
+    .all();
+
+  const safeLimit = Math.max(30 - highRisk.length, 10);
+  const safe = db
+    .select({ batch: batches, product: products })
+    .from(batches)
+    .innerJoin(products, eq(batches.productId, products.id))
+    .where(sql`${batches.riskScore} <= 20`)
+    .orderBy(desc(batches.updatedAt))
+    .limit(safeLimit)
+    .all();
+
+  // Interleave so the staggered animation doesn't front-load all red/orange.
+  const allBatchRows: typeof highRisk = [];
+  const ratio = safe.length > 0 ? Math.max(1, Math.floor(safe.length / (highRisk.length || 1))) : 0;
+  let hi = 0;
+  let si = 0;
+  while (hi < highRisk.length || si < safe.length) {
+    for (let i = 0; i < ratio && si < safe.length; i++) allBatchRows.push(safe[si++]);
+    if (hi < highRisk.length) allBatchRows.push(highRisk[hi++]);
+  }
+  while (si < safe.length) allBatchRows.push(safe[si++]);
+
+  // ── Compute supply-chain groups via union-find on lineage edges ──
+  const lineageEdges = db.select().from(batchLineage).all();
+  const parent = new Map<string, string>();
+
+  function find(x: string): string {
+    let root = x;
+    while (parent.get(root) !== root) root = parent.get(root) ?? root;
+    // Path compression
+    let cur = x;
+    while (cur !== root) {
+      const next = parent.get(cur) ?? cur;
+      parent.set(cur, root);
+      cur = next;
+    }
+    return root;
+  }
+
+  function union(a: string, b: string) {
+    const ra = find(a);
+    const rb = find(b);
+    if (ra !== rb) parent.set(ra, rb);
+  }
+
+  // Initialize each batch as its own root
+  for (const { batch } of allBatchRows) {
+    parent.set(batch.id, batch.id);
+  }
+
+  // Union batches connected by lineage
+  for (const edge of lineageEdges) {
+    if (parent.has(edge.parentBatchId) && parent.has(edge.childBatchId)) {
+      union(edge.parentBatchId, edge.childBatchId);
+    }
+  }
+
+  // Map batch ID → chain group (the root's lot code for readability)
+  const batchIdToLotCode = new Map(allBatchRows.map(({ batch }) => [batch.id, batch.lotCode]));
+  function chainGroupFor(batchId: string): string {
+    const root = find(batchId);
+    return batchIdToLotCode.get(root) ?? root;
+  }
 
   const godBatches = allBatchRows.map(({ batch, product }) => {
     const stages = db
@@ -409,11 +481,16 @@ export function getGodViewData() {
       .all();
 
     const anomalyCountByStage = new Map<string, number>();
+    const maxSevByStage = new Map<string, string>();
     let maxSev: string | null = null;
     const sevRank: Record<string, number> = { low: 1, medium: 2, high: 3, critical: 4 };
 
     for (const a of anomalies) {
       anomalyCountByStage.set(a.stageId, (anomalyCountByStage.get(a.stageId) ?? 0) + 1);
+      const prev = maxSevByStage.get(a.stageId);
+      if (!prev || (sevRank[a.severity] ?? 0) > (sevRank[prev] ?? 0)) {
+        maxSevByStage.set(a.stageId, a.severity);
+      }
       if (!maxSev || (sevRank[a.severity] ?? 0) > (sevRank[maxSev] ?? 0)) {
         maxSev = a.severity;
       }
@@ -449,11 +526,13 @@ export function getGodViewData() {
         routeCoordinates: s.routeCoords ? JSON.parse(s.routeCoords) : undefined,
         sequenceOrder: s.sequenceOrder,
         anomalyCount: anomalyCountByStage.get(s.id) ?? 0,
+        maxSeverity: (maxSevByStage.get(s.id) as "low" | "medium" | "high" | "critical") ?? null,
       })),
       lastLocation: lastStage && lastStage.latitude && lastStage.longitude
         ? { name: lastStage.locationName ?? "", lat: lastStage.latitude, lng: lastStage.longitude }
         : null,
       updatedAt: batch.updatedAt,
+      chainGroup: chainGroupFor(batch.id),
     };
   });
 
@@ -502,16 +581,33 @@ export function getGodViewData() {
       createdAt: r.createdAt,
     }));
 
-  // Metrics
-  const activeBatches = godBatches.filter((b) => b.status === "active").length;
-  const recalledBatches = godBatches.filter((b) => b.status === "recalled").length;
+  // Metrics — computed from the full dataset, not the limited map subset
+  const metricRows = db
+    .select({
+      total: sql<number>`count(*)`,
+      active: sql<number>`sum(case when ${batches.status} = 'active' then 1 else 0 end)`,
+      recalled: sql<number>`sum(case when ${batches.status} = 'recalled' then 1 else 0 end)`,
+      avgRisk: sql<number>`round(avg(${batches.riskScore}))`,
+    })
+    .from(batches)
+    .get()!;
+  const activeBatches = metricRows.active ?? 0;
+  const recalledBatches = metricRows.recalled ?? 0;
   const openIncidents = alerts.filter((a) => a.severity === "critical" || a.severity === "high").length;
-  const avgRiskScore = godBatches.length > 0
-    ? Math.round(godBatches.reduce((sum, b) => sum + b.riskScore, 0) / godBatches.length)
-    : 0;
+  const avgRiskScore = metricRows.avgRisk ?? 0;
+
+  // Lineage edges mapped to lot codes for the frontend
+  const godLineageEdges = lineageEdges
+    .filter((e) => batchIdToLotCode.has(e.parentBatchId) && batchIdToLotCode.has(e.childBatchId))
+    .map((e) => ({
+      parentLotCode: batchIdToLotCode.get(e.parentBatchId)!,
+      childLotCode: batchIdToLotCode.get(e.childBatchId)!,
+      relationship: e.relationship as "merge" | "split",
+    }));
 
   return {
     batches: godBatches,
+    lineageEdges: godLineageEdges,
     alerts,
     recentReports: reports,
     metrics: { activeBatches, openIncidents, avgRiskScore, recalledBatches },

@@ -32,11 +32,12 @@ sqlite.exec(`
   DELETE FROM products;
 `);
 
-// ---------------------------------------------------------------------------
-// 1. Products
-// ---------------------------------------------------------------------------
+// ===========================================================================
+// SUPPLY CHAIN 1: Swiss Dark Chocolate (simple linear chain)
+// Ghana → Belgium → Munich → Retail
+// ===========================================================================
 
-console.log("Seeding products...");
+console.log("\n── Supply Chain 1: Chocolate (linear) ──");
 
 const chocolate = db
   .insert(schema.products)
@@ -55,48 +56,6 @@ const chocolate = db
   .returning()
   .get()!;
 
-const yogurt = db
-  .insert(schema.products)
-  .values({
-    barcode: "4098765432100",
-    name: "Alpine Fresh Yogurt 200g",
-    brand: "AlpenMilch",
-    category: "dairy",
-    imageUrl: "/images/yogurt.jpg",
-    source: "internal",
-    nutriScore: "B",
-    ecoScore: "B",
-    ingredients: "Pasteurized milk, live cultures (L. bulgaricus, S. thermophilus)",
-    allergens: JSON.stringify(["milk"]),
-  })
-  .returning()
-  .get()!;
-
-const water = db
-  .insert(schema.products)
-  .values({
-    barcode: "7610235000329",
-    name: "Henniez Naturelle 1.5L",
-    brand: "Henniez (Nestlé Waters)",
-    category: "water",
-    imageUrl: "https://images.openfoodfacts.org/images/products/761/023/500/0329/front_fr.47.400.jpg",
-    source: "internal",
-    nutriScore: "A",
-    ecoScore: "B",
-    ingredients: "Natural mineral water",
-    allergens: JSON.stringify([]),
-  })
-  .returning()
-  .get()!;
-
-console.log(`  Products: ${chocolate.name}, ${yogurt.name}, ${water.name}`);
-
-// ---------------------------------------------------------------------------
-// 2. Batches — Chocolate (single linear chain)
-// ---------------------------------------------------------------------------
-
-console.log("Seeding batches...");
-
 const chocBatch = db
   .insert(schema.batches)
   .values({
@@ -111,103 +70,10 @@ const chocBatch = db
   .returning()
   .get()!;
 
-// ---------------------------------------------------------------------------
-// 3. Batches — Dairy (merge + split chain)
-// ---------------------------------------------------------------------------
+console.log(`  Product: ${chocolate.name}`);
+console.log(`  Batch: ${chocBatch.lotCode} (risk: ${chocBatch.riskScore})`);
 
-const farmA = db
-  .insert(schema.batches)
-  .values({
-    lotCode: "M-FARM-A",
-    productId: yogurt.id,
-    status: "active",
-    riskScore: 0,
-    unitCount: 800,
-    createdAt: iso("2026-03-01T06:00:00Z"),
-    updatedAt: iso("2026-03-01T10:00:00Z"),
-  })
-  .returning()
-  .get()!;
-
-const farmB = db
-  .insert(schema.batches)
-  .values({
-    lotCode: "M-FARM-B",
-    productId: yogurt.id,
-    status: "active",
-    riskScore: 0,
-    unitCount: 600,
-    createdAt: iso("2026-03-01T06:30:00Z"),
-    updatedAt: iso("2026-03-01T10:30:00Z"),
-  })
-  .returning()
-  .get()!;
-
-const vat = db
-  .insert(schema.batches)
-  .values({
-    lotCode: "VAT-001",
-    productId: yogurt.id,
-    status: "active",
-    riskScore: 0,
-    unitCount: 1400,
-    createdAt: iso("2026-03-02T08:00:00Z"),
-    updatedAt: iso("2026-03-02T18:00:00Z"),
-  })
-  .returning()
-  .get()!;
-
-const cups = db
-  .insert(schema.batches)
-  .values({
-    lotCode: "Y-CUP-001",
-    productId: yogurt.id,
-    status: "active",
-    riskScore: 0,
-    unitCount: 7000,
-    createdAt: iso("2026-03-03T06:00:00Z"),
-    updatedAt: iso("2026-03-05T12:00:00Z"),
-  })
-  .returning()
-  .get()!;
-
-console.log(
-  `  Batches: ${chocBatch.lotCode}, ${farmA.lotCode}, ${farmB.lotCode}, ${vat.lotCode}, ${cups.lotCode}`,
-);
-
-// ---------------------------------------------------------------------------
-// 4. Batch Lineage (merge/split)
-// ---------------------------------------------------------------------------
-
-console.log("Seeding batch lineage...");
-
-db.insert(schema.batchLineage).values([
-  {
-    parentBatchId: farmA.id,
-    childBatchId: vat.id,
-    relationship: "merge",
-    ratio: 0.57,
-  },
-  {
-    parentBatchId: farmB.id,
-    childBatchId: vat.id,
-    relationship: "merge",
-    ratio: 0.43,
-  },
-  {
-    parentBatchId: vat.id,
-    childBatchId: cups.id,
-    relationship: "split",
-    ratio: 1.0,
-  },
-]).run();
-
-// ---------------------------------------------------------------------------
-// 5. Batch Stages — Chocolate
-// ---------------------------------------------------------------------------
-
-console.log("Seeding batch stages...");
-
+// Stages: harvest → processing → sea transport → manufacturing → packaging → road transport → storage → retail
 const chocStages = db
   .insert(schema.batchStages)
   .values([
@@ -346,153 +212,11 @@ const chocStages = db
   .returning()
   .all();
 
-// ---------------------------------------------------------------------------
-// 6. Batch Stages — Dairy
-// ---------------------------------------------------------------------------
+console.log(`  Stages: ${chocStages.length}`);
 
-const dairyStages = db
-  .insert(schema.batchStages)
-  .values([
-    // Farm A collection
-    {
-      batchId: farmA.id,
-      stageType: "collection",
-      name: "Milk Collection — Farm Huber",
-      locationName: "Bauernhof Huber, Allgäu, Germany",
-      latitude: 47.5763,
-      longitude: 10.3215,
-      operator: "Farm Huber",
-      metadata: JSON.stringify({
-        volume: "800L raw milk",
-        fatContent: "3.8%",
-        somatic: "< 200,000 /mL",
-      }),
-      startedAt: iso("2026-03-01T05:00:00Z"),
-      completedAt: iso("2026-03-01T07:00:00Z"),
-      sequenceOrder: 1,
-    },
-    // Farm B collection
-    {
-      batchId: farmB.id,
-      stageType: "collection",
-      name: "Milk Collection — Farm Berger",
-      locationName: "Bauernhof Berger, Allgäu, Germany",
-      latitude: 47.5528,
-      longitude: 10.2964,
-      operator: "Farm Berger",
-      metadata: JSON.stringify({
-        volume: "600L raw milk",
-        fatContent: "4.0%",
-        somatic: "< 180,000 /mL",
-      }),
-      startedAt: iso("2026-03-01T05:30:00Z"),
-      completedAt: iso("2026-03-01T07:30:00Z"),
-      sequenceOrder: 1,
-    },
-    // Processing vat (merge point)
-    {
-      batchId: vat.id,
-      stageType: "processing",
-      name: "Pasteurization & Fermentation",
-      locationName: "AlpenMilch Plant, Kempten, Germany",
-      latitude: 47.7267,
-      longitude: 10.3168,
-      operator: "AlpenMilch GmbH",
-      metadata: JSON.stringify({
-        process: "Pasteurization at 72°C/15s, culture addition, 8h fermentation",
-        volume: "1,400L",
-        cultures: "L. bulgaricus, S. thermophilus",
-        pH: "4.3",
-      }),
-      startedAt: iso("2026-03-02T08:00:00Z"),
-      completedAt: iso("2026-03-02T18:00:00Z"),
-      sequenceOrder: 2,
-    },
-    // Packaging (split point)
-    {
-      batchId: cups.id,
-      stageType: "packaging",
-      name: "Cup Filling & Sealing",
-      locationName: "AlpenMilch Plant, Kempten, Germany",
-      latitude: 47.7267,
-      longitude: 10.3168,
-      operator: "AlpenMilch GmbH",
-      metadata: JSON.stringify({
-        packagingType: "200g PP cup with foil lid",
-        unitsProduced: "7,000 cups",
-        bestBefore: "2026-03-20",
-      }),
-      startedAt: iso("2026-03-03T06:00:00Z"),
-      completedAt: iso("2026-03-03T14:00:00Z"),
-      sequenceOrder: 3,
-    },
-    // Cold storage
-    {
-      batchId: cups.id,
-      stageType: "storage",
-      name: "Cold Storage",
-      locationName: "AlpenMilch Cold Store, Kempten, Germany",
-      latitude: 47.7267,
-      longitude: 10.3168,
-      operator: "AlpenMilch GmbH",
-      metadata: JSON.stringify({
-        storageTemp: "2-4°C",
-        zone: "Dairy Hall B",
-      }),
-      startedAt: iso("2026-03-03T14:30:00Z"),
-      completedAt: iso("2026-03-04T22:00:00Z"),
-      sequenceOrder: 4,
-    },
-    // Transport to Munich
-    {
-      batchId: cups.id,
-      stageType: "transport",
-      name: "Refrigerated Transport → Munich",
-      locationName: "Munich, Germany",
-      latitude: 48.1351,
-      longitude: 11.582,
-      operator: "Kühne + Nagel",
-      metadata: JSON.stringify({
-        vehicleType: "Refrigerated truck",
-        targetTemp: "2-4°C",
-      }),
-      startedAt: iso("2026-03-05T04:00:00Z"),
-      completedAt: iso("2026-03-05T08:00:00Z"),
-      sequenceOrder: 5,
-    },
-    // Retail
-    {
-      batchId: cups.id,
-      stageType: "retail",
-      name: "Retail Shelf",
-      locationName: "EDEKA Munich-Schwabing, Germany",
-      latitude: 48.1642,
-      longitude: 11.5861,
-      operator: "EDEKA Group",
-      metadata: JSON.stringify({
-        shelfLocation: "Dairy Cooler, Row 2",
-        retailPrice: "€1.29",
-        displayTemp: "4-6°C",
-      }),
-      startedAt: iso("2026-03-05T09:00:00Z"),
-      completedAt: null,
-      sequenceOrder: 6,
-    },
-  ])
-  .returning()
-  .all();
+// Telemetry — sea transport with cold chain break
+const seaTransportStage = chocStages[2];
 
-console.log(`  Stages: ${chocStages.length} chocolate, ${dairyStages.length} dairy`);
-
-// ---------------------------------------------------------------------------
-// 7. Telemetry Readings — Chocolate Transport (including anomaly)
-// ---------------------------------------------------------------------------
-
-console.log("Seeding telemetry readings...");
-
-const seaTransportStage = chocStages[2]; // Sea Freight stage
-
-// Normal readings for first 8 days, then anomaly, then recovery
 const seaTempReadings: { time: string; temp: number; humidity: number }[] = [];
 
 // Jan 22-29: Normal readings (every 6 hours)
@@ -500,28 +224,28 @@ for (let day = 22; day <= 29; day++) {
   for (const hour of [0, 6, 12, 18]) {
     seaTempReadings.push({
       time: `2026-01-${String(day).padStart(2, "0")}T${String(hour).padStart(2, "0")}:00:00Z`,
-      temp: 3.5 + Math.random() * 1.5, // 3.5-5.0°C normal range
+      temp: 3.5 + Math.random() * 1.5,
       humidity: 60 + Math.random() * 10,
     });
   }
 }
 
-// Jan 30: Cold chain break (the anomaly!)
+// Jan 30: Cold chain break
 seaTempReadings.push(
   { time: "2026-01-30T00:00:00Z", temp: 4.1, humidity: 62 },
   { time: "2026-01-30T01:00:00Z", temp: 5.8, humidity: 64 },
   { time: "2026-01-30T02:00:00Z", temp: 7.3, humidity: 67 },
   { time: "2026-01-30T03:00:00Z", temp: 10.4, humidity: 71 },
-  { time: "2026-01-30T03:15:00Z", temp: 12.8, humidity: 74 }, // Peak
+  { time: "2026-01-30T03:15:00Z", temp: 12.8, humidity: 74 },
   { time: "2026-01-30T04:00:00Z", temp: 11.2, humidity: 72 },
   { time: "2026-01-30T05:00:00Z", temp: 8.6, humidity: 69 },
-  { time: "2026-01-30T05:14:00Z", temp: 6.1, humidity: 65 }, // End of anomaly window
-  { time: "2026-01-30T06:00:00Z", temp: 4.5, humidity: 63 }, // Recovery
+  { time: "2026-01-30T05:14:00Z", temp: 6.1, humidity: 65 },
+  { time: "2026-01-30T06:00:00Z", temp: 4.5, humidity: 63 },
   { time: "2026-01-30T12:00:00Z", temp: 4.2, humidity: 62 },
   { time: "2026-01-30T18:00:00Z", temp: 3.9, humidity: 61 },
 );
 
-// Jan 31 - Feb 5: Normal readings again
+// Jan 31 - Feb 5: Normal again
 for (let day = 31; day <= 31; day++) {
   for (const hour of [0, 6, 12, 18]) {
     seaTempReadings.push({
@@ -541,8 +265,7 @@ for (let day = 1; day <= 5; day++) {
   }
 }
 
-// Insert all temperature + humidity readings for sea transport
-const telemetryValues = seaTempReadings.flatMap((r) => [
+const chocTelemetry = seaTempReadings.flatMap((r) => [
   {
     stageId: seaTransportStage.id,
     readingType: "temperature" as const,
@@ -559,60 +282,10 @@ const telemetryValues = seaTempReadings.flatMap((r) => [
   },
 ]);
 
-db.insert(schema.telemetryReadings).values(telemetryValues).run();
+db.insert(schema.telemetryReadings).values(chocTelemetry).run();
+console.log(`  Telemetry: ${chocTelemetry.length} readings`);
 
-// Add normal readings for dairy cold storage + transport
-const dairyColdStorage = dairyStages[4]; // Cold storage stage
-const dairyTransport = dairyStages[5]; // Transport stage
-
-const dairyReadings = [];
-// Cold storage: every 2 hours for ~32 hours
-for (let h = 0; h < 32; h += 2) {
-  const time = new Date("2026-03-03T14:30:00Z");
-  time.setHours(time.getHours() + h);
-  dairyReadings.push(
-    {
-      stageId: dairyColdStorage.id,
-      readingType: "temperature" as const,
-      value: Math.round((2.5 + Math.random() * 1.5) * 10) / 10,
-      unit: "°C",
-      recordedAt: time.toISOString(),
-    },
-    {
-      stageId: dairyColdStorage.id,
-      readingType: "humidity" as const,
-      value: Math.round((75 + Math.random() * 10) * 10) / 10,
-      unit: "%",
-      recordedAt: time.toISOString(),
-    },
-  );
-}
-
-// Transport: every 30 min for 4 hours
-for (let m = 0; m < 240; m += 30) {
-  const time = new Date("2026-03-05T04:00:00Z");
-  time.setMinutes(time.getMinutes() + m);
-  dairyReadings.push(
-    {
-      stageId: dairyTransport.id,
-      readingType: "temperature" as const,
-      value: Math.round((3.0 + Math.random() * 1.0) * 10) / 10,
-      unit: "°C",
-      recordedAt: time.toISOString(),
-    },
-  );
-}
-
-db.insert(schema.telemetryReadings).values(dairyReadings).run();
-
-console.log(`  Telemetry readings: ${telemetryValues.length + dairyReadings.length} total`);
-
-// ---------------------------------------------------------------------------
-// 8. Stage Anomaly — Cold Chain Break on Chocolate Transport
-// ---------------------------------------------------------------------------
-
-console.log("Seeding anomalies...");
-
+// Anomaly: cold chain break
 db.insert(schema.stageAnomalies)
   .values({
     stageId: seaTransportStage.id,
@@ -630,11 +303,14 @@ db.insert(schema.stageAnomalies)
   })
   .run();
 
-// ---------------------------------------------------------------------------
-// 9. Product — Allgäu Bio-Käse (Cheese with full merge + split lineage)
-// ---------------------------------------------------------------------------
+console.log("  Anomaly: cold chain break on sea transport");
 
-console.log("Seeding cheese product with lineage...");
+// ===========================================================================
+// SUPPLY CHAIN 2: Allgäu Bio-Bergkäse (many-to-many)
+// 2 farms MERGE → cheese making → aging → inspection → SPLIT into slices + wheels
+// ===========================================================================
+
+console.log("\n── Supply Chain 2: Cheese (many-to-many) ──");
 
 const cheese = db
   .insert(schema.products)
@@ -653,8 +329,7 @@ const cheese = db
   .returning()
   .get()!;
 
-// Batches: two source farms merge → cheese making → splits into slices + wheels
-
+// 5 batches: 2 source farms → 1 processing → 2 output products
 const cheeseFarmH = db
   .insert(schema.batches)
   .values({
@@ -725,6 +400,9 @@ const cheeseWheel = db
   .returning()
   .get()!;
 
+console.log(`  Product: ${cheese.name}`);
+console.log(`  Batches: ${cheeseFarmH.lotCode}, ${cheeseFarmS.lotCode}, ${cheeseMake.lotCode}, ${cheeseSlice.lotCode}, ${cheeseWheel.lotCode}`);
+
 // Lineage: 2 farms merge → cheese → splits into slices + wheels
 db.insert(schema.batchLineage).values([
   { parentBatchId: cheeseFarmH.id, childBatchId: cheeseMake.id, relationship: "merge", ratio: 0.57 },
@@ -733,12 +411,13 @@ db.insert(schema.batchLineage).values([
   { parentBatchId: cheeseMake.id, childBatchId: cheeseWheel.id, relationship: "split", ratio: 0.2 },
 ]).run();
 
-// Stages
+console.log("  Lineage: 2 merges + 2 splits");
 
+// Stages across all 5 batches
 const cheeseStages = db
   .insert(schema.batchStages)
   .values([
-    // Farm Huber collection
+    // Farm Huber → collection
     {
       batchId: cheeseFarmH.id,
       stageType: "collection",
@@ -752,7 +431,7 @@ const cheeseStages = db
       completedAt: iso("2026-02-10T07:00:00Z"),
       sequenceOrder: 1,
     },
-    // Farm Schneider collection
+    // Farm Schneider → collection
     {
       batchId: cheeseFarmS.id,
       stageType: "collection",
@@ -766,7 +445,7 @@ const cheeseStages = db
       completedAt: iso("2026-02-10T07:30:00Z"),
       sequenceOrder: 1,
     },
-    // Cheese making — Processing
+    // Merge point → processing
     {
       batchId: cheeseMake.id,
       stageType: "processing",
@@ -784,14 +463,14 @@ const cheeseStages = db
       completedAt: iso("2026-02-11T18:00:00Z"),
       sequenceOrder: 2,
     },
-    // Cheese making — Aging
+    // Aging
     {
       batchId: cheeseMake.id,
       stageType: "storage",
       name: "Cave Aging (4 weeks)",
       locationName: "AlpenMilch Aging Cellar, Kempten, Germany",
-      latitude: 47.7280,
-      longitude: 10.3190,
+      latitude: 47.728,
+      longitude: 10.319,
       operator: "AlpenMilch GmbH",
       metadata: JSON.stringify({
         duration: "28 days",
@@ -803,7 +482,7 @@ const cheeseStages = db
       completedAt: iso("2026-03-12T00:00:00Z"),
       sequenceOrder: 3,
     },
-    // Cheese making — Quality check
+    // Quality inspection
     {
       batchId: cheeseMake.id,
       stageType: "inspection",
@@ -821,7 +500,7 @@ const cheeseStages = db
       completedAt: iso("2026-03-12T16:00:00Z"),
       sequenceOrder: 4,
     },
-    // Sliced batch — Packaging
+    // Split → Slices: packaging
     {
       batchId: cheeseSlice.id,
       stageType: "packaging",
@@ -839,7 +518,7 @@ const cheeseStages = db
       completedAt: iso("2026-03-16T14:00:00Z"),
       sequenceOrder: 5,
     },
-    // Sliced batch — Transport
+    // Split → Slices: transport to Munich
     {
       batchId: cheeseSlice.id,
       stageType: "transport",
@@ -853,7 +532,7 @@ const cheeseStages = db
       completedAt: iso("2026-03-17T08:00:00Z"),
       sequenceOrder: 6,
     },
-    // Sliced batch — Retail
+    // Split → Slices: retail (Munich)
     {
       batchId: cheeseSlice.id,
       stageType: "retail",
@@ -867,7 +546,7 @@ const cheeseStages = db
       completedAt: null,
       sequenceOrder: 7,
     },
-    // Whole wheel batch — Deli distribution
+    // Split → Wheels: transport to Augsburg
     {
       batchId: cheeseWheel.id,
       stageType: "transport",
@@ -881,7 +560,7 @@ const cheeseStages = db
       completedAt: iso("2026-03-16T12:00:00Z"),
       sequenceOrder: 5,
     },
-    // Whole wheel batch — Specialty shop
+    // Split → Wheels: specialty shop (Augsburg)
     {
       batchId: cheeseWheel.id,
       stageType: "retail",
@@ -898,6 +577,8 @@ const cheeseStages = db
   ])
   .returning()
   .all();
+
+console.log(`  Stages: ${cheeseStages.length}`);
 
 // Telemetry for cheese aging (temperature + humidity over 28 days)
 const cheeseAgingStage = cheeseStages[3]; // Cave Aging stage
@@ -924,19 +605,19 @@ for (let day = 0; day < 28; day += 2) {
 }
 db.insert(schema.telemetryReadings).values(cheeseAgingReadings).run();
 
-console.log(`  Cheese: ${cheese.name}`);
-console.log(`  Cheese batches: ${cheeseFarmH.lotCode}, ${cheeseFarmS.lotCode}, ${cheeseMake.lotCode}, ${cheeseSlice.lotCode}, ${cheeseWheel.lotCode}`);
-console.log(`  Cheese lineage: 2 merges + 2 splits`);
-console.log(`  Cheese stages: ${cheeseStages.length}, telemetry: ${cheeseAgingReadings.length}`);
+console.log(`  Telemetry: ${cheeseAgingReadings.length} readings`);
 
-// ---------------------------------------------------------------------------
-// Done
-// ---------------------------------------------------------------------------
+// ===========================================================================
+// Summary
+// ===========================================================================
 
-console.log("\nSeed complete!");
-console.log(`  3 products, 10 batches, 7 lineage links`);
-console.log(`  ${chocStages.length + dairyStages.length + cheeseStages.length} stages`);
-console.log(`  ${telemetryValues.length + dairyReadings.length + cheeseAgingReadings.length} telemetry readings`);
-console.log(`  1 anomaly (cold chain break)`);
+console.log("\n── Seed Complete ──");
+console.log("  2 products, 6 batches, 4 lineage links");
+console.log(`  ${chocStages.length + cheeseStages.length} stages`);
+console.log(`  ${chocTelemetry.length + cheeseAgingReadings.length} telemetry readings`);
+console.log("  1 anomaly (cold chain break)");
+console.log("");
+console.log("  Chain 1 — Chocolate: L6029479302 (linear, 8 stages)");
+console.log("  Chain 2 — Cheese:    K-FARM-H + K-FARM-S → K-MAKE-001 → K-SLICE-001 + K-WHEEL-001");
 
 sqlite.close();

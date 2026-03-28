@@ -9,7 +9,7 @@ import type {
 // ---------------------------------------------------------------------------
 
 export const RISK_COLORS = {
-  safe: "#9eca45",
+  safe: "#3f4550",
   warning: "#f5a623",
   critical: "#e74c3c",
 } as const;
@@ -20,6 +20,22 @@ export function riskLevelToNum(level: string): number {
   if (level === "critical") return 2;
   return 0;
 }
+
+/** Map per-stage max severity to a numeric value for Mapbox step expressions. */
+export function severityToSegmentNum(severity: string | null): number {
+  if (severity === "high") return 1;
+  if (severity === "critical") return 2;
+  return 0; // null, low, medium → no highlight
+}
+
+// Shared step expression reading segmentSeverity property
+const SEGMENT_COLOR_EXPR = [
+  "step",
+  ["get", "segmentSeverity"],
+  RISK_COLORS.safe,
+  1, RISK_COLORS.warning,
+  2, RISK_COLORS.critical,
+] as unknown as string;
 
 // ---------------------------------------------------------------------------
 // Cluster layers
@@ -105,7 +121,7 @@ export const unclusteredPulseLayer: CircleLayerSpecification = {
 };
 
 // ---------------------------------------------------------------------------
-// Route layers
+// Route layers — colored per-segment by anomaly severity
 // ---------------------------------------------------------------------------
 
 export const routeGlowLayer: LineLayerSpecification = {
@@ -113,15 +129,9 @@ export const routeGlowLayer: LineLayerSpecification = {
   type: "line",
   source: "god-view-routes",
   paint: {
-    "line-color": [
-      "step",
-      ["get", "riskLevelNum"],
-      RISK_COLORS.safe,
-      1, RISK_COLORS.warning,
-      2, RISK_COLORS.critical,
-    ] as unknown as string,
-    "line-width": 6,
-    "line-opacity": 0.12,
+    "line-color": SEGMENT_COLOR_EXPR,
+    "line-width": 12,
+    "line-opacity": 0.15,
     "line-blur": 4,
   },
 };
@@ -131,16 +141,9 @@ export const routeLineLayer: LineLayerSpecification = {
   type: "line",
   source: "god-view-routes",
   paint: {
-    "line-color": [
-      "step",
-      ["get", "riskLevelNum"],
-      RISK_COLORS.safe,
-      1, RISK_COLORS.warning,
-      2, RISK_COLORS.critical,
-    ] as unknown as string,
-    "line-width": 2,
-    "line-opacity": 0.7,
-    "line-dasharray": [4, 3],
+    "line-color": SEGMENT_COLOR_EXPR,
+    "line-width": 3,
+    "line-opacity": 0.75,
   },
   layout: {
     "line-cap": "round",
@@ -154,14 +157,8 @@ export const drawnRouteGlowLayer: LineLayerSpecification = {
   type: "line",
   source: "god-view-drawn-routes",
   paint: {
-    "line-color": [
-      "step",
-      ["get", "riskLevelNum"],
-      RISK_COLORS.safe,
-      1, RISK_COLORS.warning,
-      2, RISK_COLORS.critical,
-    ] as unknown as string,
-    "line-width": 8,
+    "line-color": SEGMENT_COLOR_EXPR,
+    "line-width": 14,
     "line-opacity": 0.2,
     "line-blur": 4,
   },
@@ -172,18 +169,95 @@ export const drawnRouteLineLayer: LineLayerSpecification = {
   type: "line",
   source: "god-view-drawn-routes",
   paint: {
-    "line-color": [
-      "step",
-      ["get", "riskLevelNum"],
-      RISK_COLORS.safe,
-      1, RISK_COLORS.warning,
-      2, RISK_COLORS.critical,
-    ] as unknown as string,
-    "line-width": 2.5,
+    "line-color": SEGMENT_COLOR_EXPR,
+    "line-width": 3.5,
     "line-opacity": 0.9,
   },
   layout: {
     "line-cap": "round",
     "line-join": "round",
+  },
+};
+
+// ---------------------------------------------------------------------------
+// Stage node anomaly halo — colored circle behind icons for problem stages
+// ---------------------------------------------------------------------------
+
+export const stageNodeHaloLayer: CircleLayerSpecification = {
+  id: "god-view-stage-halo",
+  type: "circle",
+  source: "god-view-stage-nodes",
+  filter: [">=", ["get", "severityNum"], 1],
+  paint: {
+    "circle-color": [
+      "step",
+      ["get", "severityNum"],
+      "transparent",
+      1, RISK_COLORS.warning,
+      2, RISK_COLORS.critical,
+    ] as unknown as string,
+    "circle-radius": 14,
+    "circle-opacity": 0.4,
+    "circle-blur": 0.5,
+  },
+};
+
+// ---------------------------------------------------------------------------
+// Lineage connector layers (merge/split links between batches)
+// ---------------------------------------------------------------------------
+
+export const lineageGlowLayer: LineLayerSpecification = {
+  id: "god-view-lineage-glow",
+  type: "line",
+  source: "god-view-lineage",
+  paint: {
+    "line-color": SEGMENT_COLOR_EXPR,
+    "line-width": 12,
+    "line-opacity": 0.15,
+    "line-blur": 4,
+  },
+};
+
+export const lineageLineLayer: LineLayerSpecification = {
+  id: "god-view-lineage-line",
+  type: "line",
+  source: "god-view-lineage",
+  paint: {
+    "line-color": SEGMENT_COLOR_EXPR,
+    "line-width": 3,
+    "line-opacity": 0.75,
+  },
+  layout: {
+    "line-cap": "round",
+    "line-join": "round",
+  },
+};
+
+// ---------------------------------------------------------------------------
+// Flow particle layers — animated dots showing supply chain direction
+// ---------------------------------------------------------------------------
+
+export const flowParticleGlowLayer: CircleLayerSpecification = {
+  id: "god-view-flow-glow",
+  type: "circle",
+  source: "god-view-flow-particles",
+  paint: {
+    "circle-color": SEGMENT_COLOR_EXPR,
+    "circle-radius": 8,
+    "circle-opacity": 0.3,
+    "circle-blur": 1,
+  },
+};
+
+export const flowParticleLayer: CircleLayerSpecification = {
+  id: "god-view-flow-particle",
+  type: "circle",
+  source: "god-view-flow-particles",
+  paint: {
+    "circle-color": SEGMENT_COLOR_EXPR,
+    "circle-radius": 3.5,
+    "circle-opacity": 0.9,
+    "circle-stroke-width": 1,
+    "circle-stroke-color": "rgba(255,255,255,0.5)",
   },
 };

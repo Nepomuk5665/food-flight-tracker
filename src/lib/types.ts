@@ -135,6 +135,7 @@ export interface GodViewBatchStage {
   routeCoordinates?: [number, number][];
   sequenceOrder: number;
   anomalyCount: number;
+  maxSeverity: Severity | null;
 }
 
 export interface GodViewBatch {
@@ -151,6 +152,8 @@ export interface GodViewBatch {
   stages: GodViewBatchStage[];
   lastLocation: { name: string; lat: number; lng: number } | null;
   updatedAt: string;
+  /** Connected component ID — all batches sharing lineage edges belong to the same chain. */
+  chainGroup: string;
 }
 
 export interface GodViewAlert {
@@ -182,8 +185,15 @@ export interface GodViewReport {
   createdAt: string;
 }
 
+export interface GodViewLineageEdge {
+  parentLotCode: string;
+  childLotCode: string;
+  relationship: "merge" | "split";
+}
+
 export interface GodViewData {
   batches: GodViewBatch[];
+  lineageEdges: GodViewLineageEdge[];
   alerts: GodViewAlert[];
   recentReports: GodViewReport[];
   metrics: GodViewMetrics;

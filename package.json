@@ -12,6 +12,7 @@
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
     "db:seed": "tsx scripts/seed.ts",
+    "db:seed-global": "tsx scripts/generate-global-supply-chains.ts",
     "db:reset": "node scripts/reset-db.mjs",
     "test": "vitest run --exclude tests/lineage-query.test.ts",
     "test:watch": "vitest --exclude tests/lineage-query.test.ts",
