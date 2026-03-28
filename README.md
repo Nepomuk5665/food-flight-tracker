@@ -9,345 +9,345 @@
 </h1>
 
 <p align="center">
-  <em>Track your food from field to shelf.</em><br/>
-  Real-time supply chain visibility, AI-powered safety analysis, and barcode scanning.<br/>
-  Built for <strong>Baden Hackt 2026</strong>.
+  <em>Verfolge dein Essen vom Feld bis ins Regal.</em><br/>
+  Echtzeit-Lieferketten-Transparenz, KI-gestuetzte Sicherheitsanalyse und Barcode-Scanning.<br/>
+  Gebaut fuer den <strong>Baden Hackt 2026</strong> Hackathon.
 </p>
 
 <p align="center">
   <a href="https://foodflighttracker.com"><img src="https://img.shields.io/badge/Live-foodflighttracker.com-9eca45?style=for-the-badge" alt="Live Demo"/></a>
-  <a href="https://github.com/Nepomuk5665/food-flight-tracker/tree/main/docs"><img src="https://img.shields.io/badge/Docs-Architecture-003a5d?style=for-the-badge" alt="Docs"/></a>
+  <a href="https://github.com/Nepomuk5665/food-flight-tracker/tree/main/docs"><img src="https://img.shields.io/badge/Docs-Architektur-003a5d?style=for-the-badge" alt="Docs"/></a>
   <a href="https://www.figma.com/design/4XAMeiD6nuGZ4HwsxqE1gT/Untitled?node-id=0-1&p=f"><img src="https://img.shields.io/badge/Figma-Mockup-F24E1E?style=for-the-badge&logo=figma&logoColor=white" alt="Figma"/></a>
 </p>
 
 ---
 
-## Hey there, Reviewer!
+## Hallo, liebe Jury!
 
-Thanks for checking out **Project Trace**! We built this in 24 hours and we're really proud of it. This README is your personal guided tour — it'll walk you through everything step by step, starting simple and building up to the cool stuff.
+Schoen, dass ihr euch **Project Trace** anschaut! Wir haben das in 24 Stunden gebaut und sind ziemlich stolz drauf. Dieses README ist eure persoenliche Tour — Schritt fuer Schritt, von einfach bis beeindruckend.
 
-**Total tour time: ~12 minutes** (or ~9 min if you're in a hurry).
+**Gesamtdauer: ca. 12 Minuten** (oder ca. 9 Min., wenn's schnell gehen muss).
 
-The app has two sides:
+Die App hat zwei Seiten:
 
-| Side | Who it's for | Open on | URL |
-|------|-------------|---------|-----|
-| **Consumer App** | Shoppers who want to know where their food comes from | Your phone (or mobile emulation) | [foodflighttracker.com](https://foodflighttracker.com) |
-| **QA Dashboard** | Food safety teams monitoring supply chains | Your desktop browser | [foodflighttracker.com/overview](https://foodflighttracker.com/overview) |
+| Seite | Fuer wen? | Oeffnen auf | URL |
+|-------|-----------|-------------|-----|
+| **Consumer App** | Endverbraucher, die wissen wollen, woher ihr Essen kommt | Handy (oder Mobile-Emulation) | [foodflighttracker.com](https://foodflighttracker.com) |
+| **QA Dashboard** | Lebensmittelsicherheits-Teams, die Lieferketten ueberwachen | Desktop-Browser | [foodflighttracker.com/overview](https://foodflighttracker.com/overview) |
 
 <p align="center">
-  <img src="docs/screenshots/mobile-home.png" alt="Consumer App — Home Screen" width="250" />
+  <img src="docs/screenshots/mobile-home.png" alt="Consumer App — Startseite" width="250" />
   &nbsp;&nbsp;&nbsp;&nbsp;
   <img src="docs/screenshots/dashboard.png" alt="QA Dashboard" width="250" />
 </p>
 
-Ready? Let's go!
+Bereit? Los geht's!
 
 ---
 
-## The Guided Tour
+## Die gefuehrte Tour
 
-We've designed this tour to build up gradually — start with the impressive bird's-eye view, then zoom into the consumer story, drill into the QA tools, and finish with the full recall workflow. Each scenario builds on the last.
+Die Tour baut sich schrittweise auf — zuerst der beeindruckende Ueberblick, dann die Consumer-Story, danach die QA-Tiefenanalyse, und zum Schluss der komplette Rueckruf-Workflow. Jedes Szenario baut auf dem vorherigen auf.
 
-> **Short on time?** Do Scenarios 1, 2, and 4 (skip 3) for a 9-minute version.
+> **Wenig Zeit?** Macht Szenario 1, 2 und 4 (ohne 3) fuer eine 9-Minuten-Version.
 
 ---
 
-### Scenario 1: God View — The Command Center
-**~3 min | Desktop | Low risk (no external dependencies)**
+### Szenario 1: God View — Die Kommandozentrale
+**ca. 3 Min. | Desktop | Geringes Risiko (keine externen Abhaengigkeiten)**
 
-*You're a QA director. You've just opened your morning dashboard. Let's see what's happening across your supply chains.*
+*Ihr seid QA-Direktor. Ihr oeffnet euer Morgen-Dashboard. Was passiert gerade in euren Lieferketten?*
 
 <table>
-<tr><th>Step</th><th>What to do</th><th>What you'll see</th></tr>
+<tr><th>Schritt</th><th>Was tun</th><th>Was ihr seht</th></tr>
 <tr>
   <td><strong>1</strong></td>
-  <td>Open <a href="https://foodflighttracker.com/overview">foodflighttracker.com/overview</a> on your desktop</td>
-  <td>A dark globe loads with an atmosphere effect. Supply chain arcs draw across continents with green flow particles streaming along the routes. Let it breathe for a few seconds — it's pretty.</td>
+  <td>Oeffnet <a href="https://foodflighttracker.com/overview">foodflighttracker.com/overview</a> auf dem Desktop</td>
+  <td>Ein dunkler Globus laedt mit Atmosphaeren-Effekt. Lieferketten-Boegen zeichnen sich ueber Kontinente, gruene Partikel fliessen entlang der Routen. Lasst es ein paar Sekunden wirken.</td>
 </tr>
 <tr>
   <td><strong>2</strong></td>
-  <td>Look at the metrics panel and alert feed</td>
-  <td>Batch count, anomaly count, risk breakdown. The alert feed shows severity-coded badges — look for the critical one.</td>
+  <td>Schaut auf das Metriken-Panel und den Alert-Feed</td>
+  <td>Batch-Anzahl, Anomalien, Risiko-Verteilung. Der Alert-Feed zeigt Badges nach Schweregrad — achtet auf den kritischen.</td>
 </tr>
 <tr>
   <td><strong>3</strong></td>
-  <td>Click the <strong>critical alert</strong> for batch <code>CH2603-AP7</code></td>
-  <td>Cinematic fly-to animation zooms to Switzerland/Munich (72-degree tilt, 2 seconds). A red ping pulses at the anomaly location. The batch detail panel slides in showing lot code <code>CH2603-AP7</code> and a risk gauge at 62.</td>
+  <td>Klickt auf den <strong>kritischen Alert</strong> fuer Batch <code>CH2603-AP7</code></td>
+  <td>Kinematische FlyTo-Animation zoomt zur Schweiz/Muenchen (72-Grad-Neigung, 2 Sek.). Ein roter Ping pulsiert an der Anomalie. Das Batch-Detail-Panel faehrt rein: Chargennummer <code>CH2603-AP7</code>, Risiko-Gauge bei 62.</td>
 </tr>
 <tr>
   <td><strong>4</strong></td>
-  <td>Click the cheese cluster near Kempten</td>
-  <td>The cluster expands showing cheese batches. Lineage edges draw between them showing merge/split relationships.</td>
+  <td>Klickt auf den Kaese-Cluster bei Kempten</td>
+  <td>Der Cluster klappt auf und zeigt Kaese-Batches. Lineage-Kanten zeichnen sich zwischen ihnen (Zusammenfuehrung/Aufteilung).</td>
 </tr>
 </table>
 
-> *"Every batch, every route, every anomaly — in real time."*
+> *"Jede Charge, jede Route, jede Anomalie — in Echtzeit."*
 
 ---
 
-### Scenario 2: Consumer Scanning — The Chocolate Journey
-**~4 min | Mobile (or mobile emulation) | Medium risk (needs Mapbox + Cerebras)**
+### Szenario 2: Consumer-Scan — Die Schokoladen-Reise
+**ca. 4 Min. | Handy (oder Mobile-Emulation) | Mittleres Risiko (braucht Mapbox + Cerebras)**
 
-*A consumer buys a chocolate bar at REWE Munich. It tastes a bit off — bitter and chalky. They want to know why. Let's trace its journey.*
+*Ein Konsument kauft eine Tafel Schokolade bei REWE in Muenchen. Sie schmeckt komisch — bitter und kreidig. Er will wissen, warum. Verfolgen wir die Reise.*
 
-**Setup:** Use your phone, or open Chrome DevTools and switch to mobile emulation (iPhone 14 Pro). The app detects mobile user agents.
+**Setup:** Nutzt euer Handy, oder oeffnet Chrome DevTools und wechselt auf Mobile-Emulation (iPhone 14 Pro). Die App erkennt mobile User Agents.
 
-#### Step 1: Get to the scanner
+#### Schritt 1: Zum Scanner
 
-Scan this QR code with your phone to jump straight to the scanner:
+Scannt diesen QR-Code mit eurem Handy, um direkt zum Scanner zu kommen:
 
 <p align="center">
-  <img src="public/qr-scan.png" alt="QR Code to foodflighttracker.com/scan" width="180" />
+  <img src="public/qr-scan.png" alt="QR-Code zu foodflighttracker.com/scan" width="180" />
   <br/>
-  <em>Opens foodflighttracker.com/scan</em>
+  <em>Oeffnet foodflighttracker.com/scan</em>
 </p>
 
-Or just open [foodflighttracker.com/scan](https://foodflighttracker.com/scan) directly.
+Oder oeffnet einfach [foodflighttracker.com/scan](https://foodflighttracker.com/scan) direkt.
 
 <p align="center">
-  <img src="docs/screenshots/mobile-scan.png" alt="Scanner screen" width="220" />
+  <img src="docs/screenshots/mobile-scan.png" alt="Scanner-Bildschirm" width="220" />
 </p>
 
-#### Step 2: Enter the chocolate barcode
+#### Schritt 2: Schokoladen-Barcode eingeben
 
-Tap **"Enter manually"** at the bottom of the scan screen. A drawer slides up with an input field.
+Tippt unten auf **"Enter manually"**. Ein Drawer faehrt hoch mit einem Eingabefeld.
 
-Type this barcode and tap Go:
+Gebt diesen Barcode ein und tippt auf Go:
 
 ```
 7613031085385
 ```
 
-> This is our demo chocolate: **Chocolat au lait** by Nestle, with a full 8-stage supply chain seeded into the database. It's the star of the show.
+> Das ist unsere Demo-Schokolade: **Chocolat au lait** von Nestle, mit einer kompletten 8-stufigen Lieferkette in der Datenbank. Der Star der Show.
 
-#### Step 3: Explore the product page
+#### Schritt 3: Produktseite erkunden
 
-You land on the product info tab. Take a look around:
+Ihr landet auf dem Info-Tab. Schaut euch um:
 
-- **Product**: "Chocolat au lait" by Nestle
+- **Produkt**: "Chocolat au lait" von Nestle
 - **Scores**: Nutri-Score D, Eco-Score C
-- **Allergens**: milk, soy (highlighted in red)
-- **Lot code**: `CH2603-AP7` — risk score 62 (amber)
-- A **red report button** pulses in the bottom-right corner
+- **Allergene**: Milch, Soja (rot hervorgehoben)
+- **Chargennummer**: `CH2603-AP7` — Risiko-Score 62 (orange)
+- Ein **roter Melde-Button** pulsiert unten rechts
 
-#### Step 4: The Map tab (the money shot)
+#### Schritt 4: Der Karten-Tab (das Highlight)
 
-Tap the **Map** tab. Watch closely:
+Tippt auf den **Map**-Tab. Genau hinschauen:
 
-1. A ghost dashed line appears showing the planned route
-2. Then over ~4 seconds, an animated green glowing line draws from **Ivory Coast** across the Atlantic to **Hamburg**, then to **Switzerland**, then to **Munich**
-3. Eight stage markers appear along the route (harvest, ship, train, factory, warehouse, truck, store)
-4. Great-circle arcs curve beautifully over the ocean
+1. Eine gestrichelte Geisterlinie erscheint und zeigt die geplante Route
+2. Dann zeichnet sich ueber ca. 4 Sekunden eine animierte, gruen leuchtende Linie von der **Elfenbeinkueste** ueber den Atlantik nach **Hamburg**, weiter in die **Schweiz**, dann nach **Muenchen**
+3. Acht Stationsmarker erscheinen entlang der Route (Ernte, Schiff, Zug, Fabrik, Lager, LKW, Laden)
+4. Grosskreis-Boegen kruemmen sich elegant ueber den Ozean
 
-> *From a cocoa cooperative in Ivory Coast to a shelf in Munich — visualized.*
+> *Von einer Kakao-Kooperative in der Elfenbeinkueste bis ins Regal in Muenchen — visualisiert.*
 
-#### Step 5: Find the anomaly
+#### Schritt 5: Die Anomalie finden
 
-Tap the **warehouse marker** (stage 6, in Switzerland). A popup appears:
+Tippt auf den **Lager-Marker** (Station 6, in der Schweiz). Ein Popup erscheint:
 
 > "Distribution Warehouse — Nestle DC Suhr"
-> **CRITICAL** — 32.6 C peak, threshold 20 C, 285 min
+> **CRITICAL** — 32.6 C Spitzenwert, Schwellenwert 20 C, 285 Min.
 
-That's a temperature excursion. The chocolate sat in a hot warehouse for almost 5 hours. That's why it tastes off.
+Das ist ein Temperaturausreisser. Die Schokolade lag fast 5 Stunden in einem zu warmen Lager. Darum schmeckt sie komisch.
 
-#### Step 6: Timeline view
+#### Schritt 6: Timeline-Ansicht
 
-Tap the **timeline toggle** (list icon). A bottom drawer shows all 8 stages chronologically. Stage 6 has a red anomaly indicator.
+Tippt auf den **Timeline-Toggle** (Listen-Icon). Ein Drawer zeigt alle 8 Stationen chronologisch. Station 6 hat einen roten Anomalie-Indikator.
 
-#### Step 7: Ask the AI
+#### Schritt 7: Die KI fragen
 
-Tap the **Chat** tab. The AI auto-loads with context about this specific batch. It streams a response mentioning the temperature excursion, fat bloom risk, and the 62 risk score.
+Tippt auf den **Chat**-Tab. Die KI laedt automatisch mit Kontext zu dieser spezifischen Charge. Sie streamt eine Antwort ueber den Temperaturausreisser, das Fettreif-Risiko und den Risiko-Score von 62.
 
-Tap the suggestion chip: **"Is this safe to eat?"**
+Tippt auf den Vorschlag-Chip: **"Is this safe to eat?"**
 
-The AI explains: fat bloom (the white chalky coating) is a quality defect from melted and re-solidified cocoa butter — not a safety hazard. Your chocolate is ugly but safe.
+Die KI erklaert: Fettreif (der weissliche, kreidige Belag) ist ein Qualitaetsdefekt durch geschmolzene und wieder erstarrte Kakaobutter — kein Sicherheitsrisiko. Die Schokolade sieht unschoen aus, ist aber unbedenklich.
 
-#### Step 8: File a report
+#### Schritt 8: Bericht einreichen
 
-Tap the **red report button** in the bottom-right. A report sheet slides up. Tap **"Bad Taste"**, type a short complaint, and submit. The report is filed with AI context attached.
+Tippt auf den **roten Melde-Button** unten rechts. Ein Melde-Sheet faehrt hoch. Waehlt **"Bad Taste"**, gebt eine kurze Beschwerde ein und sendet ab. Der Bericht wird mit KI-Kontext gespeichert.
 
-> *"One scan — from a cooperative in Ivory Coast to the shelf in Munich. The AI connects 'it tastes funny' to a warehouse cooling failure 6 weeks ago."*
+> *"Ein Scan — von einer Kooperative in der Elfenbeinkueste bis ins Regal in Muenchen. Die KI verbindet 'die schmeckt komisch' mit einem Kuehlungsausfall im Lager vor 6 Wochen."*
 
-> **If Cerebras AI is down:** Skip steps 7-8. The map, telemetry, and scanning all work without it.
+> **Falls Cerebras nicht erreichbar ist:** Ueberspring Schritte 7-8. Karte, Telemetrie und Scanner funktionieren auch ohne KI.
 
 ---
 
-### Scenario 3: Batch Forensics — QA Deep Dive
-**~3 min | Desktop | Medium risk (needs Mapbox + Cerebras)**
+### Szenario 3: Batch-Forensik — QA-Tiefenanalyse
+**ca. 3 Min. | Desktop | Mittleres Risiko (braucht Mapbox + Cerebras)**
 
-*Same batch, different perspective. Now you're the QA analyst. Time to dig into telemetry, lineage, and get an AI recommendation.*
+*Gleiche Charge, andere Perspektive. Jetzt seid ihr der QA-Analyst. Zeit fuer Telemetrie, Lineage und eine KI-Empfehlung.*
 
 <table>
-<tr><th>Step</th><th>What to do</th><th>What you'll see</th></tr>
+<tr><th>Schritt</th><th>Was tun</th><th>Was ihr seht</th></tr>
 <tr>
   <td><strong>1</strong></td>
-  <td>Open <a href="https://foodflighttracker.com/batch/CH2603-AP7">foodflighttracker.com/batch/CH2603-AP7</a></td>
-  <td>Batch header: "Chocolat au lait", ACTIVE badge, risk gauge animates to 62 (orange).</td>
+  <td>Oeffnet <a href="https://foodflighttracker.com/batch/CH2603-AP7">foodflighttracker.com/batch/CH2603-AP7</a></td>
+  <td>Batch-Header: "Chocolat au lait", ACTIVE-Badge, Risiko-Gauge animiert auf 62 (orange).</td>
 </tr>
 <tr>
   <td><strong>2</strong></td>
-  <td>Look at the <strong>Journey Map</strong> tab (default)</td>
-  <td>Same Mapbox journey but now in the dark dashboard theme. Stage markers + animated route.</td>
+  <td>Schaut auf den <strong>Journey Map</strong>-Tab (Standard)</td>
+  <td>Gleiche Mapbox-Reise, aber im dunklen Dashboard-Theme. Stationsmarker + animierte Route.</td>
 </tr>
 <tr>
   <td><strong>3</strong></td>
-  <td>Click the <strong>Telemetry</strong> tab</td>
-  <td>Temperature range bars per stage. The warehouse stage has a red ANOMALY badge — the bar stretches from 16 C to 32.6 C, clearly breaching the red threshold line at 20 C.</td>
+  <td>Klickt auf den <strong>Telemetry</strong>-Tab</td>
+  <td>Temperatur-Balken pro Station. Die Lager-Station hat ein rotes ANOMALY-Badge — der Balken reicht von 16 C bis 32.6 C und durchbricht klar die rote Schwellenlinie bei 20 C.</td>
 </tr>
 <tr>
   <td><strong>4</strong></td>
-  <td>Navigate to <a href="https://foodflighttracker.com/batch/K-MAKE-001">foodflighttracker.com/batch/K-MAKE-001</a></td>
-  <td>Different product: "Allgau Bio-Bergkase" (cheese), risk 12 (green). Clean batch.</td>
+  <td>Navigiert zu <a href="https://foodflighttracker.com/batch/K-MAKE-001">foodflighttracker.com/batch/K-MAKE-001</a></td>
+  <td>Anderes Produkt: "Allgaeuer Bio-Bergkaese", Risiko 12 (gruen). Saubere Charge.</td>
 </tr>
 <tr>
   <td><strong>5</strong></td>
-  <td>Click the <strong>Lineage</strong> tab</td>
-  <td>Flow diagram: two farms (K-FARM-H 57% + K-FARM-S 43%) merge into K-MAKE-001, which splits into K-SLICE-001 (80%) and K-WHEEL-001 (20%). Clickable boxes.</td>
+  <td>Klickt auf den <strong>Lineage</strong>-Tab</td>
+  <td>Flussdiagramm: Zwei Hoefe (K-FARM-H 57% + K-FARM-S 43%) fliessen in K-MAKE-001 zusammen, das sich in K-SLICE-001 (80%) und K-WHEEL-001 (20%) aufteilt. Klickbare Boxen.</td>
 </tr>
 <tr>
   <td><strong>6</strong></td>
-  <td>Go back to <code>CH2603-AP7</code>, click <strong>AI Analysis</strong> tab</td>
-  <td>Auto-prompt fires: "Analyze this batch." AI streams a risk assessment with temperature excursion details, consumer report correlation, and a recall recommendation.</td>
+  <td>Zurueck zu <code>CH2603-AP7</code>, klickt auf <strong>AI Analysis</strong>-Tab</td>
+  <td>Auto-Prompt: "Analyze this batch." Die KI streamt eine Risikobewertung mit Details zum Temperaturausreisser, Korrelation zum Consumer-Report und einer Rueckruf-Empfehlung.</td>
 </tr>
 <tr>
   <td><strong>7</strong></td>
-  <td>Type: <em>"Should we issue a recall?"</em></td>
-  <td>Nuanced response: quality hold vs. full recall, fat bloom isn't a safety hazard — but the brand reputation damage might warrant action.</td>
+  <td>Tippt: <em>"Should we issue a recall?"</em></td>
+  <td>Differenzierte Antwort: Quality Hold vs. voller Rueckruf, Fettreif ist kein Sicherheitsrisiko — aber der Imageschaden koennte ein Handeln rechtfertigen.</td>
 </tr>
 </table>
 
-> *"From telemetry to lineage to AI-assisted decision making — the QA team has everything in one view."*
+> *"Von Telemetrie ueber Lineage bis zur KI-gestuetzten Entscheidungsfindung — das QA-Team hat alles in einer Ansicht."*
 
 ---
 
-### Scenario 4: Recall Workflow — Closing the Loop
-**~2 min | Desktop + Mobile | Low risk (all local, no external APIs)**
+### Szenario 4: Rueckruf-Workflow — Den Kreis schliessen
+**ca. 2 Min. | Desktop + Handy | Geringes Risiko (alles lokal, keine externen APIs)**
 
-*The QA director decides to trigger a recall. Let's see how fast the consumer gets notified.*
+*Der QA-Direktor entscheidet sich fuer einen Rueckruf. Wie schnell wird der Konsument benachrichtigt?*
 
 <table>
-<tr><th>Step</th><th>What to do</th><th>What you'll see</th></tr>
+<tr><th>Schritt</th><th>Was tun</th><th>Was ihr seht</th></tr>
 <tr>
   <td><strong>1</strong></td>
-  <td>Open <a href="https://foodflighttracker.com/incidents">foodflighttracker.com/incidents</a> on desktop</td>
-  <td>Consumer Reports section shows the CH2603-AP7 report (taste_quality). There's a "Trigger Recall" button.</td>
+  <td>Oeffnet <a href="https://foodflighttracker.com/incidents">foodflighttracker.com/incidents</a> auf dem Desktop</td>
+  <td>Consumer-Reports-Bereich zeigt den CH2603-AP7-Bericht (taste_quality). Es gibt einen "Trigger Recall"-Button.</td>
 </tr>
 <tr>
   <td><strong>2</strong></td>
-  <td>Click <strong>"Trigger Recall"</strong> on the CH2603-AP7 row</td>
-  <td>A form opens. Lot code is pre-filled.</td>
+  <td>Klickt auf <strong>"Trigger Recall"</strong> in der CH2603-AP7-Zeile</td>
+  <td>Ein Formular oeffnet sich. Chargennummer ist vorausgefuellt.</td>
 </tr>
 <tr>
   <td><strong>3</strong></td>
-  <td>Type reason: <em>"Temperature excursion caused fat bloom"</em>, set severity to High, submit</td>
-  <td>The recall appears in Active Recalls: red border, HIGH badge, reason text, affected lot.</td>
+  <td>Grund eingeben: <em>"Temperature excursion caused fat bloom"</em>, Schweregrad auf High setzen, absenden</td>
+  <td>Der Rueckruf erscheint unter Active Recalls: roter Rand, HIGH-Badge, Begruendung, betroffene Charge.</td>
 </tr>
 <tr>
   <td><strong>4</strong></td>
-  <td>Switch to mobile: <a href="https://foodflighttracker.com/alerts">foodflighttracker.com/alerts</a></td>
-  <td>An alert card appears with the recall reason, lot code, and severity badge. The consumer is notified instantly.</td>
+  <td>Wechselt aufs Handy: <a href="https://foodflighttracker.com/alerts">foodflighttracker.com/alerts</a></td>
+  <td>Eine Alert-Karte erscheint mit Rueckruf-Grund, Chargennummer und Schweregrad-Badge. Der Konsument wird sofort benachrichtigt.</td>
 </tr>
 </table>
 
 <p align="center">
-  <img src="docs/screenshots/mobile-alerts.png" alt="Consumer alert screen" width="220" />
+  <img src="docs/screenshots/mobile-alerts.png" alt="Consumer-Alert-Bildschirm" width="220" />
 </p>
 
-> *"From consumer report to recall to notification — the loop is closed."*
+> *"Vom Consumer-Report ueber den Rueckruf bis zur Benachrichtigung — der Kreis ist geschlossen."*
 
 ---
 
-## Seed Data Cheat Sheet
+## Seed-Daten Spickzettel
 
-Our database is pre-seeded with two complete supply chains you can explore:
+Unsere Datenbank ist mit zwei kompletten Lieferketten vorbefuellt:
 
-| Product | Barcode | Key Lot Code | Stages | What's special |
-|---------|---------|-------------|--------|----------------|
-| **Chocolat au lait** (Nestle) | `7613031085385` | `CH2603-AP7` | 8 stages across 3 countries | Warehouse heat anomaly, risk 62, consumer report |
-| **Allgau Bio-Bergkase** (AlpenMilch) | `4099887766550` | `K-MAKE-001` | 3 stages + lineage | 2 farms merge into 1 batch, then split into 2 products |
+| Produkt | Barcode | Chargennummer | Stationen | Was ist besonders? |
+|---------|---------|---------------|-----------|-------------------|
+| **Chocolat au lait** (Nestle) | `7613031085385` | `CH2603-AP7` | 8 Stationen in 3 Laendern | Lager-Hitze-Anomalie, Risiko 62, Consumer-Report |
+| **Allgaeuer Bio-Bergkaese** (AlpenMilch) | `4099887766550` | `K-MAKE-001` | 3 Stationen + Lineage | 2 Hoefe vereinen sich zu 1 Charge, dann Aufteilung in 2 Produkte |
 
-You can also scan **any real barcode** — the app falls back to [OpenFoodFacts](https://world.openfoodfacts.org/) (3M+ products) for product info, though those won't have supply chain data.
+Ihr koennt auch **jeden echten Barcode** scannen — die App greift auf [OpenFoodFacts](https://world.openfoodfacts.org/) (3 Mio.+ Produkte) zurueck, allerdings ohne Lieferketten-Daten.
 
 ---
 
 ## Tech Stack
 
-| Layer | Technology |
-|-------|-----------|
+| Schicht | Technologie |
+|---------|------------|
 | Framework | Next.js 16 (App Router, Turbopack) |
-| Language | TypeScript |
-| Styling | Tailwind CSS v4 + Autexis corporate design |
-| Database | SQLite + Drizzle ORM (WAL mode) |
-| AI | Cerebras (~2,000 tokens/sec) via Vercel AI SDK |
+| Sprache | TypeScript |
+| Styling | Tailwind CSS v4 + Autexis Corporate Design |
+| Datenbank | SQLite + Drizzle ORM (WAL-Modus) |
+| KI | Cerebras (~2.000 Tokens/Sek.) via Vercel AI SDK |
 | Scanner | barcode-detector (ZXing C++ via WebAssembly) |
-| Maps | Mapbox GL JS + react-map-gl |
-| Product Data | OpenFoodFacts API |
-| Deployment | AWS EC2 + Docker + Caddy (auto-HTTPS) |
-| CI/CD | GitHub Actions -> ECR -> SSH deploy |
+| Karten | Mapbox GL JS + react-map-gl |
+| Produktdaten | OpenFoodFacts API |
+| Deployment | AWS EC2 + Docker + Caddy (Auto-HTTPS) |
+| CI/CD | GitHub Actions -> ECR -> SSH Deploy |
 
 ---
 
-## Architecture
+## Architektur
 
 <p align="center">
-  <img src="docs/erd/architecture.png" alt="Architecture diagram" width="500" />
+  <img src="docs/erd/architecture.png" alt="Architektur-Diagramm" width="500" />
 </p>
 
-Two route groups serve two audiences from a single Next.js app:
+Zwei Route Groups bedienen zwei Zielgruppen aus einer einzigen Next.js-App:
 
-- **`(consumer)/`** — Mobile-first PWA. Bottom tab nav: Scan, Products, Alerts. Max-width 480px.
-- **`(dashboard)/`** — Desktop QA dashboard. Sidebar nav: Overview, Batches, Incidents.
+- **`(consumer)/`** — Mobile-first PWA. Bottom-Tab-Navigation: Scan, Products, Alerts. Max-Breite 480px.
+- **`(dashboard)/`** — Desktop-QA-Dashboard. Sidebar-Navigation: Overview, Batches, Incidents.
 
-Data flows from barcode scan -> OpenFoodFacts API -> local SQLite DB -> journey map with seeded supply chain telemetry.
+Der Datenfluss: Barcode-Scan -> OpenFoodFacts API -> lokale SQLite-DB -> Journey-Map mit vordefinierten Lieferketten-Telemetriedaten.
 
 ### Origin Intelligence
 
-No public API provides per-ingredient geographic origins. Our **Origin Intelligence layer** (`src/lib/origin/`) infers likely source countries from ingredient lists using FAO/USDA global trade share data (e.g., cocoa -> 38% Ivory Coast, 17% Ghana), then constructs synthetic journeys with geocoded waypoints: harvest -> transport -> processing -> storage -> retail.
+Keine oeffentliche API liefert geografische Herkunftsdaten pro Zutat. Unsere **Origin Intelligence Schicht** (`src/lib/origin/`) leitet wahrscheinliche Herkunftslaender aus Zutatenlisten ab, basierend auf FAO/USDA-Welthandelsanteilen (z.B. Kakao -> 38% Elfenbeinkueste, 17% Ghana). Daraus konstruiert sie synthetische Reiserouten mit geocodierten Wegpunkten: Ernte -> Transport -> Verarbeitung -> Lagerung -> Einzelhandel.
 
-### AI Integration
+### KI-Integration
 
-We use **Cerebras** because nobody wants to wait for AI. At ~2,000 tokens/second, responses stream instantly — no spinners, no "generating..." screens. The AI is context-aware: it knows the product's ingredients, scores, supply chain stages, and anomalies for each specific batch.
+Wir nutzen **Cerebras**, weil niemand auf KI warten will. Mit ca. 2.000 Tokens pro Sekunde streamen die Antworten sofort — keine Spinner, keine "Wird generiert..."-Bildschirme. Die KI ist kontextbewusst: Sie kennt die Zutaten, Scores, Lieferketten-Stationen und Anomalien jeder spezifischen Charge.
 
 ---
 
-## Local Development
+## Lokale Entwicklung
 
 ```bash
-# Clone
+# Klonen
 git clone https://github.com/Nepomuk5665/food-flight-tracker.git
 cd food-flight-tracker
 
-# Install
+# Installieren
 pnpm install
 
-# Environment
+# Umgebungsvariablen
 cp .env.example .env.local
-# Add your keys to .env.local:
+# Keys in .env.local eintragen:
 #   CEREBRAS_API_KEY=csk-...
 #   NEXT_PUBLIC_MAPBOX_TOKEN=pk.eyJ...
 
-# Database
-pnpm db:push    # Create tables
-pnpm db:seed    # Seed demo data (chocolate + cheese supply chains)
+# Datenbank
+pnpm db:push    # Tabellen erstellen
+pnpm db:seed    # Demo-Daten laden (Schokolade + Kaese Lieferketten)
 
-# Run
+# Starten
 pnpm dev        # http://localhost:3000
 ```
 
 ---
 
-## Infrastructure
+## Infrastruktur
 
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/9976e15c-b03a-4125-a99f-d9ad9e802a6c" alt="Infrastructure diagram" width="700" />
+  <img src="https://github.com/user-attachments/assets/9976e15c-b03a-4125-a99f-d9ad9e802a6c" alt="Infrastruktur-Diagramm" width="700" />
 </p>
 
-One-push deployment: GitHub Actions -> ECR -> EC2 with auto-HTTPS via Caddy + Let's Encrypt. SQLite persisted on a Docker volume.
+One-Push-Deployment: GitHub Actions -> ECR -> EC2 mit Auto-HTTPS ueber Caddy + Let's Encrypt. SQLite persistiert auf einem Docker Volume.
 
 ---
 
 <p align="center">
-  <strong>Built with care at Baden Hackt 2026</strong><br/>
+  <strong>Mit Herzblut gebaut am Baden Hackt 2026</strong><br/>
   Powered by Autexis
 </p>
