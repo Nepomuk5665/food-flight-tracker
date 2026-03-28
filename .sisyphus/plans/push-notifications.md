@@ -135,12 +135,11 @@ Wave 3 (Client Integration — depends on Wave 2):
 ├── Task 9: Integrate scan recording into product page (depends: 6) [quick]
 ├── Task 10: Wire recall event emission into POST /api/recalls (depends: 4, 7) [quick]
 
-Wave FINAL (Verification — after ALL tasks):
+Wave FINAL (Verification — after ALL tasks, fully automated):
 ├── F1: Plan compliance audit (oracle)
 ├── F2: Code quality review (unspecified-high)
-├── F3: Real manual QA (unspecified-high)
+├── F3: Automated integration QA (unspecified-high)
 ├── F4: Scope fidelity check (deep)
--> Present results -> Get explicit user okay
 
 Critical Path: Task 1 → Task 5 → Task 8 (subscription flow)
                 Task 1 → Task 7 → Task 10 (notification pipeline)
@@ -397,9 +396,16 @@ Max Concurrent: 4 (Wave 1)
   **QA Scenarios**:
   ```
   Scenario: Scan recorded on product visit
-    Tool: Playwright
-    Steps: Navigate /product/4012345678901. Wait 2s. sqlite3 query device_scans. Assert row exists.
-    Evidence: .sisyphus/evidence/task-9-recorded.png
+    Tool: Playwright + Bash
+    Preconditions: Dev server running. Any product barcode accessible (use one from DB: run sqlite3 data/trace.db "SELECT barcode FROM products LIMIT 1" to get a valid barcode)
+    Steps:
+      1. Get a valid barcode: BARCODE=$(sqlite3 data/trace.db "SELECT barcode FROM products LIMIT 1")
+      2. Navigate to http://localhost:3000/product/$BARCODE
+      3. Wait 3s for fire-and-forget POST
+      4. sqlite3 data/trace.db "SELECT COUNT(*) FROM device_scans WHERE barcode='$BARCODE'"
+      5. Assert count >= 1
+    Expected Result: Server-side scan recorded for visited product
+    Evidence: .sisyphus/evidence/task-9-recorded.txt
   ```
   **Commit**: `feat(push): record scans server-side from product page`
 
@@ -420,15 +426,26 @@ Max Concurrent: 4 (Wave 1)
 
   **QA Scenarios**:
   ```
-  Scenario: Full pipeline
-    Tool: Bash
-    Preconditions: Device with subscription + scan for barcode 4012345678901
-    Steps: POST /api/recalls with lotCode L6029479302. Assert 200. Check logs for notification dispatch.
+  Scenario: Full pipeline — recall creation returns success
+    Tool: Bash (bun test)
+    Preconditions: Write an integration test that: (1) inserts a test product+batch+stage into DB, (2) inserts a push_subscription for device "pipeline-test", (3) inserts a device_scan for that device + product's barcode, (4) mocks web-push.sendNotification, (5) calls the recalls POST handler or emitRecallCreated directly
+    Steps:
+      1. Run bun test for the integration test file
+      2. Assert: mock sendNotification was called exactly once
+      3. Assert: call payload contains the test product name and recall reason
+      4. Assert: subscription endpoint matches the seeded subscription
+    Expected Result: Recall event triggers notification to the correct device
     Evidence: .sisyphus/evidence/task-10-pipeline.txt
 
-  Scenario: Recall with no scanned devices
-    Tool: Bash
-    Steps: POST /api/recalls with unscanned lot. Assert 200. No errors.
+  Scenario: Recall with no scanned devices — no errors
+    Tool: Bash (bun test)
+    Preconditions: Write test that creates a recall for a lot with zero device_scans
+    Steps:
+      1. Mock sendNotification
+      2. Emit recall event for the unscanned lot
+      3. Assert sendNotification was NOT called
+      4. Assert no exceptions thrown
+    Expected Result: Zero notifications, zero errors
     Evidence: .sisyphus/evidence/task-10-no-devices.txt
   ```
   **Commit**: `feat(push): emit recall events from recalls API`
@@ -445,13 +462,15 @@ Max Concurrent: 4 (Wave 1)
   Run `tsc --noEmit` + linter + `bun test`. Review all changed files for: `as any`, empty catches, console.log in prod, commented-out code, unused imports. Check AI slop: excessive comments, over-abstraction, generic names.
   Output: `Build [PASS/FAIL] | Lint [PASS/FAIL] | Tests [N pass/N fail] | VERDICT`
 
-- [ ] F3. **Real Manual QA** — `unspecified-high`
-  Start from clean state. Execute EVERY QA scenario from EVERY task. Test cross-task integration. Test edge cases: denied permission, stale subscription, scan without network. Save to `.sisyphus/evidence/final-qa/`.
+- [ ] F3. **Automated Integration QA** — `unspecified-high`
+  Execute EVERY QA scenario from EVERY task using curl and Playwright (no human interaction). Test cross-task integration: create subscription via curl, record scan via curl, trigger recall via curl, assert web-push mock called. Test edge cases: missing fields → 400, duplicate subscription → 200 upsert, stale 410 → subscription deleted. Save to `.sisyphus/evidence/final-qa/`.
   Output: `Scenarios [N/N pass] | Integration [N/N] | Edge Cases [N tested] | VERDICT`
 
 - [ ] F4. **Scope Fidelity Check** — `deep`
   For each task: read spec, read actual diff. Verify 1:1 — everything in spec was built, nothing beyond spec was built. Check "Must NOT do" compliance. Detect cross-task contamination. Flag unaccounted changes.
   Output: `Tasks [N/N compliant] | Contamination [CLEAN/N issues] | Unaccounted [CLEAN/N files] | VERDICT`
+
+> **Note**: All F1-F4 tasks are fully agent-automated. No human intervention required. Results are presented to the user as a summary after all four complete.
 
 ---
 
