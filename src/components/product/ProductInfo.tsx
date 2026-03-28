@@ -190,7 +190,7 @@ export function ProductInfo({ product, activeLot, supplyChain }: ProductInfoProp
           ) : (
             <p className="text-sm text-muted">No ingredient list available.</p>
           )}
-          {product.ingredientsText ? <p className="text-sm text-body">{product.ingredientsText}</p> : null}
+          {product.ingredientsText && product.ingredients.length === 0 ? <p className="text-sm text-body">{product.ingredientsText}</p> : null}
         </div>
 
         <div className="space-y-2">

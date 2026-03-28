@@ -1,4 +1,5 @@
 import { ConsumerNav } from "@/components/consumer-nav";
+import { PageTransition } from "@/components/page-transition";
 import MobileGate from "@/components/mobile-gate";
 
 export default function ConsumerLayout({
@@ -12,7 +13,9 @@ export default function ConsumerLayout({
         <div className="mx-auto w-full max-w-lg px-4 pt-3">
           <p className="text-[10px] font-medium tracking-wide text-muted">Project Trace</p>
         </div>
-        <main className="mx-auto w-full max-w-lg px-4 pb-28 pt-2">{children}</main>
+        <main className="mx-auto w-full max-w-lg px-4 pb-28 pt-2">
+          <PageTransition>{children}</PageTransition>
+        </main>
         <ConsumerNav />
       </div>
     </MobileGate>

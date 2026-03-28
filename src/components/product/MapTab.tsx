@@ -16,7 +16,6 @@ type DrawerState = "closed" | "open";
 
 type MapTabProps = {
   journey: JourneyStage[];
-  productName: string;
   loading: boolean;
   error: string | null;
   canGenerate: boolean;
@@ -25,7 +24,7 @@ type MapTabProps = {
   onGenerate: () => void;
 };
 
-export function MapTab({ journey, productName, loading, error, canGenerate, lineageTree, onBack, onGenerate }: MapTabProps) {
+export function MapTab({ journey, loading, error, canGenerate, lineageTree, onBack, onGenerate }: MapTabProps) {
   const [selectedStage, setSelectedStage] = useState<JourneyStage | null>(null);
   const [drawer, setDrawer] = useState<DrawerState>("closed");
   const [dragHeight, setDragHeight] = useState<number | null>(null);
@@ -111,7 +110,7 @@ export function MapTab({ journey, productName, loading, error, canGenerate, line
 
   if (loading) {
     return (
-      <section className="fixed inset-0 z-[60] flex items-center justify-center bg-[#111] font-sans">
+      <section className="flex h-full items-center justify-center bg-[#111] font-sans">
         <div className="flex flex-col items-center gap-3">
               <div className="h-8 w-8 animate-spin rounded-full border-4 border-accent border-t-transparent" />
           <span className="text-sm text-white/60">Generating journey...</span>
@@ -122,9 +121,9 @@ export function MapTab({ journey, productName, loading, error, canGenerate, line
 
   if (error || journey.length === 0) {
     return (
-      <section className="fixed inset-0 z-[60] flex flex-col items-center justify-center bg-surface p-8 font-sans">
+      <section className="flex h-full flex-col items-center justify-center bg-surface p-8 font-sans">
         <div className="mx-auto max-w-sm text-center">
-          <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center bg-primary">
+          <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-xl bg-primary">
             <svg className="h-8 w-8 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 6.75V15m6-6v8.25m.503 3.498 4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 0 0-1.006 0L3.622 5.689C3.24 5.88 3 6.27 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c.317-.159.69-.159 1.006 0l4.994 2.497c.317.158.69.158 1.006 0Z" />
             </svg>
@@ -153,8 +152,8 @@ export function MapTab({ journey, productName, loading, error, canGenerate, line
         : "0%";
 
   return (
-    <section className="fixed inset-0 z-[60] font-sans">
-      {/* Full-screen map */}
+    <section className="relative h-full font-sans">
+      {/* Map fills container */}
       <div className="absolute inset-0">
         <JourneyMap
           stages={journey}
@@ -164,27 +163,18 @@ export function MapTab({ journey, productName, loading, error, canGenerate, line
         />
       </div>
 
-      {/* Header overlay */}
-      <div className="absolute left-0 right-0 top-0 z-10 flex items-center justify-between px-4 py-3">
-        <div className="flex items-center gap-2">
-          <button onClick={onBack} className="text-white">
-            <ChevronLeft className="h-6 w-6 stroke-white" strokeWidth={3} />
-          </button>
-          <span className="truncate text-sm font-semibold text-white">
-            {productName}
-          </span>
-        </div>
-
+      {/* Timeline toggle button */}
+      <div className="absolute right-3 top-3 z-10">
         <button
           onClick={toggleDrawer}
-          className="relative h-9 w-9 shrink-0 text-white active:opacity-70"
+          className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-black/60 text-white backdrop-blur-sm active:opacity-70"
           aria-label={drawer === "open" ? "Close timeline" : "Show timeline"}
         >
           <List
-            className={`absolute inset-0 m-auto h-5 w-5 transition-all duration-300 ${drawer === "open" ? "rotate-90 scale-0 opacity-0" : "rotate-0 scale-100 opacity-100"}`}
+            className={`absolute h-5 w-5 transition-all duration-300 ${drawer === "open" ? "rotate-90 scale-0 opacity-0" : "rotate-0 scale-100 opacity-100"}`}
           />
           <X
-            className={`absolute inset-0 m-auto h-5 w-5 transition-all duration-300 ${drawer === "open" ? "rotate-0 scale-100 opacity-100" : "-rotate-90 scale-0 opacity-0"}`}
+            className={`absolute h-5 w-5 transition-all duration-300 ${drawer === "open" ? "rotate-0 scale-100 opacity-100" : "-rotate-90 scale-0 opacity-0"}`}
           />
         </button>
       </div>

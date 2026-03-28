@@ -3,6 +3,7 @@
 import { useCallback, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft } from "lucide-react";
 
 import { TabToggle, type TabId } from "@/components/product/TabToggle";
@@ -105,59 +106,82 @@ export default function ProductTabs({
         source={product.source}
       />
 
-      {activeTab !== "map" && (
-        <div className="fixed inset-x-0 top-0 z-[60] bg-[#FAFAF8] px-4 pt-3 pb-1">
-          <div className="mx-auto max-w-lg">
-            <div className="mb-2">
-              <Link
-                href="/products"
-                className="inline-flex items-center gap-1 text-sm text-[#9CA3AF] transition-colors hover:text-[#16A34A]"
-              >
-                <ChevronLeft className="h-4 w-4" />
-                Back
-              </Link>
-            </div>
-            <TabToggle activeTab={activeTab} onTabChange={handleTabChange} hiddenTabs={canGenerateJourney ? [] : ["map"]} />
+      <div className={`fixed inset-x-0 top-0 z-[60] px-4 pt-3 pb-3 ${activeTab === "map" ? "bg-gradient-to-b from-black/60 to-transparent" : "bg-[#FAFAF8]/60 backdrop-blur-xl"}`}>
+        <div className="mx-auto max-w-lg">
+          <div className="mb-2">
+            <Link
+              href="/products"
+              className={`inline-flex items-center gap-1 text-sm transition-colors ${activeTab === "map" ? "text-white/70 hover:text-white" : "text-[#9CA3AF] hover:text-[#16A34A]"}`}
+            >
+              <ChevronLeft className="h-4 w-4" />
+              Back
+            </Link>
           </div>
+          <TabToggle activeTab={activeTab} onTabChange={handleTabChange} hiddenTabs={canGenerateJourney ? [] : ["map"]} transparent dark={activeTab === "map"} />
         </div>
-      )}
+      </div>
 
-      {activeTab === "info" && (
-        <div className="pt-[100px]">
-          <ProductInfo
-            product={product}
-            activeLot={activeLot}
-            supplyChain={supplyChain}
-          />
-        </div>
-      )}
+      <AnimatePresence mode="wait" initial={false}>
+        {activeTab === "info" && (
+          <motion.div
+            key="info"
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.15, ease: "easeOut" }}
+            className="pt-[100px]"
+          >
+            <ProductInfo
+              product={product}
+              activeLot={activeLot}
+              supplyChain={supplyChain}
+            />
+          </motion.div>
+        )}
 
-      {activeTab === "map" && (
-        <MapTab
-          journey={journey.payload?.journey ?? []}
-          productName={product.name}
-          loading={journey.loading}
-          error={journey.error}
-          canGenerate={canGenerateJourney}
-          onBack={() => handleTabChange("info")}
-          onGenerate={journey.generate}
-        />
-      )}
+        {activeTab === "map" && (
+          <motion.div
+            key="map"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15, ease: "easeOut" }}
+            className="fixed inset-0 z-[50]"
+          >
+            <MapTab
+              journey={journey.payload?.journey ?? []}
+              loading={journey.loading}
+              error={journey.error}
+              canGenerate={canGenerateJourney}
+              onBack={() => handleTabChange("info")}
+              onGenerate={journey.generate}
+            />
+          </motion.div>
+        )}
 
-      {activeTab === "chat" && (
-        <AiInsights
-          barcode={barcode}
-          lotCode={activeLot?.lotCode}
-          context={fullAiContext}
-          autoPrompt={`Give a brief safety summary for this product${activeLot ? " including its supply chain status" : ""}. Mention any concerns.`}
-          suggestions={[
-            "Is this safe to eat?",
-            "Tell me about the ingredients",
-            "Any allergen concerns?",
-            journey.payload ? "Explain the supply chain" : "Where do the ingredients come from?",
-          ]}
-        />
-      )}
+        {activeTab === "chat" && (
+          <motion.div
+            key="chat"
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.15, ease: "easeOut" }}
+          >
+            <AiInsights
+              barcode={barcode}
+              lotCode={activeLot?.lotCode}
+              context={fullAiContext}
+              autoPrompt={`Give a brief safety summary for this product${activeLot ? " including its supply chain status" : ""}. Mention any concerns.`}
+              suggestions={[
+                "Is this safe to eat?",
+                "Tell me about the ingredients",
+                "Any allergen concerns?",
+                journey.payload ? "Explain the supply chain" : "Where do the ingredients come from?",
+              ]}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {activeLot && (
         <>
