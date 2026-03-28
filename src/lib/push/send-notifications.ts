@@ -42,7 +42,12 @@ export async function sendRecallNotifications(event: RecallEvent): Promise<void>
 
     const subscriptions = getSubscriptionsForDevices(deviceIds);
 
+    // Deduplicate: one notification per device per product
+    const seenDeviceIds = new Set<string>();
     for (const subscription of subscriptions) {
+      if (seenDeviceIds.has(subscription.deviceId)) continue;
+      seenDeviceIds.add(subscription.deviceId);
+
       try {
         await webpush.sendNotification(
           {
