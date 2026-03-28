@@ -1,95 +1,334 @@
-<!-- ===================================================== -->
-<!--               TRACK MY FOOD • API README              -->
-<!-- ===================================================== -->
+# API Reference
 
-<div align="center">
+This document provides a comprehensive reference for the Food Flight Tracker API. The API powers both the consumer scanning application and the quality assurance dashboard.
 
-<img src="https://capsule-render.vercel.app/api?type=waving&height=220&color=0:111111,100:2f2f2f&text=Open%20Food%20Facts%20API&fontColor=ffffff&fontSize=42&fontAlignY=40&desc=Track%20My%20Food%20•%20API%20Guide&descAlignY=60&animation=fadeIn" alt="banner" />
+## Base URL
 
-<br/>
+- **Production:** `https://foodflighttracker.com/api`
+- **Development:** `http://localhost:3000/api`
 
-[![Open Food Facts](https://img.shields.io/badge/Open%20Food%20Facts-API-black?style=for-the-badge)](https://world.openfoodfacts.org/)
-[![API Version](https://img.shields.io/badge/API-v2-white?style=for-the-badge&logo=swagger&logoColor=black)](https://world.openfoodfacts.org/)
-[![Format](https://img.shields.io/badge/Format-JSON-black?style=for-the-badge)](#)
-[![REST](https://img.shields.io/badge/Style-REST-white?style=for-the-badge)](#)
-[![Open Data](https://img.shields.io/badge/Data-Open-black?style=for-the-badge)](#)
+## General Information
 
-<br/>
+### Content-Type
+All requests and responses use `application/json` except for the streaming chat endpoint, which uses `text/event-stream`.
 
-<img src="https://readme-typing-svg.herokuapp.com?font=Inter&weight=600&size=24&pause=1000&color=111111&center=true&vCenter=true&width=900&lines=Scan+products.;Fetch+nutrition+data.;Read+Nutri-Score.;Build+food+traceability+features.;Power+Track+My+Food+with+Open+Food+Facts." alt="typing animation" />
+### Error Format
+Errors return an appropriate HTTP status code and a JSON body with an error message.
 
-</div>
-
----
-
-# Open Food Facts API Guide
-
-A clean and modern API guide for integrating the **Open Food Facts API** into the **Track My Food** project.
-
-This API can help us:
-
-- scan a product by barcode
-- fetch nutrition data
-- retrieve product metadata
-- display Nutri-Score information
-- enrich product detail screens
-- support food transparency and traceability features
-
----
-
-## Overview
-
-**Open Food Facts** is an open food product database made for public reuse.  
-It provides product information such as:
-
-- product name
-- barcode
-- ingredients
-- nutriments
-- nutrition grades
-- categories
-- images
-- labels and computed values
-
-For our project, this API is especially useful for turning a **barcode scan** into structured product data we can display inside the app.
-
----
-
-## API Version
-
-> Current stable version: **v2**  
-> Next version: **v3** *(still evolving)*
-
-For now, use **v2** in the project.
-
----
-
-### JSON Eample
-
-```txt
-{
-    "code": "3017624010701",
-    "product": {
-    "product_name": "Nutella",
-    "nutrition_grades": "e",
-    "nutriscore_data": {
-    "energy": 2255,
-    "energy_points": 6,
-    "sugars_points": 10
-},
-    "nutriments": 
-    {
-    "energy-kcal": 539,
-    "sugars": 56.3
-    }
-},
-    "status": 1,
-    "status_verbose": "product found"
+```typescript
+interface ErrorResponse {
+  error: string;
 }
 ```
 
-## Environments
+### Response Envelope
+Success responses return the requested data directly as a JSON object or array.
 
-### Production
-```txt
-https://world.openfoodfacts.org
+---
+
+## Endpoints
+
+### Health Check
+Check the status of the API container.
+
+**GET /health**
+
+- **Response Schema:**
+```typescript
+interface HealthResponse {
+  status: "ok";
+  timestamp: string; // ISO 8601 format
+}
+```
+
+- **Example Request:**
+```bash
+curl https://foodflighttracker.com/api/health
+```
+
+- **Example Response:**
+```json
+{
+  "status": "ok",
+  "timestamp": "2026-03-28T14:30:00.000Z"
+}
+```
+
+---
+
+### Product Resolution
+Resolve a product by its barcode using a three-tier resolution strategy. The API checks the internal database first, then falls back to OpenFoodFacts.
+
+**GET /product/:barcode**
+
+- **Parameters:**
+  - `barcode` (path): The EAN-13 barcode of the product.
+
+- **Response Schema:**
+```typescript
+interface ProductResponse {
+  product: {
+    barcode: string;
+    name: string;
+    brand: string;
+    category: string;
+    imageUrl: string;
+    source: "internal" | "open_food_facts" | "merged";
+    nutriScore: string;
+    ecoScore: string;
+    ingredients: string[];
+    allergens: string[];
+    offData?: any; // Raw OpenFoodFacts data if applicable
+  };
+  batch?: {
+    lotCode: string;
+    status: string;
+    riskScore: number;
+    stages: any[];
+  };
+  origins: string[]; // Inferred from Origin Intelligence Layer
+}
+```
+
+- **Error Responses:**
+  - `404 Not Found`: Returned if the product is not found in any source. Code: `PRODUCT_NOT_FOUND`.
+
+- **Example Request:**
+```bash
+curl https://foodflighttracker.com/api/product/4012345678901
+```
+
+---
+
+### AI Chat (Streaming)
+Interact with the AI assistant for product safety analysis and supply chain inquiries. This endpoint uses the Cerebras zai-glm-4.7 model.
+
+**POST /chat**
+
+- **Request Body:**
+```typescript
+interface ChatRequest {
+  messages: { role: "user" | "assistant"; content: string }[];
+  barcode: string;
+  systemContext?: string;
+}
+```
+
+- **Response:**
+A `ReadableStream` using the Server-Sent Events (SSE) protocol. Each line is prefixed with `data: ` and contains a JSON object.
+
+- **Model Configuration:**
+  - Temperature: 0.2
+  - Max Tokens: 1024
+  - Response Style: Maximum 80 words, 3 sentences, confident, and data-backed.
+
+- **Example Request:**
+```bash
+curl -X POST https://foodflighttracker.com/api/chat \
+  -H "Content-Type: application/json" \
+  -d '{
+    "barcode": "4012345678901",
+    "messages": [{"role": "user", "content": "Is this chocolate safe?"}]
+  }'
+```
+
+---
+
+### Batch Details
+Retrieve detailed information about a specific production batch, including its journey and lineage.
+
+**GET /batch/:lotCode**
+
+- **Parameters:**
+  - `lotCode` (path): The unique lot code for the batch.
+  - `include` (query): Set to `lineage-stages` to include the full lineage tree.
+
+- **Response Schema:**
+```typescript
+interface BatchResponse {
+  batch: any;
+  product: any;
+  journey: {
+    stages: {
+      name: string;
+      location: string;
+      timestamp: string;
+      telemetry: {
+        avgTemp: number;
+        minTemp: number;
+        maxTemp: number;
+        avgHumidity: number;
+      };
+      anomalies: any[];
+    }[];
+  };
+  lineage: {
+    parents: { lotCode: string; relationship: string; ratio: number }[];
+    children: { lotCode: string; relationship: string; ratio: number }[];
+  };
+  lineageTree?: any; // Included if requested
+  recall?: {
+    active: boolean;
+    reason?: string;
+    severity?: string;
+  };
+}
+```
+
+- **Example Request:**
+```bash
+curl https://foodflighttracker.com/api/batch/L6029479302?include=lineage-stages
+```
+
+---
+
+### Dashboard Overview
+Fetch high-level metrics and activity for the QA dashboard. This endpoint is designed for 30-second polling.
+
+**GET /dashboard/overview**
+
+- **Response Schema:**
+```typescript
+interface OverviewResponse {
+  metrics: {
+    activeBatches: number;
+    openIncidents: number;
+    avgRiskScore: number;
+    recalledBatches: number;
+  };
+  batches: any[]; // Top 30-50 batches by risk
+  lineageEdges: any[];
+  alerts: any[]; // Top 50 alerts sorted by severity
+  reports: any[]; // Recent 10 consumer reports
+}
+```
+
+- **Example Request:**
+```bash
+curl https://foodflighttracker.com/api/dashboard/overview
+```
+
+---
+
+### Supply Chain Batches
+Retrieve batches grouped by supply chain using union-find clustering.
+
+**GET /dashboard/batches**
+
+- **Response Schema:**
+```typescript
+interface SupplyChainResponse {
+  chains: {
+    productName: string;
+    lotCount: number;
+    maxRisk: number;
+    totalUnits: number;
+    latestUpdate: string;
+    status: string;
+    lots: any[];
+  }[];
+}
+```
+
+- **Example Request:**
+```bash
+curl https://foodflighttracker.com/api/dashboard/batches
+```
+
+---
+
+### Recall Management
+Manage product recalls across the supply chain.
+
+**GET /recalls**
+Returns all active recalls and aggregated consumer reports.
+
+**POST /recalls**
+Create a new recall. This updates the status of affected batches to `recalled`.
+
+- **Request Body:**
+```typescript
+interface CreateRecallRequest {
+  reason: string;
+  severity: "low" | "medium" | "high" | "critical";
+  triggeredBy: string;
+  affectedRegions: string[];
+  lotCodes: string[];
+}
+```
+
+- **Response Schema:**
+```typescript
+interface CreateRecallResponse {
+  recallId: string;
+  estimatedUnits: number;
+}
+```
+
+**PATCH /recalls**
+End an active recall. This reverts batch statuses to `active`.
+
+- **Request Body:**
+```typescript
+interface EndRecallRequest {
+  recallId: string;
+  action: "end";
+}
+```
+
+---
+
+### Consumer Reports
+Submit a report regarding a specific product batch.
+
+**POST /reports**
+
+- **Request Body:**
+```typescript
+interface ReportRequest {
+  lotCode: string;
+  deviceId: string;
+  category: "taste_quality" | "appearance" | "packaging" | "foreign_object" | "allergic_reaction" | "other";
+  description?: string;
+  photoUrl?: string;
+}
+```
+
+- **Rate Limiting:**
+Limited to 5 reports per device per hour. Exceeding this limit returns a `429 Too Many Requests` status.
+
+- **Response Schema:**
+```typescript
+interface ReportResponse {
+  reportId: string;
+  status: string;
+  message: string;
+}
+```
+
+---
+
+### Journey Generation
+Generate or retrieve a product journey based on its barcode.
+
+**POST /journey/generate**
+
+- **Request Body:**
+```typescript
+interface JourneyRequest {
+  barcode: string;
+}
+```
+
+- **Response Schema:**
+```typescript
+interface JourneyResponse {
+  generated: boolean;
+  batch?: any;
+  journey: {
+    name: string;
+    location: string;
+    timestamp: string;
+  }[];
+}
+```
