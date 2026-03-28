@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createConsumerReport, getReportCountForDevice } from "@/lib/db/queries";
+import { emitReportCreated } from "@/lib/report-events";
 import type { ReportCategory } from "@/lib/types";
 
 const VALID_CATEGORIES: ReportCategory[] = [
@@ -72,6 +73,8 @@ export async function POST(request: Request) {
       description: description ?? null,
       photoUrl: photoUrl ?? null,
     });
+
+    try { emitReportCreated({ id: report.id, lotCode, category }); } catch { /* SSE emit is best-effort */ }
 
     return NextResponse.json(
       {

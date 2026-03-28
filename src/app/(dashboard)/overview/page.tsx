@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect, useRef } from "react";
 import dynamic from "next/dynamic";
 import { useGodViewData } from "@/hooks/use-god-view-data";
 import { GodViewOverlay } from "@/components/god-view/GodViewOverlay";
 import { BatchDetailPanel } from "@/components/god-view/BatchDetailPanel";
 import { LayerToggles } from "@/components/god-view/LayerToggles";
-import type { GodViewLayers } from "@/components/god-view/GodViewMap";
+import type { GodViewLayers, RippleTarget } from "@/components/god-view/GodViewMap";
 import type { GodViewAlert } from "@/lib/types";
 
 const GodViewMap = dynamic(
@@ -19,6 +19,55 @@ export default function OverviewPage() {
   const [selectedLotCode, setSelectedLotCode] = useState<string | null>(null);
   const [layers, setLayers] = useState<GodViewLayers>({ routes: true, clusters: true });
   const [flyTarget, setFlyTarget] = useState<{ lng: number; lat: number } | null>(null);
+  const [rippleTargets, setRippleTargets] = useState<RippleTarget[]>([]);
+  const seenReportIdsRef = useRef<Set<string>>(new Set());
+  const initializedRef = useRef(false);
+
+  // Fast-poll for new reports (every 3s) to trigger ripples near-instantly
+  useEffect(() => {
+    if (!data) return;
+
+    // On first load, seed the seen set so we don't ripple all existing reports
+    if (!initializedRef.current) {
+      for (const r of data.recentReports) {
+        seenReportIdsRef.current.add(r.id);
+      }
+      initializedRef.current = true;
+    }
+
+    const interval = setInterval(async () => {
+      try {
+        const res = await fetch("/api/dashboard/overview");
+        if (!res.ok) return;
+        const json = await res.json();
+        const reports = json.data?.recentReports ?? [];
+        const batches = json.data?.batches ?? data.batches;
+
+        const newTargets: RippleTarget[] = [];
+        for (const report of reports) {
+          if (seenReportIdsRef.current.has(report.id)) continue;
+          seenReportIdsRef.current.add(report.id);
+
+          const batch = batches.find((b: { lotCode: string; lastLocation?: { lng: number; lat: number } }) => b.lotCode === report.lotCode);
+          if (batch?.lastLocation) {
+            newTargets.push({
+              lng: batch.lastLocation.lng,
+              lat: batch.lastLocation.lat,
+              key: report.id,
+            });
+          }
+        }
+
+        if (newTargets.length > 0) {
+          setRippleTargets(newTargets);
+        }
+      } catch {
+        // Ignore fetch errors
+      }
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [data]);
 
   const selectedBatch = useMemo(
     () => data?.batches.find((b) => b.lotCode === selectedLotCode) ?? null,
@@ -98,6 +147,7 @@ export default function OverviewPage() {
         onBatchSelect={handleBatchSelect}
         layers={layers}
         flyToTarget={flyTarget}
+        rippleTargets={rippleTargets}
       />
 
       {/* Overlay panels */}
