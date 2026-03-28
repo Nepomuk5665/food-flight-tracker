@@ -485,6 +485,9 @@ export function JourneyMap({
     if (!mapRef.current) return;
 
     if (selectedStage) {
+      // Popup sits at bottom-28 (112px) and is ~250px tall.
+      // Push the focal point into the upper half so the marker clears it.
+      const popupPadding = { top: 80, bottom: Math.round(window.innerHeight * 0.45), left: 0, right: 0 };
       startFly(2000);
       mapRef.current.flyTo({
         center: [selectedStage.location.lng, selectedStage.location.lat],
@@ -494,6 +497,7 @@ export function JourneyMap({
         bearing: -25,
         curve: 1.8,
         essential: true,
+        padding: popupPadding,
       });
     } else if (prevSelectedRef.current) {
       fitMapBounds();
@@ -526,6 +530,7 @@ export function JourneyMap({
   const handleMarkerClick = useCallback(
     (stage: JourneyStage) => {
       onStageSelect(stage);
+      const popupPadding = { top: 80, bottom: Math.round(window.innerHeight * 0.45), left: 0, right: 0 };
       startFly(800);
       mapRef.current?.flyTo({
         center: [stage.location.lng, stage.location.lat],
@@ -535,6 +540,7 @@ export function JourneyMap({
         bearing: -25,
         curve: 1.8,
         essential: true,
+        padding: popupPadding,
       });
     },
     [onStageSelect, startFly],

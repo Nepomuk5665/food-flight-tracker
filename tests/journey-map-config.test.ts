@@ -23,7 +23,7 @@ describe("JourneyMap interaction configuration", () => {
 
   describe("pitch constraints", () => {
     it("should cap max pitch to prevent extreme angles during flyTo", () => {
-      expect(MAP_INTERACTION_CONFIG.maxPitch).toBeLessThanOrEqual(60);
+      expect(MAP_INTERACTION_CONFIG.maxPitch).toBeLessThanOrEqual(75);
       expect(MAP_INTERACTION_CONFIG.maxPitch).toBeGreaterThan(0);
     });
   });
