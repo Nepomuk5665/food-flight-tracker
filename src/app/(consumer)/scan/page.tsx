@@ -73,7 +73,8 @@ export default function ScanPage() {
       // GS1 Digital Link URL (e.g. https://qr.nestle.com/01/07613031085385/10/LOT123)
       const digitalLinkMatch = rawValue.match(/\/01\/(\d{13,14})(?:\/10\/([^\s/]+))?/);
       if (digitalLinkMatch) {
-        const gtin = digitalLinkMatch[1]!;
+        // Normalize GTIN-14 with leading 0 to EAN-13
+        const gtin = digitalLinkMatch[1]!.replace(/^0(\d{13})$/, "$1");
         const batch = digitalLinkMatch[2];
         if (batch) {
           router.push(`/journey/${encodeURIComponent(batch)}`);

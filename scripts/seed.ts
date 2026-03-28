@@ -42,7 +42,7 @@ console.log("\n── Supply Chain 1: Chocolat au lait (linear) ──");
 const chocolate = db
   .insert(schema.products)
   .values({
-    barcode: "07613031085385",
+    barcode: "7613031085385",
     name: "Chocolat au lait",
     brand: "Nestlé",
     category: "chocolate",
