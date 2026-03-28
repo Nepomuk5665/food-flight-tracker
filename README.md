@@ -19,69 +19,76 @@
   <a href="https://www.figma.com/design/4XAMeiD6nuGZ4HwsxqE1gT/Untitled?node-id=0-1&p=f"><img src="https://img.shields.io/badge/Figma-Mockup-F24E1E?style=for-the-badge&logo=figma&logoColor=white" alt="Figma"/></a>
 </p>
 
-<p align="center">
-  <img src="docs/screenshots/consumer-product.jpeg" alt="Consumer App" width="280" />
-  &nbsp;&nbsp;&nbsp;&nbsp;
-  <img src="docs/screenshots/dashboard-live.png" alt="QA Dashboard" width="480" />
-</p>
-
 ---
 
 ## Hallo Jury!
 
-Project Trace hat zwei Seiten: eine **Consumer App** (Handy) und ein **QA Dashboard** (Desktop). Probiert am besten beides aus — dauert ca. 12 Minuten. Wenig Zeit? Macht 1, 2, 4 in 9 Min.
+Project Trace hat zwei Seiten: eine **Consumer App** fürs Handy und ein **QA Dashboard** für den Desktop. Hier zeigen wir euch in 6 kurzen Demos, was die App kann.
+
+> Barcode zum Ausprobieren: **`7613031085385`** — oder scannt den QR-Code weiter unten.
 
 ---
 
-## 1 — God View (Desktop, 3 Min.)
+### 1 — Das QA Dashboard
 
-Öffnet [foodflighttracker.com/overview](https://foodflighttracker.com/overview) auf dem Desktop.
-
-1. Der Globus lädt. Lieferketten-Routen zeichnen sich über Kontinente, grüne Partikel fliessen. Lasst es kurz wirken.
-2. Rechts seht ihr Metriken und den Alert-Feed. Sucht den **kritischen Alert** für `CH2603-AP7`.
-3. Klickt drauf — die Karte fliegt zur Schweiz/München, ein roter Ping pulsiert, das Batch-Detail fährt rein (Risiko 62).
-4. Klickt auf den **Käse-Cluster bei Kempten** — der klappt auf und zeigt Lineage-Verbindungen.
-
----
-
-## 2 — Schokoladen-Reise (Handy, 4 Min.)
-
-Scannt den QR-Code oder öffnet [foodflighttracker.com/scan](https://foodflighttracker.com/scan) auf dem Handy.
+Öffnet [foodflighttracker.com/overview](https://foodflighttracker.com/overview) auf dem Desktop. Der Globus zeigt alle Lieferketten in Echtzeit — klickt auf einen Alert und die Karte fliegt hin.
 
 <p align="center">
-  <img src="public/qr-scan.png" alt="QR-Code" width="160" />
+  <img src="docs/demos/1-dashboard.gif" alt="Dashboard Demo" width="700" />
 </p>
 
-1. Tippt auf **"Enter manually"** und gebt den Barcode ein: **`7613031085385`**
-2. Ihr seht die Produktseite: Chocolat au lait von Nestle, Nutri-Score D, Allergene, Chargennummer `CH2603-AP7` mit Risiko 62.
-3. Tippt auf **Map** — eine animierte Route zeichnet sich von der Elfenbeinküste über Hamburg und die Schweiz bis München. 8 Stationen mit Icons.
-4. Tippt auf den **Lager-Marker** (Station 6, Schweiz) — da war ein Temperaturausreißer: 32.6 C statt max. 20 C, fast 5 Stunden lang.
-5. Tippt auf **Chat** — die KI analysiert automatisch die Charge. Probiert "Is this safe to eat?" — Antwort: Fettreif ist unschön, aber unbedenklich.
-6. Der **rote Button** unten rechts öffnet ein Meldeformular. Wählt "Bad Taste", kurz beschreiben, absenden.
-
-> Falls die KI nicht erreichbar ist: Schritte 5-6 überspringen, Karte und Scanner funktionieren trotzdem.
-
 ---
 
-## 3 — Batch-Forensik (Desktop, 3 Min.)
+### 2 — Produkt scannen & Reise verfolgen
 
-Gleiche Charge, jetzt aus QA-Sicht.
-
-1. Öffnet [foodflighttracker.com/batch/CH2603-AP7](https://foodflighttracker.com/batch/CH2603-AP7) — Risiko-Gauge, Journey Map im Dark Theme.
-2. **Telemetry**-Tab: Temperatur-Balken pro Station. Lager-Station durchbricht die rote Schwelle bei 20 C deutlich.
-3. Wechselt zu [foodflighttracker.com/batch/K-MAKE-001](https://foodflighttracker.com/batch/K-MAKE-001) (Käse, Risiko 12). **Lineage**-Tab: 2 Höfe -> 1 Charge -> 2 Produkte.
-4. Zurück zu CH2603-AP7, **AI Analysis**-Tab: Die KI streamt eine Risikobewertung. Fragt "Should we issue a recall?" — differenzierte Antwort.
-
----
-
-## 4 — Rückruf (Desktop + Handy, 2 Min.)
-
-1. Öffnet [foodflighttracker.com/incidents](https://foodflighttracker.com/incidents) — klickt **"Trigger Recall"** bei CH2603-AP7.
-2. Grund eingeben (z.B. "Temperature excursion caused fat bloom"), Severity High, absenden.
-3. Wechselt aufs Handy: [foodflighttracker.com/alerts](https://foodflighttracker.com/alerts) — der Rückruf erscheint sofort als Alert.
+Öffnet [foodflighttracker.com/scan](https://foodflighttracker.com/scan) auf dem Handy (oder QR-Code scannen). Barcode `7613031085385` eingeben — ihr seht die komplette Reise der Schokolade von der Elfenbeinküste bis München.
 
 <p align="center">
-  <img src="docs/screenshots/mobile-alerts.png" alt="Alerts" width="220" />
+  <img src="public/qr-scan.png" alt="QR-Code" width="140" />
+</p>
+
+<p align="center">
+  <img src="docs/demos/2-scan.gif" alt="Scan Demo" width="350" />
+</p>
+
+---
+
+### 3 — Problem melden
+
+Schokolade schmeckt komisch? Über den roten Button unten rechts könnt ihr direkt ein Problem melden.
+
+<p align="center">
+  <img src="docs/demos/3-report.gif" alt="Report Demo" width="350" />
+</p>
+
+---
+
+### 4 — Meldung im Dashboard
+
+Die Meldung taucht sofort im QA Dashboard unter Incidents auf.
+
+<p align="center">
+  <img src="docs/demos/4-report-received.gif" alt="Report erhalten" width="700" />
+</p>
+
+---
+
+### 5 — Rückruf auslösen
+
+Das QA-Team kann direkt aus der Meldung heraus einen Rückruf triggern.
+
+<p align="center">
+  <img src="docs/demos/5-recall-triggered.gif" alt="Rückruf ausgelöst" width="700" />
+</p>
+
+---
+
+### 6 — Rückruf beim Konsumenten
+
+Der Konsument sieht den Rückruf sofort in der App unter Alerts.
+
+<p align="center">
+  <img src="docs/demos/6-product-recalled.gif" alt="Produkt zurückgerufen" width="350" />
 </p>
 
 ---
@@ -90,10 +97,10 @@ Gleiche Charge, jetzt aus QA-Sicht.
 
 | Produkt | Barcode | Charge | Besonderheit |
 |---------|---------|--------|-------------|
-| Chocolat au lait (Nestle) | `7613031085385` | `CH2603-AP7` | 8 Stationen, 3 Länder, Hitze-Anomalie, Risiko 62 |
+| Chocolat au lait (Nestlé) | `7613031085385` | `CH2603-AP7` | 8 Stationen, 3 Länder, Hitze-Anomalie |
 | Allgäuer Bio-Bergkäse | `4099887766550` | `K-MAKE-001` | 2 Höfe -> 1 Charge -> 2 Produkte |
 
-Jeder andere echte Barcode wird über [OpenFoodFacts](https://world.openfoodfacts.org/) geladen (3 Mio.+ Produkte, aber ohne Lieferkettendaten).
+Jeder andere echte Barcode wird über [OpenFoodFacts](https://world.openfoodfacts.org/) geladen (3 Mio.+ Produkte).
 
 ---
 
@@ -108,7 +115,6 @@ Jeder andere echte Barcode wird über [OpenFoodFacts](https://world.openfoodfact
 | Karten | Mapbox GL JS |
 | Produktdaten | OpenFoodFacts API |
 | Deployment | AWS EC2, Docker, Caddy (Auto-HTTPS) |
-| CI/CD | GitHub Actions -> ECR -> SSH |
 
 ## Architektur
 
@@ -116,7 +122,7 @@ Jeder andere echte Barcode wird über [OpenFoodFacts](https://world.openfoodfact
   <img src="docs/erd/architecture.png" alt="Architektur" width="500" />
 </p>
 
-Zwei Route Groups, eine App: `(consumer)/` für Handy (Scan, Products, Alerts) und `(dashboard)/` für Desktop (Overview, Batches, Incidents). Herkunftsdaten werden über FAO/USDA-Handelsanteile aus den Zutaten abgeleitet — keine API liefert das.
+Zwei Route Groups, eine App: `(consumer)/` fürs Handy und `(dashboard)/` für den Desktop. Herkunftsdaten werden über FAO/USDA-Handelsanteile aus den Zutaten abgeleitet.
 
 ## Lokal starten
 
