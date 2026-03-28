@@ -42,10 +42,10 @@ export function TabToggle({ activeTab, onTabChange, hiddenTabs = [], transparent
 
   return (
     <div className={`sticky top-0 z-20 -mx-4 mb-4 px-4 py-2 ${transparent ? "bg-transparent" : "bg-white"}`}>
-      <div ref={containerRef} className={`relative flex gap-1 rounded-full p-1 ${dark ? "bg-white/20 backdrop-blur-md" : "bg-black/[0.06] backdrop-blur-md border border-black/[0.06]"}`}>
+      <div ref={containerRef} className={`relative flex gap-1 rounded-full p-1 ${dark ? "bg-transparent" : "bg-black/[0.06] backdrop-blur-md border border-black/[0.06]"}`}>
         {pillStyle && (
           <span
-            className={`absolute top-1 bottom-1 rounded-full transition-all duration-300 ease-out ${dark ? "bg-white/20 shadow-none" : "bg-white/80 shadow-sm backdrop-blur-sm"}`}
+            className={`absolute top-1 bottom-1 rounded-full transition-all duration-300 ease-out ${dark ? "bg-white/15 shadow-none" : "bg-white/80 shadow-sm backdrop-blur-sm"}`}
             style={{ left: pillStyle.left, width: pillStyle.width }}
           />
         )}

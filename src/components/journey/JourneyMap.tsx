@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState, useCallback, useEffect, useMemo } from "react";
-import Map, { Marker, Popup, Source, Layer } from "react-map-gl/mapbox";
+import Map, { Marker, Source, Layer } from "react-map-gl/mapbox";
 import type { MapRef } from "react-map-gl/mapbox";
 import type { LineLayerSpecification, CircleLayerSpecification } from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
@@ -321,7 +321,9 @@ export function JourneyMap({
   const [mapLoaded, setMapLoaded] = useState(false);
   const [animationProgress, setAnimationProgress] = useState(0);
   const [clusters, setClusters] = useState<ClusterGroup[]>([]);
+  const [flying, setFlying] = useState(false);
   const animationRef = useRef<number | null>(null);
+  const flyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hasAnimated = useRef(false);
   const interacting = useRef(false);
   const wasPinching = useRef(false);
@@ -421,8 +423,18 @@ export function JourneyMap({
     setClusters(clusterMarkers(markerStages, project));
   }, [markerStages]);
 
+  const startFly = useCallback((durationMs: number) => {
+    if (flyTimerRef.current) clearTimeout(flyTimerRef.current);
+    setFlying(true);
+    flyTimerRef.current = setTimeout(() => {
+      setFlying(false);
+      recluster();
+    }, durationMs + 100);
+  }, [recluster]);
+
   const fitMapBounds = useCallback(() => {
     if (!mapRef.current || allStages.length === 0) return;
+    startFly(1200);
     const bounds = computeBounds(allStages);
     mapRef.current.fitBounds(bounds, {
       padding: 60,
@@ -456,21 +468,32 @@ export function JourneyMap({
   useEffect(() => {
     return () => {
       if (animationRef.current) cancelAnimationFrame(animationRef.current);
+      if (flyTimerRef.current) clearTimeout(flyTimerRef.current);
     };
   }, []);
 
+  const prevSelectedRef = useRef<JourneyStage | null>(null);
+
   useEffect(() => {
-    if (!selectedStage || !mapRef.current) return;
-    mapRef.current.flyTo({
-      center: [selectedStage.location.lng, selectedStage.location.lat],
-      zoom: 8,
-      duration: 2000,
-      pitch: MAP_INTERACTION_CONFIG.maxPitch,
-      bearing: -15,
-      curve: 1.5,
-      essential: true,
-    });
-  }, [selectedStage]);
+    if (!mapRef.current) return;
+
+    if (selectedStage) {
+      startFly(2000);
+      mapRef.current.flyTo({
+        center: [selectedStage.location.lng, selectedStage.location.lat],
+        zoom: 8,
+        duration: 2000,
+        pitch: MAP_INTERACTION_CONFIG.maxPitch,
+        bearing: -15,
+        curve: 1.5,
+        essential: true,
+      });
+    } else if (prevSelectedRef.current) {
+      fitMapBounds();
+    }
+
+    prevSelectedRef.current = selectedStage;
+  }, [selectedStage, fitMapBounds]);
 
   const handleMapLoad = useCallback(() => {
     setMapLoaded(true);
@@ -496,13 +519,14 @@ export function JourneyMap({
   const handleMarkerClick = useCallback(
     (stage: JourneyStage) => {
       onStageSelect(stage);
+      startFly(800);
       mapRef.current?.flyTo({
         center: [stage.location.lng, stage.location.lat],
         zoom: 6,
         duration: 800,
       });
     },
-    [onStageSelect],
+    [onStageSelect, startFly],
   );
 
   if (!MAPBOX_TOKEN) {
@@ -597,14 +621,6 @@ export function JourneyMap({
                 const role = stage._pathRole;
                 const isSecondary = role === "parent" || role === "child";
                 const size = isSecondary ? 24 : 36;
-                const ringColor = role === "parent"
-                  ? "ring-[#1A1A1A]/60"
-                  : role === "child"
-                    ? "ring-[#9CA3AF]/60"
-                    : hasAnomaly
-                      ? "ring-red-500"
-                      : "ring-[#16A34A]/50";
-
                 const markerZ = isClustered ? 0 : isSecondary ? 1 : 2;
 
                 return (
@@ -624,16 +640,16 @@ export function JourneyMap({
                       style={{
                         width: size,
                         height: size,
-                        opacity: isClustered ? 0 : isSecondary ? 0.7 : 1,
-                        transform: isClustered ? "scale(0.3)" : "scale(1)",
-                        transition: "opacity 280ms ease-out, transform 280ms ease-out",
-                        pointerEvents: isClustered ? "none" : "auto",
+                        opacity: flying ? 0 : isClustered ? 0 : isSecondary ? 0.7 : 1,
+                        transform: flying ? "scale(0.5)" : isClustered ? "scale(0.3)" : "scale(1)",
+                        transition: "opacity 250ms ease-out, transform 250ms ease-out",
+                        pointerEvents: flying || isClustered ? "none" : "auto",
                       }}
                     >
                       {hasAnomaly && !isSecondary && !isClustered && (
                         <span className="pointer-events-none absolute -inset-3 animate-ping rounded-full bg-red-500 opacity-40" />
                       )}
-                      <div className={`h-full w-full rounded-full ring-2 ${ringColor} shadow-[0_0_12px_rgba(22,163,74,0.3)]`}>
+                      <div className="h-full w-full rounded-full shadow-lg">
                         {getStageIcon(stage.type)}
                       </div>
                     </div>
@@ -670,13 +686,16 @@ export function JourneyMap({
                         style={{
                           width: 40,
                           height: 40,
-                          transition: "opacity 280ms ease-out, transform 280ms ease-out",
+                          opacity: flying ? 0 : 1,
+                          transform: flying ? "scale(0.5)" : "scale(1)",
+                          transition: "opacity 250ms ease-out, transform 250ms ease-out",
+                          pointerEvents: flying ? "none" : "auto",
                         }}
                       >
                         {hasAnyAnomaly && (
                           <span className="pointer-events-none absolute -inset-3 animate-ping rounded-full bg-red-500 opacity-40" />
                         )}
-                        <div className={`h-full w-full rounded-full ring-2 ${hasAnyAnomaly ? "ring-red-500" : "ring-[#16A34A]/50"} shadow-[0_0_12px_rgba(22,163,74,0.3)]`}>
+                        <div className="h-full w-full rounded-full shadow-lg">
                           {getStageIcon(topStage.type)}
                         </div>
                         <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-[#1A1A1A] px-1 text-[10px] font-bold text-white shadow-md">
@@ -690,19 +709,13 @@ export function JourneyMap({
           );
         })()}
 
-        {selectedStage && (
-          <Popup
-            longitude={selectedStage.location.lng}
-            latitude={selectedStage.location.lat}
-            anchor="bottom"
-            onClose={() => onStageSelect(null)}
-            closeOnClick={false}
-            maxWidth="300px"
-          >
-            <StagePopup stage={selectedStage} />
-          </Popup>
-        )}
       </Map>
+
+      {selectedStage && (
+        <div className="absolute inset-x-3 bottom-28 z-20">
+          <StagePopup stage={selectedStage} onClose={() => onStageSelect(null)} />
+        </div>
+      )}
     </div>
   );
 }

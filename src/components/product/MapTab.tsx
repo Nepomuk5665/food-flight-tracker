@@ -55,7 +55,13 @@ export function MapTab({ journey, loading, error, canGenerate, lineageTree, onBa
   }, []);
 
   const toggleDrawer = useCallback(() => {
-    setDrawer((prev) => (prev === "closed" ? "open" : "closed"));
+    setDrawer((prev) => {
+      if (prev === "open") {
+        setSelectedStage(null);
+        return "closed";
+      }
+      return "open";
+    });
   }, []);
 
   const handleDragStart = useCallback(
