@@ -3,6 +3,7 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, Camera, X, Loader2 } from "lucide-react";
+import Markdown from "react-markdown";
 import { getDeviceId } from "@/lib/device-id";
 import { compressImage } from "@/lib/image-utils";
 import type { ReportCategory } from "@/lib/types";
@@ -32,8 +33,11 @@ export function ReportSheet({ open, onClose, lotCode, barcode, productName }: Re
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [aiResponse, setAiResponse] = useState("");
+  const [aiStreaming, setAiStreaming] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const aiScrollRef = useRef<HTMLDivElement>(null);
 
   const [dragHeight, setDragHeight] = useState<number | null>(null);
   const dragStartY = useRef(0);
@@ -53,17 +57,10 @@ export function ReportSheet({ open, onClose, lotCode, barcode, productName }: Re
       setError(null);
       setIsSubmitting(false);
       setDragHeight(null);
+      setAiResponse("");
+      setAiStreaming(false);
     }
   }, [open]);
-
-  useEffect(() => {
-    if (step === 3) {
-      const timer = setTimeout(() => {
-        onClose();
-      }, 2500);
-      return () => clearTimeout(timer);
-    }
-  }, [step, onClose]);
 
   const handleDragStart = useCallback((clientY: number) => {
     dragStartY.current = clientY;
@@ -128,6 +125,53 @@ export function ReportSheet({ open, onClose, lotCode, barcode, productName }: Re
     }
   };
 
+  const streamAiResponse = useCallback(async (category: ReportCategory, userDescription: string) => {
+    setAiStreaming(true);
+    setAiResponse("");
+
+    const categoryLabel = CATEGORIES.find((c) => c.id === category)?.label ?? category;
+    const prompt = `A consumer just reported a "${categoryLabel}" issue with this product${userDescription ? `: "${userDescription}"` : ""}. Write an empathetic response to them. Acknowledge their concern sincerely. Then, based on the supply chain data you have (stages, anomalies, telemetry, risk score), explain 2-3 possible reasons this could have happened. Be specific — reference actual supply chain stages, temperatures, anomalies if they exist. If the batch has a high risk score or anomalies, mention that. End with a reassuring note that the safety team is on it. Keep it under 150 words. Do NOT use bullet points — write in flowing paragraphs.`;
+
+    try {
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          messages: [{ role: "user", content: prompt }],
+          lotCode,
+          barcode,
+        }),
+      });
+
+      if (!res.ok || !res.body) {
+        setAiResponse("We're looking into this and will get back to you. Thank you for helping us keep food safe.");
+        setAiStreaming(false);
+        return;
+      }
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let accumulated = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        const chunk = decoder.decode(value, { stream: true });
+        accumulated += chunk;
+        setAiResponse(accumulated);
+        if (aiScrollRef.current) {
+          aiScrollRef.current.scrollTop = aiScrollRef.current.scrollHeight;
+        }
+      }
+    } catch {
+      if (!aiResponse) {
+        setAiResponse("We're looking into this and will get back to you. Thank you for helping us keep food safe.");
+      }
+    } finally {
+      setAiStreaming(false);
+    }
+  }, [lotCode, barcode]);
+
   const handleSubmit = async () => {
     if (!selectedCategory) return;
     
@@ -160,7 +204,8 @@ export function ReportSheet({ open, onClose, lotCode, barcode, productName }: Re
       navigator.vibrate?.([50, 30, 100]);
       setDirection(1);
       setStep(3);
-    } catch (err) {
+      streamAiResponse(selectedCategory, description);
+    } catch {
       setError("Something went wrong. Please try again.");
       setIsSubmitting(false);
     }
@@ -205,7 +250,7 @@ export function ReportSheet({ open, onClose, lotCode, barcode, productName }: Re
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         className="absolute inset-0 bg-black/60"
-        onClick={step === 3 ? onClose : undefined}
+        onClick={onClose}
       />
 
       <motion.div
@@ -381,58 +426,83 @@ export function ReportSheet({ open, onClose, lotCode, barcode, productName }: Re
                 animate="center"
                 exit="exit"
                 transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                className="absolute inset-0 flex flex-col items-center justify-center px-8 text-center"
-                onClick={onClose}
+                className="absolute inset-0 flex flex-col px-5 pt-2 pb-6"
               >
-                <div className="relative mb-6 flex h-24 w-24 items-center justify-center">
-                  {[...Array(8)].map((_, i) => (
-                    <div
-                      key={i}
-                      className="absolute inset-0"
-                      style={{
-                        transform: `rotate(${i * 45}deg)`,
-                      }}
-                    >
+                <div className="flex flex-col items-center text-center">
+                  <div className="relative mb-4 flex h-16 w-16 items-center justify-center">
+                    {[...Array(8)].map((_, i) => (
                       <div
-                        className="absolute left-1/2 top-1/2 h-2 w-2 -ml-1 -mt-1 rounded-full bg-[#16A34A] opacity-0"
+                        key={i}
+                        className="absolute inset-0"
+                        style={{ transform: `rotate(${i * 45}deg)` }}
+                      >
+                        <div
+                          className="absolute left-1/2 top-1/2 h-2 w-2 -ml-1 -mt-1 rounded-full bg-[#16A34A] opacity-0"
+                          style={{
+                            animation: `confetti-float 0.8s ease-out forwards`,
+                            animationDelay: `${0.1 + i * 0.05}s`,
+                          }}
+                        />
+                      </div>
+                    ))}
+
+                    <motion.div
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ type: "spring", stiffness: 300, damping: 20, delay: 0.1 }}
+                      className="absolute inset-0 rounded-full bg-[#f0fdf4]"
+                    />
+
+                    <svg
+                      className="relative z-10 h-8 w-8 text-[#16A34A]"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={3}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M5 13l4 4L19 7"
                         style={{
-                          animation: `confetti-float 0.8s ease-out forwards`,
-                          animationDelay: `${0.1 + i * 0.05}s`,
+                          strokeDasharray: 100,
+                          strokeDashoffset: 100,
+                          animation: "drawCheck 0.5s ease-out 0.3s forwards",
                         }}
                       />
-                    </div>
-                  ))}
-
-                  <motion.div
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ type: "spring", stiffness: 300, damping: 20, delay: 0.1 }}
-                    className="absolute inset-0 rounded-full bg-[#f0fdf4]"
-                  />
-
-                  <svg
-                    className="relative z-10 h-12 w-12 text-[#16A34A]"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth={3}
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M5 13l4 4L19 7"
-                      style={{
-                        strokeDasharray: 100,
-                        strokeDashoffset: 100,
-                        animation: "drawCheck 0.5s ease-out 0.3s forwards",
-                      }}
-                    />
-                  </svg>
+                    </svg>
+                  </div>
+                  <h2 className="mb-1 text-xl font-bold text-[#1A1A1A]">Thank you!</h2>
+                  <p className="mb-4 text-xs text-[#9CA3AF]">
+                    Your report has been submitted.
+                  </p>
                 </div>
-                <h2 className="mb-2 text-2xl font-bold text-[#1A1A1A]">Thank you!</h2>
-                <p className="text-sm text-[#9CA3AF]">
-                  Your report has been submitted and will be reviewed by our safety team.
-                </p>
+
+                <div
+                  ref={aiScrollRef}
+                  className="flex-1 overflow-y-auto rounded-xl border border-[#E5E7EB] bg-white p-4"
+                >
+                  {aiResponse ? (
+                    <div className="ai-prose text-sm leading-relaxed text-[#374151]">
+                      <Markdown>{aiResponse}</Markdown>
+                    </div>
+                  ) : aiStreaming ? (
+                    <div className="flex items-center gap-2 text-sm text-[#9CA3AF]">
+                      <Loader2 className="h-4 w-4 animate-spin text-[#16A34A]" />
+                      Analyzing your report...
+                    </div>
+                  ) : null}
+                  {aiStreaming && aiResponse && (
+                    <span className="inline-block h-4 w-[2px] animate-[blink_1s_steps(2)_infinite] bg-[#16A34A] align-middle" />
+                  )}
+                </div>
+
+                <button
+                  onClick={onClose}
+                  className="mt-4 flex w-full items-center justify-center rounded-xl bg-[#16A34A] py-3.5 text-xs font-bold uppercase text-white transition-colors hover:bg-[#15803D]"
+                >
+                  Close
+                </button>
               </motion.div>
             )}
           </AnimatePresence>
