@@ -35,18 +35,18 @@ Project Trace hat zwei Seiten: eine **Consumer App** (Handy) und ein **QA Dashbo
 
 ## 1 — God View (Desktop, 3 Min.)
 
-Oeffnet [foodflighttracker.com/overview](https://foodflighttracker.com/overview) auf dem Desktop.
+Öffnet [foodflighttracker.com/overview](https://foodflighttracker.com/overview) auf dem Desktop.
 
-1. Der Globus laedt. Lieferketten-Routen zeichnen sich ueber Kontinente, gruene Partikel fliessen. Lasst es kurz wirken.
-2. Rechts seht ihr Metriken und den Alert-Feed. Sucht den **kritischen Alert** fuer `CH2603-AP7`.
-3. Klickt drauf — die Karte fliegt zur Schweiz/Muenchen, ein roter Ping pulsiert, das Batch-Detail faehrt rein (Risiko 62).
-4. Klickt auf den **Kaese-Cluster bei Kempten** — der klappt auf und zeigt Lineage-Verbindungen.
+1. Der Globus lädt. Lieferketten-Routen zeichnen sich über Kontinente, grüne Partikel fliessen. Lasst es kurz wirken.
+2. Rechts seht ihr Metriken und den Alert-Feed. Sucht den **kritischen Alert** für `CH2603-AP7`.
+3. Klickt drauf — die Karte fliegt zur Schweiz/München, ein roter Ping pulsiert, das Batch-Detail fährt rein (Risiko 62).
+4. Klickt auf den **Käse-Cluster bei Kempten** — der klappt auf und zeigt Lineage-Verbindungen.
 
 ---
 
 ## 2 — Schokoladen-Reise (Handy, 4 Min.)
 
-Scannt den QR-Code oder oeffnet [foodflighttracker.com/scan](https://foodflighttracker.com/scan) auf dem Handy.
+Scannt den QR-Code oder öffnet [foodflighttracker.com/scan](https://foodflighttracker.com/scan) auf dem Handy.
 
 <p align="center">
   <img src="public/qr-scan.png" alt="QR-Code" width="160" />
@@ -54,12 +54,12 @@ Scannt den QR-Code oder oeffnet [foodflighttracker.com/scan](https://foodflightt
 
 1. Tippt auf **"Enter manually"** und gebt den Barcode ein: **`7613031085385`**
 2. Ihr seht die Produktseite: Chocolat au lait von Nestle, Nutri-Score D, Allergene, Chargennummer `CH2603-AP7` mit Risiko 62.
-3. Tippt auf **Map** — eine animierte Route zeichnet sich von der Elfenbeinkueste ueber Hamburg und die Schweiz bis Muenchen. 8 Stationen mit Icons.
-4. Tippt auf den **Lager-Marker** (Station 6, Schweiz) — da war ein Temperaturausreisser: 32.6 C statt max. 20 C, fast 5 Stunden lang.
-5. Tippt auf **Chat** — die KI analysiert automatisch die Charge. Probiert "Is this safe to eat?" — Antwort: Fettreif ist unschoen, aber unbedenklich.
-6. Der **rote Button** unten rechts oeffnet ein Meldeformular. Waehlt "Bad Taste", kurz beschreiben, absenden.
+3. Tippt auf **Map** — eine animierte Route zeichnet sich von der Elfenbeinküste über Hamburg und die Schweiz bis München. 8 Stationen mit Icons.
+4. Tippt auf den **Lager-Marker** (Station 6, Schweiz) — da war ein Temperaturausreißer: 32.6 C statt max. 20 C, fast 5 Stunden lang.
+5. Tippt auf **Chat** — die KI analysiert automatisch die Charge. Probiert "Is this safe to eat?" — Antwort: Fettreif ist unschön, aber unbedenklich.
+6. Der **rote Button** unten rechts öffnet ein Meldeformular. Wählt "Bad Taste", kurz beschreiben, absenden.
 
-> Falls die KI nicht erreichbar ist: Schritte 5-6 ueberspringen, Karte und Scanner funktionieren trotzdem.
+> Falls die KI nicht erreichbar ist: Schritte 5-6 überspringen, Karte und Scanner funktionieren trotzdem.
 
 ---
 
@@ -67,18 +67,18 @@ Scannt den QR-Code oder oeffnet [foodflighttracker.com/scan](https://foodflightt
 
 Gleiche Charge, jetzt aus QA-Sicht.
 
-1. Oeffnet [foodflighttracker.com/batch/CH2603-AP7](https://foodflighttracker.com/batch/CH2603-AP7) — Risiko-Gauge, Journey Map im Dark Theme.
+1. Öffnet [foodflighttracker.com/batch/CH2603-AP7](https://foodflighttracker.com/batch/CH2603-AP7) — Risiko-Gauge, Journey Map im Dark Theme.
 2. **Telemetry**-Tab: Temperatur-Balken pro Station. Lager-Station durchbricht die rote Schwelle bei 20 C deutlich.
-3. Wechselt zu [foodflighttracker.com/batch/K-MAKE-001](https://foodflighttracker.com/batch/K-MAKE-001) (Kaese, Risiko 12). **Lineage**-Tab: 2 Hoefe -> 1 Charge -> 2 Produkte.
-4. Zurueck zu CH2603-AP7, **AI Analysis**-Tab: Die KI streamt eine Risikobewertung. Fragt "Should we issue a recall?" — differenzierte Antwort.
+3. Wechselt zu [foodflighttracker.com/batch/K-MAKE-001](https://foodflighttracker.com/batch/K-MAKE-001) (Käse, Risiko 12). **Lineage**-Tab: 2 Höfe -> 1 Charge -> 2 Produkte.
+4. Zurück zu CH2603-AP7, **AI Analysis**-Tab: Die KI streamt eine Risikobewertung. Fragt "Should we issue a recall?" — differenzierte Antwort.
 
 ---
 
-## 4 — Rueckruf (Desktop + Handy, 2 Min.)
+## 4 — Rückruf (Desktop + Handy, 2 Min.)
 
-1. Oeffnet [foodflighttracker.com/incidents](https://foodflighttracker.com/incidents) — klickt **"Trigger Recall"** bei CH2603-AP7.
+1. Öffnet [foodflighttracker.com/incidents](https://foodflighttracker.com/incidents) — klickt **"Trigger Recall"** bei CH2603-AP7.
 2. Grund eingeben (z.B. "Temperature excursion caused fat bloom"), Severity High, absenden.
-3. Wechselt aufs Handy: [foodflighttracker.com/alerts](https://foodflighttracker.com/alerts) — der Rueckruf erscheint sofort als Alert.
+3. Wechselt aufs Handy: [foodflighttracker.com/alerts](https://foodflighttracker.com/alerts) — der Rückruf erscheint sofort als Alert.
 
 <p align="center">
   <img src="docs/screenshots/mobile-alerts.png" alt="Alerts" width="220" />
@@ -90,10 +90,10 @@ Gleiche Charge, jetzt aus QA-Sicht.
 
 | Produkt | Barcode | Charge | Besonderheit |
 |---------|---------|--------|-------------|
-| Chocolat au lait (Nestle) | `7613031085385` | `CH2603-AP7` | 8 Stationen, 3 Laender, Hitze-Anomalie, Risiko 62 |
-| Allgaeuer Bio-Bergkaese | `4099887766550` | `K-MAKE-001` | 2 Hoefe -> 1 Charge -> 2 Produkte |
+| Chocolat au lait (Nestle) | `7613031085385` | `CH2603-AP7` | 8 Stationen, 3 Länder, Hitze-Anomalie, Risiko 62 |
+| Allgäuer Bio-Bergkäse | `4099887766550` | `K-MAKE-001` | 2 Höfe -> 1 Charge -> 2 Produkte |
 
-Jeder andere echte Barcode wird ueber [OpenFoodFacts](https://world.openfoodfacts.org/) geladen (3 Mio.+ Produkte, aber ohne Lieferkettendaten).
+Jeder andere echte Barcode wird über [OpenFoodFacts](https://world.openfoodfacts.org/) geladen (3 Mio.+ Produkte, aber ohne Lieferkettendaten).
 
 ---
 
@@ -116,7 +116,7 @@ Jeder andere echte Barcode wird ueber [OpenFoodFacts](https://world.openfoodfact
   <img src="docs/erd/architecture.png" alt="Architektur" width="500" />
 </p>
 
-Zwei Route Groups, eine App: `(consumer)/` fuer Handy (Scan, Products, Alerts) und `(dashboard)/` fuer Desktop (Overview, Batches, Incidents). Herkunftsdaten werden ueber FAO/USDA-Handelsanteile aus den Zutaten abgeleitet — keine API liefert das.
+Zwei Route Groups, eine App: `(consumer)/` für Handy (Scan, Products, Alerts) und `(dashboard)/` für Desktop (Overview, Batches, Incidents). Herkunftsdaten werden über FAO/USDA-Handelsanteile aus den Zutaten abgeleitet — keine API liefert das.
 
 ## Lokal starten
 
