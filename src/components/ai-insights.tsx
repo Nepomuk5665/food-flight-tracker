@@ -138,7 +138,7 @@ export default function AiInsights({ lotCode, barcode, context, autoPrompt, sugg
   return (
     <div className={isDashboard
       ? "relative flex h-full flex-col bg-transparent"
-      : "fixed inset-x-0 top-[100px] bottom-[82px] z-[55] flex flex-col bg-[#FAFAF8]"
+      : "fixed inset-x-0 top-[132px] bottom-[82px] z-[55] flex flex-col bg-[#FAFAF8]"
     }>
       <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-2">
         <div className={`mx-auto space-y-2 ${isDashboard ? "max-w-2xl" : "max-w-lg"}`}>

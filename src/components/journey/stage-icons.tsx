@@ -37,7 +37,7 @@ const STAGE_CONFIG: Record<string, { icon: LucideIcon; color: string }> = {
   processing: { icon: Factory,   color: "#6c4f3d" },
   packaging:  { icon: Package,   color: "#7b6b8a" },
   storage:    { icon: Warehouse, color: "#4a6fa5" },
-  transport:  { icon: Truck,     color: "#c44536" },
+  transport:  { icon: Truck,     color: "#5b7fa5" },
   retail:     { icon: Store,     color: "#d4a843" },
 };
 

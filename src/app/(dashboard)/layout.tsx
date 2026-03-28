@@ -10,7 +10,7 @@ export default function DashboardLayout({
     <DesktopGate>
       <div className="min-h-screen bg-black font-sans text-white">
         <CollapsibleSidebar />
-        <main>{children}</main>
+        <main className="md:pl-12">{children}</main>
       </div>
     </DesktopGate>
   );

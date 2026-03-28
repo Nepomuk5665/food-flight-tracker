@@ -58,18 +58,22 @@ const isAllergenIngredient = (ingredient: string, allergens: string[]): boolean 
   });
 };
 
+const VALID_SCORES = new Set(Object.keys(SCORE_STYLES));
+
 const scoreBadgeClass = (score: string | null): string =>
-  score
-    ? SCORE_STYLES[score] ?? "bg-[#777777] text-white"
+  score && VALID_SCORES.has(score)
+    ? SCORE_STYLES[score]
     : "bg-[#F3F4F6] text-[#9CA3AF]";
 
 function ScoreCard({ label, score }: { label: string; score: string | null }) {
+  const display = score && VALID_SCORES.has(score) ? score : "–";
+
   return (
     <div className="flex flex-1 items-center gap-3 rounded-2xl border border-border bg-white px-4 py-3">
       <div
         className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-base font-bold ${scoreBadgeClass(score)}`}
       >
-        {score ?? "–"}
+        {display}
       </div>
       <span className="text-sm font-semibold text-[#1A1A1A]">{label}</span>
     </div>

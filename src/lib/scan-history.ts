@@ -1,5 +1,6 @@
 const STORAGE_KEY = "fft:scan-history";
 const CHAT_KEY = "fft:ai-conversations";
+
 const MAX_ENTRIES = 50;
 
 export type AiMessage = { role: "user" | "assistant"; content: string };
@@ -75,3 +76,5 @@ export function saveConversation(key: string, messages: AiMessage[]) {
 
   localStorage.setItem(CHAT_KEY, JSON.stringify(store));
 }
+
+

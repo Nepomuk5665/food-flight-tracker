@@ -46,7 +46,7 @@ const chocolate = db
     name: "Chocolat au lait",
     brand: "Nestlé",
     category: "chocolate",
-    imageUrl: "/images/chocolate.jpg",
+    imageUrl: "https://images.openfoodfacts.org/images/products/761/303/108/5385/front_fr.45.400.jpg",
     source: "internal",
     nutriScore: "D",
     ecoScore: "C",
@@ -121,6 +121,27 @@ const chocStages = db
       locationName: "Port of Hamburg, Germany",
       latitude: 53.5333,
       longitude: 9.9667,
+      routeCoords: JSON.stringify([
+        [-4.0167, 5.3167],  // Port of Abidjan
+        [-5.5, 4.8],        // Off Ivory Coast
+        [-8.0, 4.5],        // Off Liberia
+        [-13.0, 7.0],       // Off Sierra Leone
+        [-17.5, 12.0],      // Off Senegal
+        [-17.8, 18.0],      // Off Mauritania
+        [-17.0, 24.0],      // Off Western Sahara
+        [-13.5, 28.5],      // Off Canary Islands
+        [-10.0, 34.0],      // Off Morocco
+        [-9.5, 38.5],       // Off Portugal
+        [-9.0, 43.0],       // Off Galicia
+        [-5.0, 47.5],       // Bay of Biscay
+        [-4.5, 48.5],       // Off Brittany
+        [-2.0, 49.5],       // English Channel west
+        [1.0, 50.8],        // English Channel east
+        [3.0, 51.5],        // North Sea south
+        [6.5, 53.5],        // North Sea east
+        [8.7, 53.9],        // Elbe estuary
+        [9.9667, 53.5333],  // Port of Hamburg
+      ]),
       operator: "CMA CGM Logistics",
       metadata: JSON.stringify({
         vesselName: "CMA CGM Trocadéro",
@@ -356,7 +377,7 @@ const cheese = db
     name: "Allgäu Bio-Bergkäse 250g",
     brand: "AlpenMilch",
     category: "dairy",
-    imageUrl: "/images/cheese.jpg",
+    imageUrl: null,
     source: "internal",
     nutriScore: "C",
     ecoScore: "A",
