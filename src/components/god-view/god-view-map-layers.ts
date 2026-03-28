@@ -261,3 +261,31 @@ export const flowParticleLayer: CircleLayerSpecification = {
     "circle-stroke-color": "rgba(255,255,255,0.5)",
   },
 };
+
+// ---------------------------------------------------------------------------
+// Report ripple layers — animated expanding circles for new consumer reports
+// ---------------------------------------------------------------------------
+
+export const reportRippleLayer: CircleLayerSpecification = {
+  id: "god-view-report-ripple",
+  type: "circle",
+  source: "god-view-report-ripples",
+  paint: {
+    "circle-color": RISK_COLORS.warning,
+    "circle-radius": ["get", "radius"] as unknown as number,
+    "circle-opacity": ["get", "opacity"] as unknown as number,
+    "circle-blur": 0.6,
+  },
+};
+
+export const reportRippleGlowLayer: CircleLayerSpecification = {
+  id: "god-view-report-ripple-glow",
+  type: "circle",
+  source: "god-view-report-ripples",
+  paint: {
+    "circle-color": RISK_COLORS.warning,
+    "circle-radius": ["*", ["get", "radius"], 1.5] as unknown as number,
+    "circle-opacity": ["*", ["get", "opacity"], 0.3] as unknown as number,
+    "circle-blur": 1,
+  },
+};
