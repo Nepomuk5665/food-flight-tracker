@@ -1,4 +1,4 @@
-import { eq, desc, asc, sql, and, gte } from "drizzle-orm";
+import { eq, desc, asc, sql, and, gte, inArray } from "drizzle-orm";
 import { db } from "./index";
 import {
   products,
@@ -472,24 +472,46 @@ export function getGodViewData() {
     return batchIdToLotCode.get(root) ?? root;
   }
 
-  const godBatches = allBatchRows.map(({ batch, product }) => {
-    const stages = db
-      .select()
-      .from(batchStages)
-      .where(eq(batchStages.batchId, batch.id))
-      .orderBy(asc(batchStages.sequenceOrder))
-      .all();
+  // ── Batch-fetch all stages and anomalies in 2 queries (eliminates N+1) ──
+  const batchIds = allBatchRows.map(({ batch }) => batch.id);
 
-    const anomalies = db
-      .select()
-      .from(stageAnomalies)
-      .where(eq(stageAnomalies.batchId, batch.id))
-      .all();
+  const allStages = batchIds.length > 0
+    ? db.select().from(batchStages)
+        .where(inArray(batchStages.batchId, batchIds))
+        .orderBy(asc(batchStages.sequenceOrder))
+        .all()
+    : [];
+
+  const allAnomalies = batchIds.length > 0
+    ? db.select().from(stageAnomalies)
+        .where(inArray(stageAnomalies.batchId, batchIds))
+        .all()
+    : [];
+
+  // Index by batchId for O(1) lookup
+  const stagesByBatch = new Map<string, typeof allStages>();
+  for (const s of allStages) {
+    const list = stagesByBatch.get(s.batchId) ?? [];
+    list.push(s);
+    stagesByBatch.set(s.batchId, list);
+  }
+
+  const anomaliesByBatch = new Map<string, typeof allAnomalies>();
+  for (const a of allAnomalies) {
+    const list = anomaliesByBatch.get(a.batchId) ?? [];
+    list.push(a);
+    anomaliesByBatch.set(a.batchId, list);
+  }
+
+  const sevRank: Record<string, number> = { low: 1, medium: 2, high: 3, critical: 4 };
+
+  const godBatches = allBatchRows.map(({ batch, product }) => {
+    const stages = stagesByBatch.get(batch.id) ?? [];
+    const anomalies = anomaliesByBatch.get(batch.id) ?? [];
 
     const anomalyCountByStage = new Map<string, number>();
     const maxSevByStage = new Map<string, string>();
     let maxSev: string | null = null;
-    const sevRank: Record<string, number> = { low: 1, medium: 2, high: 3, critical: 4 };
 
     for (const a of anomalies) {
       anomalyCountByStage.set(a.stageId, (anomalyCountByStage.get(a.stageId) ?? 0) + 1);

@@ -5,15 +5,14 @@ import { Monitor } from "lucide-react";
 import Link from "next/link";
 
 export default function DesktopGate({ children }: { children: React.ReactNode }) {
-  const [isMobile, setIsMobile] = useState(false);
-  const [checked, setChecked] = useState(false);
+  const [isMobile, setIsMobile] = useState<boolean | null>(null);
 
   useEffect(() => {
     setIsMobile(/Android|iPhone|iPad|iPod/i.test(navigator.userAgent));
-    setChecked(true);
   }, []);
 
-  if (!checked) return null;
+  // SSR & pre-hydration: render children to avoid blank flash
+  if (isMobile === null) return <>{children}</>;
 
   if (isMobile) {
     return (

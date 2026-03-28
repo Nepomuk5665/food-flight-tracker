@@ -1,20 +1,22 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { QRCodeSVG } from "qrcode.react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import { Smartphone } from "lucide-react";
 import Link from "next/link";
 
+const LazyQRCode = lazy(() =>
+  import("qrcode.react").then((m) => ({ default: m.QRCodeSVG })),
+);
+
 export default function MobileGate({ children }: { children: React.ReactNode }) {
-  const [isMobile, setIsMobile] = useState(true);
-  const [checked, setChecked] = useState(false);
+  const [isMobile, setIsMobile] = useState<boolean | null>(null);
 
   useEffect(() => {
     setIsMobile(/Android|iPhone|iPad|iPod/i.test(navigator.userAgent));
-    setChecked(true);
   }, []);
 
-  if (!checked) return null;
+  // SSR & pre-hydration: render children to avoid blank flash
+  if (isMobile === null) return <>{children}</>;
 
   if (!isMobile) {
     return (
@@ -28,12 +30,14 @@ export default function MobileGate({ children }: { children: React.ReactNode }) 
             The Consumer App is designed for mobile devices with a camera for barcode scanning. Scan this QR code with your phone:
           </p>
           <div className="mx-auto mt-6 inline-block rounded-xl border-4 border-[#16A34A] p-3">
-            <QRCodeSVG
-              value="https://foodflighttracker.com/scan"
-              size={200}
-              fgColor="#16A34A"
-              bgColor="#ffffff"
-            />
+            <Suspense fallback={<div className="h-[200px] w-[200px] animate-pulse bg-[#E5E7EB]" />}>
+              <LazyQRCode
+                value="https://foodflighttracker.com/scan"
+                size={200}
+                fgColor="#16A34A"
+                bgColor="#ffffff"
+              />
+            </Suspense>
           </div>
           <p className="mt-4 text-xs font-bold uppercase tracking-wide text-[#16A34A]">
             foodflighttracker.com/scan

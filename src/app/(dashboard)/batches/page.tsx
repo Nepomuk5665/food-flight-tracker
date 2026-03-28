@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
 import { Search, Filter, ChevronDown, ChevronUp } from "lucide-react";
 
 type Batch = {
@@ -42,6 +41,7 @@ export default function BatchesPage() {
   const router = useRouter();
   const [batches, setBatches] = useState<Batch[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [sortConfig, setSortConfig] = useState<{ key: keyof Batch; direction: "asc" | "desc" }>({
     key: "riskScore",
@@ -49,18 +49,34 @@ export default function BatchesPage() {
   });
 
   useEffect(() => {
-    const fetchBatches = async () => {
+    let cancelled = false;
+
+    const fetchBatches = async (attempt = 0) => {
       try {
-        const res = await fetch("/api/dashboard/overview");
+        const res = await fetch("/api/dashboard/batches");
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const json = await res.json();
-        setBatches(json.data.batches);
-      } catch (error) {
-        console.error("Failed to fetch batches:", error);
+        if (!json.success) throw new Error(json.error?.message ?? "Unknown error");
+        if (!cancelled) {
+          setBatches(json.data?.batches ?? []);
+          setError(null);
+        }
+      } catch (err) {
+        if (!cancelled && attempt < 2) {
+          setTimeout(() => fetchBatches(attempt + 1), 1000 * (attempt + 1));
+          return;
+        }
+        if (!cancelled) {
+          const message = err instanceof Error ? err.message : "Failed to load batches";
+          setError(message);
+        }
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     };
     fetchBatches();
+
+    return () => { cancelled = true; };
   }, []);
 
   const handleSort = (key: keyof Batch) => {
@@ -96,12 +112,27 @@ export default function BatchesPage() {
     );
   }
 
+  if (error) {
+    return (
+      <div className="flex h-[60vh] flex-col items-center justify-center p-6">
+        <div className="border border-[#ff4d4f]/20 bg-[#ff4d4f]/5 px-8 py-6 text-center backdrop-blur-2xl">
+          <p className="text-sm font-bold text-[#ff4d4f]">Failed to load batches</p>
+          <p className="mt-1 text-xs text-white/40">{error}</p>
+          <button
+            onClick={() => { setLoading(true); setError(null); window.location.reload(); }}
+            className="mt-4 border border-white/[0.12] bg-white/[0.06] px-4 py-2 text-xs font-bold uppercase tracking-wider text-white/60 hover:bg-white/[0.1] transition-colors"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, ease: "easeOut" }}
-      className="space-y-6 p-6"
+    <div
+      className="space-y-6 p-6 animate-[fadeSlideIn_0.5s_ease-out]"
+      style={{ "--tw-enter-opacity": "0", "--tw-enter-translate-y": "20px" } as React.CSSProperties}
     >
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <h1 className="text-2xl font-bold uppercase tracking-wider text-white">Batch Directory</h1>
@@ -199,6 +230,6 @@ export default function BatchesPage() {
           </table>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 }

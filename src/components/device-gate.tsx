@@ -1,9 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import { useRouter } from "next/navigation";
-import { QRCodeSVG } from "qrcode.react";
 import { Smartphone, Monitor, X } from "lucide-react";
+
+const LazyQRCode = lazy(() =>
+  import("qrcode.react").then((m) => ({ default: m.QRCodeSVG })),
+);
 
 type Props = {
   type: "mobile-only" | "desktop-only";
@@ -57,12 +60,14 @@ export default function DeviceGate({ type, href, children }: Props) {
               The Consumer App requires a phone camera for barcode scanning. Scan this QR code with your phone:
             </p>
             <div className="mx-auto mt-6 inline-block rounded-xl border-4 border-[#16A34A] p-3">
-              <QRCodeSVG
-                value="https://foodflighttracker.com/scan"
-                size={180}
-                fgColor="#16A34A"
-                bgColor="#ffffff"
-              />
+              <Suspense fallback={<div className="h-[180px] w-[180px] animate-pulse bg-[#E5E7EB]" />}>
+                <LazyQRCode
+                  value="https://foodflighttracker.com/scan"
+                  size={180}
+                  fgColor="#16A34A"
+                  bgColor="#ffffff"
+                />
+              </Suspense>
             </div>
             <p className="mt-4 text-xs font-bold uppercase tracking-wide text-[#16A34A]">
               foodflighttracker.com/scan

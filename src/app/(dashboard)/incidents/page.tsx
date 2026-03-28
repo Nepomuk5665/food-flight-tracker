@@ -32,18 +32,26 @@ export default function IncidentsPage() {
   const [showForm, setShowForm] = useState(false);
   const [showResolved, setShowResolved] = useState(false);
 
+  const [error, setError] = useState<string | null>(null);
   const [reason, setReason] = useState("");
   const [severity, setSeverity] = useState("high");
   const [lotCodes, setLotCodes] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  const fetchRecalls = async () => {
+  const fetchRecalls = async (attempt = 0) => {
     try {
       const res = await fetch("/api/recalls");
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const json = await res.json();
       setRecalls(json.data?.recalls ?? []);
-    } catch (error) {
-      console.error("Failed to fetch recalls:", error);
+      setError(null);
+    } catch (err) {
+      if (attempt < 2) {
+        setTimeout(() => fetchRecalls(attempt + 1), 1000 * (attempt + 1));
+        return;
+      }
+      const message = err instanceof Error ? err.message : "Failed to load incidents";
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -51,6 +59,7 @@ export default function IncidentsPage() {
 
   useEffect(() => {
     fetchRecalls();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleTriggerRecall = async (e: React.FormEvent) => {
@@ -109,6 +118,23 @@ export default function IncidentsPage() {
         <div className="h-12 border border-white/[0.06] bg-white/[0.02] animate-pulse" />
         <div className="h-48 border border-white/[0.06] bg-white/[0.02] animate-pulse" />
         <div className="h-48 border border-white/[0.06] bg-white/[0.02] animate-pulse" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex h-[60vh] flex-col items-center justify-center p-6">
+        <div className="border border-[#ff4d4f]/20 bg-[#ff4d4f]/5 px-8 py-6 text-center backdrop-blur-2xl">
+          <p className="text-sm font-bold text-[#ff4d4f]">Failed to load incidents</p>
+          <p className="mt-1 text-xs text-white/40">{error}</p>
+          <button
+            onClick={() => { setLoading(true); setError(null); fetchRecalls(); }}
+            className="mt-4 border border-white/[0.12] bg-white/[0.06] px-4 py-2 text-xs font-bold uppercase tracking-wider text-white/60 hover:bg-white/[0.1] transition-colors"
+          >
+            Retry
+          </button>
+        </div>
       </div>
     );
   }

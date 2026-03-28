@@ -20,7 +20,7 @@ export function useGodViewData() {
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const mountedRef = useRef(true);
 
-  const fetchData = useCallback(async () => {
+  const fetchData = useCallback(async (attempt = 0) => {
     try {
       const res = await fetch("/api/dashboard/overview");
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -33,6 +33,11 @@ export function useGodViewData() {
       }
     } catch (err: unknown) {
       if (mountedRef.current) {
+        // Retry up to 2 times with backoff before surfacing error
+        if (attempt < 2) {
+          setTimeout(() => fetchData(attempt + 1), 1000 * (attempt + 1));
+          return;
+        }
         const message = err instanceof Error ? err.message : "Failed to load data";
         setState((prev) => ({ ...prev, loading: false, error: message }));
       }

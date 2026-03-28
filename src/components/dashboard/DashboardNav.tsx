@@ -13,7 +13,7 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { href: "/overview", label: "Overview", icon: <Globe size={18} className="text-white" /> },
-  { href: "/batch/demo-lot", label: "Batches", icon: <Package size={18} className="text-white" /> },
+  { href: "/batches", label: "Batches", icon: <Package size={18} className="text-white" /> },
   { href: "/incidents", label: "Incidents", icon: <AlertTriangle size={18} className="text-white" /> },
 ];
 
