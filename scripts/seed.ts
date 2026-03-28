@@ -33,25 +33,26 @@ sqlite.exec(`
 `);
 
 // ===========================================================================
-// SUPPLY CHAIN 1: Swiss Dark Chocolate (simple linear chain)
-// Ghana → Belgium → Munich → Retail
+// SUPPLY CHAIN 1: Nestlé Chocolat au lait (Ivory Coast → Switzerland → Munich)
+// Realistic GS1 Digital Link: https://qr.nestle.com/01/07613031085385
 // ===========================================================================
 
-console.log("\n── Supply Chain 1: Chocolate (linear) ──");
+console.log("\n── Supply Chain 1: Chocolat au lait (linear) ──");
 
 const chocolate = db
   .insert(schema.products)
   .values({
-    barcode: "4012345678901",
-    name: "Swiss Dark Chocolate 100g",
-    brand: "ChocoTrace",
+    barcode: "07613031085385",
+    name: "Chocolat au lait",
+    brand: "Nestlé",
     category: "chocolate",
     imageUrl: "/images/chocolate.jpg",
     source: "internal",
     nutriScore: "D",
     ecoScore: "C",
-    ingredients: "Cocoa mass, sugar, cocoa butter, vanilla extract",
-    allergens: JSON.stringify(["soy"]),
+    ingredients:
+      "Sugar, whole milk powder, cocoa butter, cocoa mass, emulsifier (soya lecithin), vanilla extract",
+    allergens: JSON.stringify(["milk", "soy"]),
   })
   .returning()
   .get()!;
@@ -59,21 +60,21 @@ const chocolate = db
 const chocBatch = db
   .insert(schema.batches)
   .values({
-    lotCode: "L6029479302",
+    lotCode: "CH2603-AP7",
     productId: chocolate.id,
     status: "active",
-    riskScore: 45,
-    unitCount: 24000,
-    createdAt: iso("2026-01-15T08:00:00Z"),
-    updatedAt: iso("2026-01-30T05:00:00Z"),
+    riskScore: 62,
+    unitCount: 18000,
+    createdAt: iso("2026-01-10T06:00:00Z"),
+    updatedAt: iso("2026-02-28T14:00:00Z"),
   })
   .returning()
   .get()!;
 
-console.log(`  Product: ${chocolate.name}`);
+console.log(`  Product: ${chocolate.name} (barcode: ${chocolate.barcode})`);
 console.log(`  Batch: ${chocBatch.lotCode} (risk: ${chocBatch.riskScore})`);
 
-// Stages: harvest → processing → sea transport → manufacturing → packaging → road transport → storage → retail
+// Stages: harvest → fermentation → sea freight → rail → manufacturing → warehouse (ANOMALY) → road → retail
 const chocStages = db
   .insert(schema.batchStages)
   .values([
@@ -81,115 +82,125 @@ const chocStages = db
       batchId: chocBatch.id,
       stageType: "harvest",
       name: "Cocoa Harvest",
-      locationName: "Kumasi Cocoa Farm, Ghana",
-      latitude: 6.6885,
-      longitude: -1.6244,
-      operator: "GhanaCocoa Cooperative",
+      locationName: "Coopérative CAYAT, San-Pédro, Ivory Coast",
+      latitude: 4.7485,
+      longitude: -6.6363,
+      operator: "CAYAT Cooperative",
       metadata: JSON.stringify({
-        harvestWeight: "2,400 kg",
-        certification: "Fairtrade",
-        variety: "Forastero",
+        harvestWeight: "3,200 kg dried beans",
+        certification: "Rainforest Alliance, UTZ",
+        variety: "Forastero (Amelonado)",
+        farmAltitude: "180m",
       }),
-      startedAt: iso("2026-01-15T08:00:00Z"),
-      completedAt: iso("2026-01-18T16:00:00Z"),
+      startedAt: iso("2026-01-10T06:00:00Z"),
+      completedAt: iso("2026-01-14T17:00:00Z"),
       sequenceOrder: 1,
     },
     {
       batchId: chocBatch.id,
       stageType: "processing",
-      name: "Fermentation & Drying",
-      locationName: "Kumasi Processing Center, Ghana",
-      latitude: 6.6936,
-      longitude: -1.6163,
-      operator: "GhanaCocoa Cooperative",
+      name: "Fermentation & Sun Drying",
+      locationName: "CAYAT Processing Station, San-Pédro, Ivory Coast",
+      latitude: 4.7512,
+      longitude: -6.6318,
+      operator: "CAYAT Cooperative",
       metadata: JSON.stringify({
-        process: "6-day fermentation, 7-day sun drying",
-        moistureContent: "7.5%",
+        process: "5-day heap fermentation under banana leaves, 6-day raised-bed sun drying",
+        fermentationTemp: "45-50°C peak",
+        finalMoisture: "7.2%",
+        beanCount: "~98 beans/100g (Grade 1)",
       }),
-      startedAt: iso("2026-01-18T17:00:00Z"),
-      completedAt: iso("2026-01-21T12:00:00Z"),
+      startedAt: iso("2026-01-15T07:00:00Z"),
+      completedAt: iso("2026-01-26T16:00:00Z"),
       sequenceOrder: 2,
     },
     {
       batchId: chocBatch.id,
       stageType: "transport",
-      name: "Sea Freight Ghana → Belgium",
-      locationName: "Port of Antwerp, Belgium",
-      latitude: 51.2194,
-      longitude: 4.4025,
-      operator: "MaerskLine Logistics",
+      name: "Sea Freight Abidjan → Hamburg",
+      locationName: "Port of Hamburg, Germany",
+      latitude: 53.5333,
+      longitude: 9.9667,
+      operator: "CMA CGM Logistics",
       metadata: JSON.stringify({
-        vesselName: "Maersk Harmony",
-        containerType: "Refrigerated 20ft",
-        containerTemp: "2-6°C",
+        vesselName: "CMA CGM Trocadéro",
+        containerType: "20ft ventilated dry container",
+        containerTemp: "ambient (18-25°C)",
+        transitDays: 14,
+        departurePort: "Port of Abidjan, Ivory Coast",
       }),
-      startedAt: iso("2026-01-22T06:00:00Z"),
-      completedAt: iso("2026-02-05T14:00:00Z"),
+      startedAt: iso("2026-01-28T08:00:00Z"),
+      completedAt: iso("2026-02-11T06:00:00Z"),
       sequenceOrder: 3,
+    },
+    {
+      batchId: chocBatch.id,
+      stageType: "transport",
+      name: "Intermodal Rail Hamburg → Buchs AG",
+      locationName: "Buchs AG Rail Terminal, Switzerland",
+      latitude: 47.3875,
+      longitude: 8.0814,
+      operator: "SBB Cargo International",
+      metadata: JSON.stringify({
+        vehicleType: "Intermodal rail wagon",
+        transitHours: 18,
+        targetTemp: "15-20°C",
+      }),
+      startedAt: iso("2026-02-11T14:00:00Z"),
+      completedAt: iso("2026-02-12T08:00:00Z"),
+      sequenceOrder: 4,
     },
     {
       batchId: chocBatch.id,
       stageType: "processing",
       name: "Chocolate Manufacturing",
-      locationName: "ChocoTrace Factory, Brussels, Belgium",
-      latitude: 50.8503,
-      longitude: 4.3517,
-      operator: "ChocoTrace NV",
+      locationName: "Nestlé Factory, Broc, Switzerland",
+      latitude: 46.6119,
+      longitude: 7.0972,
+      operator: "Nestlé Suisse S.A.",
       metadata: JSON.stringify({
-        process: "Roasting, conching, tempering",
-        cocoaContent: "72%",
+        process: "Roasting (130°C/25min), winnowing, conching (72h), tempering (28-31°C), molding",
+        cocoaContent: "30% (milk chocolate)",
+        milkPowder: "Swiss whole milk powder (22%)",
+        conchingTime: "72 hours",
       }),
-      startedAt: iso("2026-02-06T07:00:00Z"),
-      completedAt: iso("2026-02-07T18:00:00Z"),
-      sequenceOrder: 4,
-    },
-    {
-      batchId: chocBatch.id,
-      stageType: "packaging",
-      name: "Packaging & Labeling",
-      locationName: "ChocoTrace Factory, Brussels, Belgium",
-      latitude: 50.8503,
-      longitude: 4.3517,
-      operator: "ChocoTrace NV",
-      metadata: JSON.stringify({
-        packagingType: "Foil wrap + cardboard sleeve",
-        unitsProduced: "24,000 bars",
-        bestBefore: "2026-08-07",
-      }),
-      startedAt: iso("2026-02-07T19:00:00Z"),
-      completedAt: iso("2026-02-08T06:00:00Z"),
+      startedAt: iso("2026-02-13T06:00:00Z"),
+      completedAt: iso("2026-02-16T18:00:00Z"),
       sequenceOrder: 5,
     },
     {
       batchId: chocBatch.id,
-      stageType: "transport",
-      name: "Road Freight Belgium → Germany",
-      locationName: "Munich Distribution Center, Germany",
-      latitude: 48.1351,
-      longitude: 11.582,
-      operator: "DHL Freight",
+      stageType: "storage",
+      name: "Distribution Warehouse",
+      locationName: "Nestlé DC Suhr, Aargau, Switzerland",
+      latitude: 47.3714,
+      longitude: 8.0803,
+      operator: "Nestlé Distribution AG",
       metadata: JSON.stringify({
-        vehicleType: "Refrigerated truck",
-        targetTemp: "15-18°C",
+        warehouseZone: "Zone C-04 (Confectionery)",
+        targetTemp: "16-18°C",
+        targetHumidity: "50-60%",
+        palletId: "PAL-2026-CH2603-AP7-0042",
       }),
-      startedAt: iso("2026-02-08T08:00:00Z"),
-      completedAt: iso("2026-02-09T16:00:00Z"),
+      startedAt: iso("2026-02-17T07:00:00Z"),
+      completedAt: iso("2026-02-24T06:00:00Z"),
       sequenceOrder: 6,
     },
     {
       batchId: chocBatch.id,
-      stageType: "storage",
-      name: "Warehouse Storage",
-      locationName: "Munich Distribution Center, Germany",
+      stageType: "transport",
+      name: "Road Freight Suhr → Munich",
+      locationName: "Munich Distribution Hub, Germany",
       latitude: 48.1351,
       longitude: 11.582,
-      operator: "DHL Supply Chain",
+      operator: "Planzer Transport AG",
       metadata: JSON.stringify({
-        warehouseTemp: "15-18°C",
-        storageZone: "Zone A-12",
+        vehicleType: "Climate-controlled truck",
+        targetTemp: "15-18°C",
+        transitHours: 5,
       }),
-      startedAt: iso("2026-02-09T17:00:00Z"),
-      completedAt: iso("2026-02-10T06:00:00Z"),
+      startedAt: iso("2026-02-24T08:00:00Z"),
+      completedAt: iso("2026-02-24T13:00:00Z"),
       sequenceOrder: 7,
     },
     {
@@ -201,10 +212,11 @@ const chocStages = db
       longitude: 11.4614,
       operator: "REWE Group",
       metadata: JSON.stringify({
-        shelfLocation: "Aisle 5, Shelf B",
-        retailPrice: "€2.49",
+        shelfLocation: "Aisle 4, Shelf C — Imported Chocolate",
+        retailPrice: "€1.99",
+        bestBefore: "2026-09-30",
       }),
-      startedAt: iso("2026-02-11T06:00:00Z"),
+      startedAt: iso("2026-02-25T06:00:00Z"),
       completedAt: null,
       sequenceOrder: 8,
     },
@@ -214,67 +226,66 @@ const chocStages = db
 
 console.log(`  Stages: ${chocStages.length}`);
 
-// Telemetry — sea transport with cold chain break
-const seaTransportStage = chocStages[2];
+// ---------------------------------------------------------------------------
+// Telemetry — warehouse storage with heat + humidity excursion
+// ---------------------------------------------------------------------------
 
-const seaTempReadings: { time: string; temp: number; humidity: number }[] = [];
+const warehouseStage = chocStages[5]; // Distribution Warehouse (sequenceOrder 6)
 
-// Jan 22-29: Normal readings (every 6 hours)
-for (let day = 22; day <= 29; day++) {
-  for (const hour of [0, 6, 12, 18]) {
-    seaTempReadings.push({
-      time: `2026-01-${String(day).padStart(2, "0")}T${String(hour).padStart(2, "0")}:00:00Z`,
-      temp: 3.5 + Math.random() * 1.5,
-      humidity: 60 + Math.random() * 10,
+const warehouseReadings: { time: string; temp: number; humidity: number }[] = [];
+
+// Feb 17-19: Normal conditions (every 4 hours)
+for (let day = 17; day <= 19; day++) {
+  for (const hour of [0, 4, 8, 12, 16, 20]) {
+    warehouseReadings.push({
+      time: `2026-02-${String(day).padStart(2, "0")}T${String(hour).padStart(2, "0")}:00:00Z`,
+      temp: 16.5 + Math.random() * 1.5,
+      humidity: 52 + Math.random() * 6,
     });
   }
 }
 
-// Jan 30: Cold chain break
-seaTempReadings.push(
-  { time: "2026-01-30T00:00:00Z", temp: 4.1, humidity: 62 },
-  { time: "2026-01-30T01:00:00Z", temp: 5.8, humidity: 64 },
-  { time: "2026-01-30T02:00:00Z", temp: 7.3, humidity: 67 },
-  { time: "2026-01-30T03:00:00Z", temp: 10.4, humidity: 71 },
-  { time: "2026-01-30T03:15:00Z", temp: 12.8, humidity: 74 },
-  { time: "2026-01-30T04:00:00Z", temp: 11.2, humidity: 72 },
-  { time: "2026-01-30T05:00:00Z", temp: 8.6, humidity: 69 },
-  { time: "2026-01-30T05:14:00Z", temp: 6.1, humidity: 65 },
-  { time: "2026-01-30T06:00:00Z", temp: 4.5, humidity: 63 },
-  { time: "2026-01-30T12:00:00Z", temp: 4.2, humidity: 62 },
-  { time: "2026-01-30T18:00:00Z", temp: 3.9, humidity: 61 },
+// Feb 20: COOLING FAILURE — temperature spikes, humidity rises
+// This is the anomaly window: 4+ hours above 30°C
+warehouseReadings.push(
+  { time: "2026-02-20T00:00:00Z", temp: 17.2, humidity: 54 },
+  { time: "2026-02-20T04:00:00Z", temp: 17.8, humidity: 55 },
+  { time: "2026-02-20T06:00:00Z", temp: 21.4, humidity: 58 },
+  { time: "2026-02-20T07:00:00Z", temp: 25.7, humidity: 63 },
+  { time: "2026-02-20T08:00:00Z", temp: 29.3, humidity: 68 },
+  { time: "2026-02-20T08:30:00Z", temp: 31.1, humidity: 72 },
+  { time: "2026-02-20T09:00:00Z", temp: 32.6, humidity: 76 },  // Peak
+  { time: "2026-02-20T09:30:00Z", temp: 32.1, humidity: 78 },  // Peak humidity
+  { time: "2026-02-20T10:00:00Z", temp: 30.8, humidity: 75 },
+  { time: "2026-02-20T10:30:00Z", temp: 28.4, humidity: 71 },
+  { time: "2026-02-20T11:00:00Z", temp: 24.9, humidity: 66 },
+  { time: "2026-02-20T12:00:00Z", temp: 21.3, humidity: 61 },  // Cooling restored
+  { time: "2026-02-20T14:00:00Z", temp: 18.6, humidity: 57 },
+  { time: "2026-02-20T16:00:00Z", temp: 17.4, humidity: 55 },
+  { time: "2026-02-20T20:00:00Z", temp: 17.0, humidity: 53 },
 );
 
-// Jan 31 - Feb 5: Normal again
-for (let day = 31; day <= 31; day++) {
-  for (const hour of [0, 6, 12, 18]) {
-    seaTempReadings.push({
-      time: `2026-01-${day}T${String(hour).padStart(2, "0")}:00:00Z`,
-      temp: 3.5 + Math.random() * 1.5,
-      humidity: 60 + Math.random() * 10,
-    });
-  }
-}
-for (let day = 1; day <= 5; day++) {
-  for (const hour of [0, 6, 12, 18]) {
-    seaTempReadings.push({
+// Feb 21-23: Normal again
+for (let day = 21; day <= 23; day++) {
+  for (const hour of [0, 4, 8, 12, 16, 20]) {
+    warehouseReadings.push({
       time: `2026-02-${String(day).padStart(2, "0")}T${String(hour).padStart(2, "0")}:00:00Z`,
-      temp: 3.5 + Math.random() * 1.5,
-      humidity: 60 + Math.random() * 10,
+      temp: 16.5 + Math.random() * 1.5,
+      humidity: 52 + Math.random() * 6,
     });
   }
 }
 
-const chocTelemetry = seaTempReadings.flatMap((r) => [
+const chocTelemetry = warehouseReadings.flatMap((r) => [
   {
-    stageId: seaTransportStage.id,
+    stageId: warehouseStage.id,
     readingType: "temperature" as const,
     value: Math.round(r.temp * 10) / 10,
     unit: "°C",
     recordedAt: iso(r.time),
   },
   {
-    stageId: seaTransportStage.id,
+    stageId: warehouseStage.id,
     readingType: "humidity" as const,
     value: Math.round(r.humidity * 10) / 10,
     unit: "%",
@@ -285,25 +296,51 @@ const chocTelemetry = seaTempReadings.flatMap((r) => [
 db.insert(schema.telemetryReadings).values(chocTelemetry).run();
 console.log(`  Telemetry: ${chocTelemetry.length} readings`);
 
-// Anomaly: cold chain break
+// ---------------------------------------------------------------------------
+// Anomaly: heat + humidity excursion causing fat/sugar bloom
+// ---------------------------------------------------------------------------
+
 db.insert(schema.stageAnomalies)
   .values({
-    stageId: seaTransportStage.id,
+    stageId: warehouseStage.id,
     batchId: chocBatch.id,
-    anomalyType: "cold_chain_break",
+    anomalyType: "temperature_excursion",
     severity: "critical",
     description:
-      "Temperature exceeded 10°C for 2h 14min during Atlantic crossing. Peak temperature: 12.8°C. Refrigeration unit malfunction suspected.",
-    thresholdValue: 10.0,
-    actualValue: 12.8,
-    durationMinutes: 134,
-    riskScoreImpact: 45,
-    detectedAt: iso("2026-01-30T03:15:00Z"),
-    resolvedAt: null,
+      "Warehouse cooling system failure in Zone C-04. Temperature rose from 17°C to 32.6°C over 3 hours (06:00-09:00 UTC, Feb 20). " +
+      "Cocoa butter softening point (27°C) exceeded for 2h 45min. Peak humidity 78% concurrent with heat spike. " +
+      "Conditions consistent with partial fat bloom and sugar bloom formation — cocoa butter migration to surface causes whitish " +
+      "discoloration and grainy texture; dissolved surface sugar recrystallizes as gritty coating. " +
+      "Affected product likely exhibits bitter, chalky off-taste and reduced snap. " +
+      "Root cause: HVAC compressor bearing seizure in cooling unit CU-C04-02.",
+    thresholdValue: 20.0,
+    actualValue: 32.6,
+    durationMinutes: 285,
+    riskScoreImpact: 62,
+    detectedAt: iso("2026-02-20T08:30:00Z"),
+    resolvedAt: iso("2026-02-20T12:00:00Z"),
   })
   .run();
 
-console.log("  Anomaly: cold chain break on sea transport");
+console.log("  Anomaly: warehouse heat excursion (fat/sugar bloom risk)");
+
+// ---------------------------------------------------------------------------
+// Consumer report: someone noticed bitter taste
+// ---------------------------------------------------------------------------
+
+db.insert(schema.consumerReports)
+  .values({
+    lotCode: chocBatch.lotCode,
+    batchId: chocBatch.id,
+    deviceId: "demo-device-001",
+    category: "taste_quality",
+    description:
+      "Schokolade schmeckt bitter und kreidig, nicht wie gewohnt. Oberfläche sieht leicht weißlich aus. Habe das Produkt bei REWE gekauft.",
+    status: "new",
+  })
+  .run();
+
+console.log("  Consumer report: bitter taste complaint seeded");
 
 // ===========================================================================
 // SUPPLY CHAIN 2: Allgäu Bio-Bergkäse (many-to-many)
@@ -323,7 +360,8 @@ const cheese = db
     source: "internal",
     nutriScore: "C",
     ecoScore: "A",
-    ingredients: "Pasteurized milk, salt, rennet, cultures (Lactococcus lactis, Lactobacillus helveticus)",
+    ingredients:
+      "Pasteurized milk, salt, rennet, cultures (Lactococcus lactis, Lactobacillus helveticus)",
     allergens: JSON.stringify(["milk"]),
   })
   .returning()
@@ -401,15 +439,19 @@ const cheeseWheel = db
   .get()!;
 
 console.log(`  Product: ${cheese.name}`);
-console.log(`  Batches: ${cheeseFarmH.lotCode}, ${cheeseFarmS.lotCode}, ${cheeseMake.lotCode}, ${cheeseSlice.lotCode}, ${cheeseWheel.lotCode}`);
+console.log(
+  `  Batches: ${cheeseFarmH.lotCode}, ${cheeseFarmS.lotCode}, ${cheeseMake.lotCode}, ${cheeseSlice.lotCode}, ${cheeseWheel.lotCode}`,
+);
 
 // Lineage: 2 farms merge → cheese → splits into slices + wheels
-db.insert(schema.batchLineage).values([
-  { parentBatchId: cheeseFarmH.id, childBatchId: cheeseMake.id, relationship: "merge", ratio: 0.57 },
-  { parentBatchId: cheeseFarmS.id, childBatchId: cheeseMake.id, relationship: "merge", ratio: 0.43 },
-  { parentBatchId: cheeseMake.id, childBatchId: cheeseSlice.id, relationship: "split", ratio: 0.8 },
-  { parentBatchId: cheeseMake.id, childBatchId: cheeseWheel.id, relationship: "split", ratio: 0.2 },
-]).run();
+db.insert(schema.batchLineage)
+  .values([
+    { parentBatchId: cheeseFarmH.id, childBatchId: cheeseMake.id, relationship: "merge", ratio: 0.57 },
+    { parentBatchId: cheeseFarmS.id, childBatchId: cheeseMake.id, relationship: "merge", ratio: 0.43 },
+    { parentBatchId: cheeseMake.id, childBatchId: cheeseSlice.id, relationship: "split", ratio: 0.8 },
+    { parentBatchId: cheeseMake.id, childBatchId: cheeseWheel.id, relationship: "split", ratio: 0.2 },
+  ])
+  .run();
 
 console.log("  Lineage: 2 merges + 2 splits");
 
@@ -555,7 +597,11 @@ const cheeseStages = db
       latitude: 48.3706,
       longitude: 10.8978,
       operator: "Regional Logistics",
-      metadata: JSON.stringify({ vehicleType: "Refrigerated van", targetTemp: "4-8°C", units: "42 wheels" }),
+      metadata: JSON.stringify({
+        vehicleType: "Refrigerated van",
+        targetTemp: "4-8°C",
+        units: "42 wheels",
+      }),
       startedAt: iso("2026-03-16T08:00:00Z"),
       completedAt: iso("2026-03-16T12:00:00Z"),
       sequenceOrder: 5,
@@ -615,9 +661,10 @@ console.log("\n── Seed Complete ──");
 console.log("  2 products, 6 batches, 4 lineage links");
 console.log(`  ${chocStages.length + cheeseStages.length} stages`);
 console.log(`  ${chocTelemetry.length + cheeseAgingReadings.length} telemetry readings`);
-console.log("  1 anomaly (cold chain break)");
+console.log("  1 anomaly (warehouse heat excursion — fat/sugar bloom)");
+console.log("  1 consumer report (bitter taste complaint)");
 console.log("");
-console.log("  Chain 1 — Chocolate: L6029479302 (linear, 8 stages)");
-console.log("  Chain 2 — Cheese:    K-FARM-H + K-FARM-S → K-MAKE-001 → K-SLICE-001 + K-WHEEL-001");
+console.log("  Chain 1 — Chocolat au lait: CH2603-AP7 (linear, 8 stages, Ivory Coast → Switzerland → Munich)");
+console.log("  Chain 2 — Cheese:           K-FARM-H + K-FARM-S → K-MAKE-001 → K-SLICE-001 + K-WHEEL-001");
 
 sqlite.close();

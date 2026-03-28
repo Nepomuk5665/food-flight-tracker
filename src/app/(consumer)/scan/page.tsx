@@ -70,6 +70,19 @@ export default function ScanPage() {
       setIsNavigating(true);
       navigator.vibrate?.(200);
 
+      // GS1 Digital Link URL (e.g. https://qr.nestle.com/01/07613031085385/10/LOT123)
+      const digitalLinkMatch = rawValue.match(/\/01\/(\d{13,14})(?:\/10\/([^\s/]+))?/);
+      if (digitalLinkMatch) {
+        const gtin = digitalLinkMatch[1]!;
+        const batch = digitalLinkMatch[2];
+        if (batch) {
+          router.push(`/journey/${encodeURIComponent(batch)}`);
+          return;
+        }
+        router.push(`/product/${encodeURIComponent(gtin)}`);
+        return;
+      }
+
       if (rawValue.startsWith("(01)") || rawValue.startsWith("01")) {
         const parsed = parseGS1(rawValue);
         if (parsed.gtin) {
