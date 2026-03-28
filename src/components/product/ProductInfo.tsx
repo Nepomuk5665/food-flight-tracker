@@ -14,11 +14,11 @@ type ProductInfoProps = {
 };
 
 const SCORE_STYLES: Record<string, string> = {
-  A: "border-[#2e7d32] bg-[#2e7d32] text-white",
-  B: "border-[#7cb342] bg-[#7cb342] text-white",
-  C: "border-[#f9a825] bg-[#f9a825] text-[#1f1f1f]",
-  D: "border-[#ef6c00] bg-[#ef6c00] text-white",
-  E: "border-[#c62828] bg-[#c62828] text-white",
+  A: "bg-[#2e7d32] text-white",
+  B: "bg-[#7cb342] text-white",
+  C: "bg-[#f9a825] text-[#1f1f1f]",
+  D: "bg-[#ef6c00] text-white",
+  E: "bg-[#c62828] text-white",
 };
 
 const SOURCE_LABELS = {
@@ -26,6 +26,12 @@ const SOURCE_LABELS = {
   open_food_facts: "OpenFoodFacts fallback",
   merged: "Merged DB + OpenFoodFacts",
 } as const;
+
+const FILTERED_LABEL_PATTERNS = [
+  /nutri.?score/i,
+  /eco.?score/i,
+  /nova.?group/i,
+];
 
 const normalize = (value: string): string =>
   value.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
@@ -54,19 +60,19 @@ const isAllergenIngredient = (ingredient: string, allergens: string[]): boolean 
 
 const scoreBadgeClass = (score: string | null): string =>
   score
-    ? SCORE_STYLES[score] ?? "border-[#777777] bg-[#777777] text-white"
-    : "border-border bg-white text-muted";
+    ? SCORE_STYLES[score] ?? "bg-[#777777] text-white"
+    : "bg-[#F3F4F6] text-[#9CA3AF]";
 
 function ScoreCard({ label, score }: { label: string; score: string | null }) {
   return (
-    <article className="space-y-3 border border-border bg-surface p-4 rounded-xl">
-      <h2 className="text-xs font-bold uppercase text-primary">{label}</h2>
+    <div className="flex flex-1 items-center gap-3 rounded-2xl border border-border bg-white px-4 py-3">
       <div
-        className={`inline-flex min-w-20 items-center justify-center border px-4 py-2 text-2xl font-bold uppercase ${scoreBadgeClass(score)}`}
+        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-base font-bold ${scoreBadgeClass(score)}`}
       >
-        {score ?? "N/A"}
+        {score ?? "–"}
       </div>
-    </article>
+      <span className="text-sm font-semibold text-[#1A1A1A]">{label}</span>
+    </div>
   );
 }
 
@@ -170,7 +176,7 @@ export function ProductInfo({ product, activeLot, supplyChain }: ProductInfoProp
 
           <div className="space-y-2">
             <h3 className="text-xs font-bold uppercase text-primary">Labels</h3>
-            <BadgeList items={product.labels} emptyLabel="No labels listed." tone="success" />
+            <BadgeList items={product.labels.filter((l) => !FILTERED_LABEL_PATTERNS.some((p) => p.test(l)))} emptyLabel="No labels listed." tone="success" />
           </div>
 
           <div className="space-y-2">
@@ -185,7 +191,7 @@ export function ProductInfo({ product, activeLot, supplyChain }: ProductInfoProp
         </div>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="flex gap-3">
         <ScoreCard label="Nutri-Score" score={product.nutriScore} />
         <ScoreCard label="Eco-Score" score={product.ecoScore} />
       </div>
