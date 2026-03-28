@@ -29,5 +29,5 @@ export const INITIAL_VIEW_STATE = {
  */
 export const MAP_INTERACTION_CONFIG = {
   touchPitch: false,
-  maxPitch: 55,
+  maxPitch: 72,
 } as const;
