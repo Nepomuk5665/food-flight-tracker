@@ -23,6 +23,8 @@ import {
   lineageLineLayer,
   flowParticleGlowLayer,
   flowParticleLayer,
+  reportRippleLayer,
+  reportRippleGlowLayer,
 } from "./god-view-map-layers";
 import {
   registerStageIcons,
@@ -41,6 +43,10 @@ const STAGGER_DELAY = 300;
 const FLOW_CYCLE_MS = 3000; // time for one particle to traverse a full route
 const PARTICLES_PER_SEGMENT = 3;
 
+// Report ripple animation
+const RIPPLE_DURATION_MS = 3000;
+const RIPPLE_MAX_RADIUS = 40;
+
 // Idle rotation (plays once on load, stops permanently on first user interaction)
 const ROTATION_SPEED = 0.01; // degrees longitude per frame
 const ROTATION_ZOOM_THRESHOLD = 3; // stop rotating when zoomed past this
@@ -50,6 +56,12 @@ export interface GodViewLayers {
   clusters: boolean;
 }
 
+export interface RippleTarget {
+  lng: number;
+  lat: number;
+  key: string;
+}
+
 interface GodViewMapProps {
   batches: GodViewBatch[];
   lineageEdges: GodViewLineageEdge[];
@@ -57,6 +69,7 @@ interface GodViewMapProps {
   onBatchSelect: (lotCode: string | null) => void;
   layers: GodViewLayers;
   flyToTarget: { lng: number; lat: number } | null;
+  rippleTargets?: RippleTarget[];
 }
 
 /* ── Helpers ────────────────────────────────────────────────── */
@@ -230,6 +243,7 @@ export function GodViewMap({
   onBatchSelect,
   layers,
   flyToTarget,
+  rippleTargets = [],
 }: GodViewMapProps) {
   const mapRef = useRef<MapRef>(null);
 
@@ -243,6 +257,10 @@ export function GodViewMap({
 
   // Flow particle animation ref
   const flowAnimRef = useRef<number | null>(null);
+
+  // Report ripple animation refs
+  const rippleAnimRef = useRef<number | null>(null);
+  const activeRipplesRef = useRef<Map<string, { lng: number; lat: number; startTime: number }>>(new Map());
 
   // Idle rotation refs
   const idleRotationRef = useRef<number | null>(null);
@@ -438,6 +456,69 @@ export function GodViewMap({
     return () => stopFlowAnimation();
   }, [selectedBatchLotCode, visibleBatches, layers.routes, startFlowAnimation, stopFlowAnimation]);
 
+  // ── Report ripple animation ──
+  const tickRipples = useCallback(() => {
+    const map = mapRef.current?.getMap();
+    if (!map) { rippleAnimRef.current = null; return; }
+
+    const now = performance.now();
+    const features: GeoJSON.Feature[] = [];
+
+    for (const [key, ripple] of activeRipplesRef.current) {
+      const elapsed = now - ripple.startTime;
+      if (elapsed > RIPPLE_DURATION_MS) {
+        activeRipplesRef.current.delete(key);
+        continue;
+      }
+
+      const progress = elapsed / RIPPLE_DURATION_MS;
+      // Ease-out curve for natural expansion
+      const eased = 1 - Math.pow(1 - progress, 3);
+      const radius = eased * RIPPLE_MAX_RADIUS;
+      const opacity = 0.6 * (1 - progress);
+
+      features.push({
+        type: "Feature",
+        properties: { radius, opacity },
+        geometry: { type: "Point", coordinates: [ripple.lng, ripple.lat] },
+      });
+    }
+
+    const src = map.getSource("god-view-report-ripples");
+    if (src && "setData" in src) {
+      (src as unknown as { setData: (d: unknown) => void }).setData({
+        type: "FeatureCollection",
+        features,
+      });
+    }
+
+    if (activeRipplesRef.current.size > 0) {
+      rippleAnimRef.current = requestAnimationFrame(tickRipples);
+    } else {
+      rippleAnimRef.current = null;
+    }
+  }, []);
+
+  // When new ripple targets arrive, register them and start animation
+  useEffect(() => {
+    if (rippleTargets.length === 0) return;
+
+    const now = performance.now();
+    for (const target of rippleTargets) {
+      if (!activeRipplesRef.current.has(target.key)) {
+        activeRipplesRef.current.set(target.key, {
+          lng: target.lng,
+          lat: target.lat,
+          startTime: now,
+        });
+      }
+    }
+
+    if (!rippleAnimRef.current) {
+      rippleAnimRef.current = requestAnimationFrame(tickRipples);
+    }
+  }, [rippleTargets, tickRipples]);
+
   // ── Start normal route animation ──
   const startRouteAnimation = useCallback(() => {
     if (!layers.routes || visibleBatches.length === 0) return;
@@ -609,6 +690,7 @@ export function GodViewMap({
     return () => {
       if (idleRotationRef.current) cancelAnimationFrame(idleRotationRef.current);
       if (flowAnimRef.current) cancelAnimationFrame(flowAnimRef.current);
+      if (rippleAnimRef.current) cancelAnimationFrame(rippleAnimRef.current);
     };
   }, []);
 
@@ -825,6 +907,12 @@ export function GodViewMap({
           <Layer {...flowParticleLayer} />
         </Source>
       )}
+
+      {/* Report ripple — animated expanding circles for new consumer reports */}
+      <Source id="god-view-report-ripples" type="geojson" data={EMPTY_FC}>
+        <Layer {...reportRippleGlowLayer} />
+        <Layer {...reportRippleLayer} />
+      </Source>
 
       {/* Stage nodes — icon markers with anomaly halos */}
       {layers.routes && (

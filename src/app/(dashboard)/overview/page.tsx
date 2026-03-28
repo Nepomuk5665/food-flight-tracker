@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useRef, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { useGodViewData } from "@/hooks/use-god-view-data";
 import { GodViewOverlay } from "@/components/god-view/GodViewOverlay";
 import { BatchDetailPanel } from "@/components/god-view/BatchDetailPanel";
 import { LayerToggles } from "@/components/god-view/LayerToggles";
-import type { GodViewLayers } from "@/components/god-view/GodViewMap";
+import type { GodViewLayers, RippleTarget } from "@/components/god-view/GodViewMap";
 import type { GodViewAlert } from "@/lib/types";
 
 const GodViewMap = dynamic(
@@ -19,6 +19,39 @@ export default function OverviewPage() {
   const [selectedLotCode, setSelectedLotCode] = useState<string | null>(null);
   const [layers, setLayers] = useState<GodViewLayers>({ routes: true, clusters: true });
   const [flyTarget, setFlyTarget] = useState<{ lng: number; lat: number } | null>(null);
+  const [rippleTargets, setRippleTargets] = useState<RippleTarget[]>([]);
+  const prevReportIdsRef = useRef<Set<string>>(new Set());
+
+  // Detect new reports between poll cycles and create ripple targets
+  useEffect(() => {
+    if (!data) return;
+
+    const currentIds = new Set(data.recentReports.map((r) => r.id));
+    const prevIds = prevReportIdsRef.current;
+
+    // Skip the very first load (don't ripple all existing reports)
+    if (prevIds.size > 0) {
+      const newReports = data.recentReports.filter((r) => !prevIds.has(r.id));
+      if (newReports.length > 0) {
+        const targets: RippleTarget[] = [];
+        for (const report of newReports) {
+          const batch = data.batches.find((b) => b.lotCode === report.lotCode);
+          if (batch?.lastLocation) {
+            targets.push({
+              lng: batch.lastLocation.lng,
+              lat: batch.lastLocation.lat,
+              key: report.id,
+            });
+          }
+        }
+        if (targets.length > 0) {
+          setRippleTargets(targets);
+        }
+      }
+    }
+
+    prevReportIdsRef.current = currentIds;
+  }, [data]);
 
   const selectedBatch = useMemo(
     () => data?.batches.find((b) => b.lotCode === selectedLotCode) ?? null,
@@ -98,6 +131,7 @@ export default function OverviewPage() {
         onBatchSelect={handleBatchSelect}
         layers={layers}
         flyToTarget={flyTarget}
+        rippleTargets={rippleTargets}
       />
 
       {/* Overlay panels */}
