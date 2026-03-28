@@ -1,6 +1,7 @@
 import { ConsumerNav } from "@/components/consumer-nav";
 import { PageTransition } from "@/components/page-transition";
 import MobileGate from "@/components/mobile-gate";
+import { NotificationPrompt } from "@/components/notification-prompt";
 
 export default function ConsumerLayout({
   children,
@@ -17,6 +18,7 @@ export default function ConsumerLayout({
           <PageTransition>{children}</PageTransition>
         </main>
         <ConsumerNav />
+        <NotificationPrompt />
       </div>
     </MobileGate>
   );
