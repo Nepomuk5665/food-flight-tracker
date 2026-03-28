@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAllRecalls, createRecall, endRecall, getReportAggregates } from "@/lib/db/queries";
+import { emitRecallCreated } from "@/lib/recall-events";
+import "@/lib/push/send-notifications"; // side-effect: registers recall listener
 
 export async function GET() {
   const recalls = getAllRecalls();
@@ -25,6 +27,17 @@ export async function POST(request: Request) {
     affectedRegions: affectedRegions ?? [],
     lotCodes,
   });
+
+  try {
+    emitRecallCreated({
+      recallId: recall.id,
+      reason,
+      severity: severity ?? "critical",
+      lotCodes,
+    });
+  } catch {
+    // best-effort — notification failure must not affect recall creation
+  }
 
   return NextResponse.json({
     success: true,
