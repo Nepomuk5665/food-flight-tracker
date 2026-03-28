@@ -1,11 +1,12 @@
 "use client";
 
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
 
 import { TabToggle, type TabId } from "@/components/product/TabToggle";
+import { ReportSheet } from "@/components/product/ReportSheet";
 import { ProductInfo } from "@/components/product/ProductInfo";
 import { MapTab } from "@/components/product/MapTab";
 import AiInsights from "@/components/ai-insights";
@@ -47,6 +48,7 @@ export default function ProductTabs({
 
   const journey = useJourneyData(barcode, supplyChain, activeLot, product.name);
   const lineage = useLineageData(activeLot?.lotCode, journey.payload?.journey ?? []);
+  const [reportOpen, setReportOpen] = useState(false);
 
   const handleTabChange = useCallback(
     (tab: TabId) => {
@@ -155,6 +157,29 @@ export default function ProductTabs({
             journey.payload ? "Explain the supply chain" : "Where do the ingredients come from?",
           ]}
         />
+      )}
+
+      {activeLot && (
+        <>
+          <button
+            data-testid="report-trigger"
+            onClick={() => setReportOpen(true)}
+            className="fixed bottom-20 right-4 z-[75] flex h-12 w-12 items-center justify-center rounded-full bg-[#dc2626] text-white shadow-lg transition-transform active:scale-90 animate-[report-pulse_2s_ease-in-out_infinite]"
+            aria-label="Report an issue"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+              <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" />
+              <line x1="4" y1="22" x2="4" y2="15" />
+            </svg>
+          </button>
+          <ReportSheet
+            open={reportOpen}
+            onClose={() => setReportOpen(false)}
+            lotCode={activeLot.lotCode}
+            barcode={barcode}
+            productName={product.name}
+          />
+        </>
       )}
     </>
   );

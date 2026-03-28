@@ -1,4 +1,4 @@
-import { eq, desc, asc, sql } from "drizzle-orm";
+import { eq, desc, asc, sql, and, gte } from "drizzle-orm";
 import { db } from "./index";
 import {
   products,
@@ -295,11 +295,17 @@ export function getAllReports() {
 export function getReportCountForDevice(deviceId: string, sinceHoursAgo = 1) {
   const since = new Date();
   since.setHours(since.getHours() - sinceHoursAgo);
+  const sinceIso = since.toISOString();
 
   const result = db
     .select({ count: sql<number>`count(*)` })
     .from(consumerReports)
-    .where(eq(consumerReports.deviceId, deviceId))
+    .where(
+      and(
+        eq(consumerReports.deviceId, deviceId),
+        gte(consumerReports.createdAt, sinceIso),
+      ),
+    )
     .get();
 
   return result?.count ?? 0;
