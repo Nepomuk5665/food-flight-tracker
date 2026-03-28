@@ -1,0 +1,61 @@
+{
+  "active_plan": "/Users/nepomukcrhonek/Documents/food-flight-tracker/.sisyphus/plans/push-notifications.md",
+  "started_at": "2026-03-28T04:39:15.035Z",
+  "session_ids": [
+    "ses_2cdbe63a5ffeJ6YNZhBEgoae3Z",
+    "ses_2cd40ab13ffe0LzdVvHmdOGpZX",
+    "ses_2cd40dda4ffei2jPySr4P1Okf5",
+    "ses_2cd411017ffegGJNIIsMgz7xHz",
+    "ses_2cd4079f9ffe6cRD8XHxktMMgg",
+    "ses_2cd3d8622ffeLdwOd2rVJ8CXxA",
+    "ses_2cd3db7d9ffeVTRYzfS7qEy37Q",
+    "ses_2cd3d163effeAHsAb0bXkjpTN2",
+    "ses_2cd373f09ffeVH0pioocEPC8ER",
+    "ses_2cd3702ecffemD3YkQYP2HGnym",
+    "ses_2cd37701affeM6Gyo1UCVin2L5",
+    "ses_2cd3369deffeRKdTi1YRIsovxG",
+    "ses_2cd338a45ffeyjc5UILYU4nCab",
+    "ses_2cd33181effeW430LFmQWQJzxz",
+    "ses_2cd33433dffek32tMtlPdEdeDE",
+    "ses_2cd2ccc2fffe6xYo0EKSdGrT3q"
+  ],
+  "plan_name": "push-notifications",
+  "task_sessions": {
+    "todo:1": {
+      "task_key": "todo:1",
+      "task_label": "1",
+      "task_title": "DB Schema — Add push_subscriptions and device_scans tables",
+      "session_id": "ses_2cd411017ffegGJNIIsMgz7xHz",
+      "agent": "Sisyphus-Junior",
+      "category": "quick",
+      "updated_at": "2026-03-28T04:42:33.757Z"
+    },
+    "todo:5": {
+      "task_key": "todo:5",
+      "task_label": "5",
+      "task_title": "Push Subscription API Route",
+      "session_id": "ses_2cd3db7d9ffeVTRYzfS7qEy37Q",
+      "agent": "Sisyphus-Junior",
+      "category": "unspecified-high",
+      "updated_at": "2026-03-28T04:46:48.132Z"
+    },
+    "todo:8": {
+      "task_key": "todo:8",
+      "task_label": "8",
+      "task_title": "Permission Prompt + SW Registration in Consumer Layout",
+      "session_id": "ses_2cd37701affeM6Gyo1UCVin2L5",
+      "agent": "Sisyphus-Junior",
+      "category": "visual-engineering",
+      "updated_at": "2026-03-28T04:53:20.576Z"
+    },
+    "final-wave:f1": {
+      "task_key": "final-wave:f1",
+      "task_label": "F1",
+      "task_title": "**Plan Compliance Audit** — `oracle`",
+      "session_id": "ses_2cd2ccc2fffe6xYo0EKSdGrT3q",
+      "agent": "Sisyphus-Junior",
+      "category": "quick",
+      "updated_at": "2026-03-28T05:03:33.735Z"
+    }
+  }
+}

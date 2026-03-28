@@ -1,0 +1,19 @@
+=== Test 1: POST creates subscription (expect 201) ===
+{"success":true}
+HTTP_STATUS: 201
+
+=== Test 2: POST duplicate endpoint (expect 200) ===
+{"success":true}
+HTTP_STATUS: 200
+
+=== Test 3: POST missing fields (expect 400) ===
+{"success":false,"error":"Missing required fields"}
+HTTP_STATUS: 400
+
+=== Test 4: DELETE subscription (expect 204) ===
+
+HTTP_STATUS: 204
+
+=== Test 5: DELETE missing endpoint (expect 400) ===
+{"success":false,"error":"Missing endpoint"}
+HTTP_STATUS: 400

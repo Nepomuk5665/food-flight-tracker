@@ -1,0 +1,29 @@
+=== TASK 6: Device Scan Recording Endpoint ===
+
+FILE CREATED: src/app/api/scans/route.ts
+
+CURL TEST RESULTS:
+
+1. Test POST creates scan (201):
+   Request: POST /api/scans with {"deviceId":"test-dev","barcode":"4012345678901"}
+   Response: {"success":true}
+   Status: 201 ✓
+
+2. Test duplicate returns 200:
+   Request: POST /api/scans with {"deviceId":"test-dev","barcode":"4012345678901"}
+   Response: {"success":true}
+   Status: 200 ✓
+
+3. Test missing fields returns 400:
+   Request: POST /api/scans with {}
+   Response: {"success":false,"error":"Missing required fields"}
+   Status: 400 ✓
+
+VERIFICATION:
+✓ File created at src/app/api/scans/route.ts
+✓ POST handler accepts {deviceId, barcode}
+✓ Calls recordDeviceScan() from @/lib/db/queries
+✓ Returns 201 on new scan
+✓ Returns 200 on duplicate (upsert)
+✓ Returns 400 on missing fields
+✓ Returns 500 on internal error (error handling in place)

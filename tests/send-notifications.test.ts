@@ -10,27 +10,40 @@ vi.mock("web-push", () => ({
 
 import webpush from "web-push";
 import { db } from "@/lib/db";
-import { getBatchByLotCode, getProductById } from "@/lib/db/queries";
-import { pushSubscriptions, deviceScans } from "@/lib/db/schema";
+import { pushSubscriptions, deviceScans, products, batches } from "@/lib/db/schema";
 import { sendRecallNotifications } from "@/lib/push/send-notifications";
 
 const TEST_LOT = "L6029479302";
+const TEST_BARCODE = "4012345678901";
+const TEST_PRODUCT_ID = "test-prod-notif";
 const TEST_REASON = "contamination";
-
-function getTargetBarcode(): string {
-  const batch = getBatchByLotCode(TEST_LOT);
-  if (!batch) throw new Error(`Missing seeded batch for lot ${TEST_LOT}`);
-
-  const product = getProductById(batch.productId);
-  if (!product) throw new Error(`Missing product for lot ${TEST_LOT}`);
-
-  return product.barcode;
-}
 
 describe("sendRecallNotifications", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(webpush.sendNotification).mockResolvedValue({} as never);
+
+    db.insert(products)
+      .values({
+        id: TEST_PRODUCT_ID,
+        barcode: TEST_BARCODE,
+        name: "Test Chocolate",
+        brand: "TestBrand",
+        category: "snacks",
+      })
+      .onConflictDoNothing()
+      .run();
+
+    db.insert(batches)
+      .values({
+        id: "test-batch-notif",
+        lotCode: TEST_LOT,
+        productId: TEST_PRODUCT_ID,
+        status: "active",
+        riskScore: 42,
+      })
+      .onConflictDoNothing()
+      .run();
   });
 
   afterEach(() => {
@@ -38,15 +51,18 @@ describe("sendRecallNotifications", () => {
     db.delete(pushSubscriptions).where(eq(pushSubscriptions.deviceId, "dev-stale")).run();
 
     db.delete(deviceScans)
-      .where(and(eq(deviceScans.deviceId, "dev-1"), eq(deviceScans.barcode, getTargetBarcode())))
+      .where(and(eq(deviceScans.deviceId, "dev-1"), eq(deviceScans.barcode, TEST_BARCODE)))
       .run();
     db.delete(deviceScans)
-      .where(and(eq(deviceScans.deviceId, "dev-stale"), eq(deviceScans.barcode, getTargetBarcode())))
+      .where(and(eq(deviceScans.deviceId, "dev-stale"), eq(deviceScans.barcode, TEST_BARCODE)))
       .run();
+
+    db.delete(batches).where(eq(batches.id, "test-batch-notif")).run();
+    db.delete(products).where(eq(products.id, TEST_PRODUCT_ID)).run();
   });
 
   it("sends notification to an affected device", async () => {
-    const barcode = getTargetBarcode();
+    const barcode = TEST_BARCODE;
     const endpoint = "https://example.com/push/dev-1";
 
     db.insert(pushSubscriptions)
@@ -82,7 +98,7 @@ describe("sendRecallNotifications", () => {
   });
 
   it("deletes stale subscription on 410 Gone", async () => {
-    const barcode = getTargetBarcode();
+    const barcode = TEST_BARCODE;
     const staleEndpoint = "https://example.com/push/dev-stale";
 
     db.insert(pushSubscriptions)

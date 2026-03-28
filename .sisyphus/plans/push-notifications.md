@@ -80,7 +80,7 @@ When a product is recalled, every device that previously scanned that product re
 - Custom prompt before native permission dialog
 - Fire-and-forget scan recording (never blocks product page)
 - 410 Gone cleanup (delete stale subscriptions)
-- One notification per recall per device (deduplicated by deviceId)
+- One notification per recalled product per device (if a recall spans 2 products a device scanned, they get 2 notifications, each linking to its product page)
 
 ### Must NOT Have (Guardrails)
 - No user accounts, authentication, or login
@@ -173,12 +173,12 @@ Max Concurrent: 4 (Wave 1)
 
 ## TODOs
 
-- [ ] 1. DB Schema — Add push_subscriptions and device_scans tables
+- [x] 1. DB Schema — Add push_subscriptions and device_scans tables
 
   **What to do**:
   - Add `pushSubscriptions` table to `src/lib/db/schema.ts`: `id` (PK, defaultId), `deviceId` (text, NOT NULL), `endpoint` (text, NOT NULL, UNIQUE), `auth` (text, NOT NULL), `p256dh` (text, NOT NULL), `createdAt` (text, nowIso)
   - Add `deviceScans` table to `src/lib/db/schema.ts`: `id` (PK, defaultId), `deviceId` (text, NOT NULL), `barcode` (text, NOT NULL), `scannedAt` (text, nowIso). Add unique constraint on `(deviceId, barcode)` for upsert
-  - Update `ensureTables()` in `src/lib/db/index.ts` with `CREATE TABLE IF NOT EXISTS` for both tables
+  - **CRITICAL**: Fix the early-return guard in `ensureTables()` in `src/lib/db/index.ts` (lines 22-24). Currently it returns early if the `products` table exists, which means new tables are NEVER created on existing databases. Remove or restructure the guard so that ALL `CREATE TABLE IF NOT EXISTS` statements always run (the `IF NOT EXISTS` clause itself prevents duplicates). Then add the two new CREATE TABLE statements.
   - Add query helpers in `src/lib/db/queries.ts`: `upsertPushSubscription()`, `deletePushSubscription()`, `getSubscriptionsForDevices()`, `recordDeviceScan()`, `getDeviceIdsByBarcode()`
 
   **Must NOT do**: No Drizzle migrations. No FK from deviceScans to products.
@@ -199,14 +199,15 @@ Max Concurrent: 4 (Wave 1)
       1. curl http://localhost:3000/api/product/4012345678901 to trigger DB init
       2. sqlite3 data/trace.db ".tables"
       3. Assert output contains "push_subscriptions" and "device_scans"
+    Expected Result: Both tables exist in SQLite database
     Evidence: .sisyphus/evidence/task-1-tables.txt
   ```
   **Commit**: `feat(db): add push_subscriptions and device_scans tables`
 
-- [ ] 2. VAPID Key Generation Script + Env Config
+- [x] 2. VAPID Key Generation Script + Env Config
 
   **What to do**:
-  - `bun add web-push`
+  - `pnpm add web-push`
   - Create `scripts/generate-vapid.mjs` using `web-push.generateVAPIDKeys()`
   - Update `.env.example` with `VAPID_SUBJECT`, `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `NEXT_PUBLIC_VAPID_PUBLIC_KEY`
   - Run script, add keys to `.env.local`
@@ -227,11 +228,12 @@ Max Concurrent: 4 (Wave 1)
     Steps:
       1. node scripts/generate-vapid.mjs
       2. Assert output contains VAPID_PUBLIC_KEY= and VAPID_PRIVATE_KEY=
+    Expected Result: Valid base64url key pair printed to stdout
     Evidence: .sisyphus/evidence/task-2-vapid.txt
   ```
   **Commit**: `feat(push): add VAPID key generation script`
 
-- [ ] 3. Service Worker — Push + Click Handlers
+- [x] 3. Service Worker — Push + Click Handlers
 
   **What to do**:
   - Create `public/sw.js`: handle `push` (showNotification), `notificationclick` (openWindow), `install` (skipWaiting), `activate` (clients.claim)
@@ -248,20 +250,21 @@ Max Concurrent: 4 (Wave 1)
   **QA Scenarios**:
   ```
   Scenario: SW registers
-    Tool: Playwright
+    Tool: Playwright (mobile emulation — iPhone UA + 390x844 viewport to bypass MobileGate)
     Steps:
-      1. Navigate to /scan
+      1. Navigate to /scan with mobile context
       2. page.evaluate(() => navigator.serviceWorker.register('/sw.js'))
       3. Assert registration succeeds
+    Expected Result: Service worker installed and active at root scope
     Evidence: .sisyphus/evidence/task-3-sw.png
   ```
   **Commit**: `feat(push): add service worker`
 
-- [ ] 4. Recall Events Pub/Sub Module
+- [x] 4. Recall Events Pub/Sub Module
 
   **What to do**:
   - Create `src/lib/recall-events.ts` — EXACT copy of `report-events.ts` pattern with `RecallEvent` type, `onRecallCreated()`, `emitRecallCreated()`
-  - `RecallEvent`: `{ recallId, reason, severity, lotCodes[], productName, barcode }`
+  - `RecallEvent`: `{ recallId: string; reason: string; severity: string; lotCodes: string[] }` — carries only lot codes. The notification sender (Task 7) resolves lotCodes → products → barcodes at send time. This correctly handles multi-lot recalls that may span different products.
 
   **Must NOT do**: No async emit. No imports from queries.ts.
 
@@ -274,13 +277,14 @@ Max Concurrent: 4 (Wave 1)
   **QA Scenarios**:
   ```
   Scenario: Emit/listen works
-    Tool: Bash (bun test)
+    Tool: Bash (pnpm test — runs vitest)
     Steps: Register listener, emit event, assert called with correct payload. Unsubscribe, emit again, assert NOT called.
+    Expected Result: Both tests pass — listener receives payload, unsubscribe removes it
     Evidence: .sisyphus/evidence/task-4-events.txt
   ```
   **Commit**: `feat(push): add recall events pub/sub`
 
-- [ ] 5. Push Subscription API Route
+- [x] 5. Push Subscription API Route
 
   **What to do**:
   - Create `src/app/api/push/subscribe/route.ts`: POST (subscribe/upsert), DELETE (unsubscribe)
@@ -297,11 +301,12 @@ Max Concurrent: 4 (Wave 1)
   Scenario: Subscribe + upsert
     Tool: Bash (curl)
     Steps: POST with valid body → 201. Same endpoint again → 200. Missing fields → 400.
+    Expected Result: New subscription returns 201, duplicate returns 200 (upsert), invalid body returns 400
     Evidence: .sisyphus/evidence/task-5-subscribe.txt
   ```
   **Commit**: `feat(push): add subscription API route`
 
-- [ ] 6. Device Scan Recording API Route
+- [x] 6. Device Scan Recording API Route
 
   **What to do**:
   - Create `src/app/api/scans/route.ts`: POST accepts `{deviceId, barcode}`, calls `recordDeviceScan()`
@@ -314,14 +319,20 @@ Max Concurrent: 4 (Wave 1)
   Scenario: Record scan
     Tool: Bash (curl)
     Steps: POST → 201. sqlite3 query confirms row. Duplicate → 200 (upsert).
+    Expected Result: Scan row persisted in device_scans, duplicate updates timestamp
     Evidence: .sisyphus/evidence/task-6-scan.txt
   ```
   **Commit**: `feat(push): add scan recording API route`
 
-- [ ] 7. Notification Sender — Affected Devices + Web Push
+- [x] 7. Notification Sender — Affected Devices + Web Push
 
   **What to do**:
-  - Create `src/lib/push/send-notifications.ts`: `sendRecallNotifications(event)` — query path: `barcode → device_scans.deviceId → push_subscriptions` → `web-push.sendNotification()` per subscription
+  - Create `src/lib/push/send-notifications.ts`: `sendRecallNotifications(event: RecallEvent)`:
+    1. For each `lotCode` in `event.lotCodes`: look up `batch` by lotCode → get `productId` → look up `product` → get `barcode` and `name`
+    2. Collect unique `{ barcode, productName }` pairs (a recall with 3 lots of the same product produces 1 notification, not 3)
+    3. For each unique barcode: query `device_scans` for all deviceIds → query `push_subscriptions` for those deviceIds
+    4. For each unique product×device combination: send ONE notification per product per device. If a device scanned 2 different recalled products, they get 2 separate notifications — each links to its own product page
+    5. For each subscription+product: `web-push.sendNotification(sub, JSON.stringify({title: "Recall Alert: ${productName}", body: "${reason}", url: "/product/${barcode}"}))`
   - Create `src/lib/push/config.ts`: `web-push.setVapidDetails()` with env vars
   - On 410 Gone: delete subscription. Wrap each send in try/catch.
   - Register as listener via `onRecallCreated(sendRecallNotifications)`
@@ -337,19 +348,21 @@ Max Concurrent: 4 (Wave 1)
 
   **QA Scenarios**:
   ```
-  Scenario: Notification sent to affected device
-    Tool: Bash (bun test)
-    Steps: Seed subscription + scan. Mock web-push. Call sendRecallNotifications(). Assert sendNotification called with correct subscription + payload.
+  Scenario: Notification sent to affected devices
+    Tool: Bash (pnpm test — runs vitest)
+    Steps: Seed subscription + scan. Mock web-push.sendNotification. Call sendRecallNotifications({recallId:"r1", reason:"contamination", severity:"critical", lotCodes:["L6029479302"]}). Assert sendNotification called for each device that scanned the product linked to L6029479302.
+    Expected Result: Mock sendNotification called exactly once per affected device, payload contains product name and recall reason
     Evidence: .sisyphus/evidence/task-7-notification.txt
 
   Scenario: 410 cleanup
-    Tool: Bash (bun test)
+    Tool: Bash (pnpm test — runs vitest)
     Steps: Mock sendNotification → throw {statusCode: 410}. Assert subscription deleted from DB.
+    Expected Result: Subscription row deleted from push_subscriptions table after 410 response
     Evidence: .sisyphus/evidence/task-7-stale.txt
   ```
   **Commit**: `feat(push): add notification sender on recall`
 
-- [ ] 8. Permission Prompt + SW Registration in Consumer Layout
+- [x] 8. Permission Prompt + SW Registration in Consumer Layout
 
   **What to do**:
   - Create `src/components/notification-prompt.tsx` ("use client"): Check localStorage `fft:push-prompted`. Show custom banner "Get alerted if products you scan are recalled" with "Enable Alerts" + dismiss. On enable: `Notification.requestPermission()` → register SW → `pushManager.subscribe()` → POST `/api/push/subscribe`. Persist state.
@@ -368,18 +381,33 @@ Max Concurrent: 4 (Wave 1)
   **QA Scenarios**:
   ```
   Scenario: Prompt grants + persists
-    Tool: Playwright
-    Steps: Set permissions granted. Navigate /scan. Assert prompt visible. Click "Enable Alerts". Assert fft:push-prompted = "granted". Reload. Assert no prompt.
+    Tool: Playwright (MUST use mobile emulation — iPhone UA + 390x844 viewport — MobileGate blocks desktop)
+    Preconditions: Clear localStorage. Create browser context with iPhone userAgent, viewport {width:390, height:844}, permissions: ['notifications'] granted.
+    Steps:
+      1. Navigate to http://localhost:3000/scan
+      2. Assert element with text "Get alerted" is visible
+      3. Click "Enable Alerts" button
+      4. Wait 2s for subscription POST
+      5. Assert localStorage "fft:push-prompted" = "granted"
+      6. Reload page
+      7. Assert prompt does NOT appear
+    Expected Result: Prompt shows once, persists "granted" state, does not reappear on reload
     Evidence: .sisyphus/evidence/task-8-granted.png
 
   Scenario: Dismiss persists
-    Tool: Playwright
-    Steps: Navigate /scan. Click dismiss. Assert fft:push-prompted = "dismissed". Reload. Assert no prompt.
+    Tool: Playwright (mobile emulation — iPhone UA + 390x844 viewport)
+    Steps:
+      1. Navigate to http://localhost:3000/scan with mobile context
+      2. Click dismiss/X button on prompt
+      3. Assert localStorage "fft:push-prompted" = "dismissed"
+      4. Reload page
+      5. Assert prompt does NOT appear
+    Expected Result: Dismissed state persisted in localStorage, prompt never reappears
     Evidence: .sisyphus/evidence/task-8-dismissed.png
   ```
   **Commit**: `feat(ui): add notification permission prompt`
 
-- [ ] 9. Integrate Scan Recording into Product Page
+- [x] 9. Integrate Scan Recording into Product Page
 
   **What to do**:
   - Update `src/app/(consumer)/product/[barcode]/save-to-history.tsx`: After `addToScanHistory()`, fire-and-forget `fetch("/api/scans", {method:"POST", body: JSON.stringify({deviceId: getDeviceId(), barcode})})` in try/catch
@@ -396,10 +424,10 @@ Max Concurrent: 4 (Wave 1)
   **QA Scenarios**:
   ```
   Scenario: Scan recorded on product visit
-    Tool: Playwright + Bash
-    Preconditions: Dev server running. Any product barcode accessible (use one from DB: run sqlite3 data/trace.db "SELECT barcode FROM products LIMIT 1" to get a valid barcode)
+    Tool: Playwright (MUST use mobile emulation — MobileGate blocks desktop) + Bash
+    Preconditions: Dev server running. Use iPhone UA + 390x844 viewport. Get valid barcode: BARCODE=$(sqlite3 data/trace.db "SELECT barcode FROM products LIMIT 1")
     Steps:
-      1. Get a valid barcode: BARCODE=$(sqlite3 data/trace.db "SELECT barcode FROM products LIMIT 1")
+      1. Create browser context with iPhone userAgent + mobile viewport
       2. Navigate to http://localhost:3000/product/$BARCODE
       3. Wait 3s for fire-and-forget POST
       4. sqlite3 data/trace.db "SELECT COUNT(*) FROM device_scans WHERE barcode='$BARCODE'"
@@ -409,10 +437,10 @@ Max Concurrent: 4 (Wave 1)
   ```
   **Commit**: `feat(push): record scans server-side from product page`
 
-- [ ] 10. Wire Recall Event Emission into POST /api/recalls
+- [x] 10. Wire Recall Event Emission into POST /api/recalls
 
   **What to do**:
-  - Update `src/app/api/recalls/route.ts` POST handler: after `createRecall()`, look up product name + barcode from lotCodes, call `emitRecallCreated({recallId, reason, severity, lotCodes, productName, barcode})` in try/catch
+  - Update `src/app/api/recalls/route.ts` POST handler: after `createRecall()`, call `emitRecallCreated({ recallId: recall.recallId, reason, severity, lotCodes })` in try/catch. The event carries only lotCodes — the notification sender resolves products/barcodes.
   - Ensure notification listener is registered (side-effect import of send-notifications module)
 
   **Must NOT do**: No modification to `createRecall()` in queries.ts. No waiting for notification delivery.
@@ -426,26 +454,26 @@ Max Concurrent: 4 (Wave 1)
 
   **QA Scenarios**:
   ```
-  Scenario: Full pipeline — recall creation returns success
-    Tool: Bash (bun test)
-    Preconditions: Write an integration test that: (1) inserts a test product+batch+stage into DB, (2) inserts a push_subscription for device "pipeline-test", (3) inserts a device_scan for that device + product's barcode, (4) mocks web-push.sendNotification, (5) calls the recalls POST handler or emitRecallCreated directly
+  Scenario: Full pipeline — POST /api/recalls triggers notifications
+    Tool: Bash (pnpm test — runs vitest)
+    Preconditions: Write an integration test that: (1) inserts test product+batch into DB, (2) inserts push_subscription for device "pipeline-test", (3) inserts device_scan for that device + product barcode, (4) mocks web-push.sendNotification, (5) calls the POST /api/recalls route handler (import the POST function from the route module and invoke it with a mock Request containing the test lotCode)
     Steps:
-      1. Run bun test for the integration test file
-      2. Assert: mock sendNotification was called exactly once
-      3. Assert: call payload contains the test product name and recall reason
-      4. Assert: subscription endpoint matches the seeded subscription
-    Expected Result: Recall event triggers notification to the correct device
+      1. Run pnpm test for the integration test file
+      2. Assert: route returns 200 with recallId
+      3. Assert: mock sendNotification was called with "pipeline-test" device's subscription endpoint
+      4. Assert: notification payload body contains the product name and recall reason
+    Expected Result: HTTP route handler triggers the full recall→emit→notify pipeline
     Evidence: .sisyphus/evidence/task-10-pipeline.txt
 
-  Scenario: Recall with no scanned devices — no errors
-    Tool: Bash (bun test)
-    Preconditions: Write test that creates a recall for a lot with zero device_scans
+  Scenario: POST /api/recalls with no scanned devices — no errors
+    Tool: Bash (pnpm test — runs vitest)
+    Preconditions: Write test that calls POST handler for a lot with zero device_scans, mocks sendNotification
     Steps:
-      1. Mock sendNotification
-      2. Emit recall event for the unscanned lot
-      3. Assert sendNotification was NOT called
+      1. Call POST handler with unscanned lotCode
+      2. Assert route returns 200 (recall still created)
+      3. Assert sendNotification NOT called
       4. Assert no exceptions thrown
-    Expected Result: Zero notifications, zero errors
+    Expected Result: Recall created, zero notifications, zero errors
     Evidence: .sisyphus/evidence/task-10-no-devices.txt
   ```
   **Commit**: `feat(push): emit recall events from recalls API`
@@ -459,11 +487,11 @@ Max Concurrent: 4 (Wave 1)
   Output: `Must Have [N/N] | Must NOT Have [N/N] | Tasks [N/N] | VERDICT: APPROVE/REJECT`
 
 - [ ] F2. **Code Quality Review** — `unspecified-high`
-  Run `tsc --noEmit` + linter + `bun test`. Review all changed files for: `as any`, empty catches, console.log in prod, commented-out code, unused imports. Check AI slop: excessive comments, over-abstraction, generic names.
+  Run `tsc --noEmit` + `pnpm lint` + `pnpm test` (vitest). Review all changed files for: `as any`, empty catches, console.log in prod, commented-out code, unused imports. Check AI slop: excessive comments, over-abstraction, generic names.
   Output: `Build [PASS/FAIL] | Lint [PASS/FAIL] | Tests [N pass/N fail] | VERDICT`
 
 - [ ] F3. **Automated Integration QA** — `unspecified-high`
-  Execute EVERY QA scenario from EVERY task using curl and Playwright (no human interaction). Test cross-task integration: create subscription via curl, record scan via curl, trigger recall via curl, assert web-push mock called. Test edge cases: missing fields → 400, duplicate subscription → 200 upsert, stale 410 → subscription deleted. Save to `.sisyphus/evidence/final-qa/`.
+  Execute EVERY QA scenario from EVERY task using curl, Playwright, and `pnpm test` (vitest) as appropriate (no human interaction). Test cross-task integration: create subscription via curl, record scan via curl, trigger recall via curl, run vitest integration tests that mock web-push and assert sendNotification called. Test edge cases: missing fields → 400, duplicate subscription → 200 upsert, stale 410 → subscription deleted. Save to `.sisyphus/evidence/final-qa/`.
   Output: `Scenarios [N/N pass] | Integration [N/N] | Edge Cases [N tested] | VERDICT`
 
 - [ ] F4. **Scope Fidelity Check** — `deep`
