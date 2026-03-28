@@ -65,7 +65,7 @@ Schokolade schmeckt komisch? Über den roten Button unten rechts könnt ihr dire
 
 ### 4 — Meldung im Dashboard
 
-Die Meldung taucht sofort im [QA Dashboardfood](https://flighttracker.com/overview) unter Incidents auf.
+Die Meldung taucht sofort im [QA Dashboardfood](https://foodflighttracker.com/overview) unter Incidents auf.
 
 <p align="center">
   <img src="docs/demos/4-report-received.gif" alt="Report erhalten" width="700" />
