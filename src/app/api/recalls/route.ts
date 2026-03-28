@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
-import { getAllRecalls, createRecall, endRecall } from "@/lib/db/queries";
+import { getAllRecalls, createRecall, endRecall, getReportAggregates } from "@/lib/db/queries";
 
 export async function GET() {
   const recalls = getAllRecalls();
-  return NextResponse.json({ success: true, data: { recalls } });
+  const reportAggregates = getReportAggregates();
+  return NextResponse.json({ success: true, data: { recalls, reportAggregates } });
 }
 
 export async function POST(request: Request) {

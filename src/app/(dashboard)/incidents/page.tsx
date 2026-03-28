@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { AlertTriangle, ShieldAlert, Plus, X, CheckCircle, ChevronDown, ChevronUp, Clock } from "lucide-react";
+import { AlertTriangle, ShieldAlert, Plus, X, CheckCircle, ChevronDown, ChevronUp, Clock, Flag, ArrowRight } from "lucide-react";
 
 type Recall = {
   id: string;
@@ -11,6 +11,13 @@ type Recall = {
   status: string;
   createdAt: string;
   affectedLots?: string[];
+};
+
+type ReportAggregate = {
+  lotCode: string;
+  total: number;
+  byCategory: Record<string, number>;
+  latestAt: string;
 };
 
 const containerVariants = {
@@ -28,6 +35,7 @@ const itemVariants = {
 
 export default function IncidentsPage() {
   const [recalls, setRecalls] = useState<Recall[]>([]);
+  const [reportAggregates, setReportAggregates] = useState<ReportAggregate[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [showResolved, setShowResolved] = useState(false);
@@ -44,6 +52,7 @@ export default function IncidentsPage() {
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const json = await res.json();
       setRecalls(json.data?.recalls ?? []);
+      setReportAggregates(json.data?.reportAggregates ?? []);
       setError(null);
     } catch (err) {
       if (attempt < 2) {
@@ -93,12 +102,17 @@ export default function IncidentsPage() {
     }
   };
 
+  const prefillRecallForLot = (lotCode: string) => {
+    setLotCodes(lotCode);
+    setShowForm(true);
+  };
+
   const handleEndRecall = async (id: string) => {
     try {
       const res = await fetch("/api/recalls", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id, status: "resolved" }),
+        body: JSON.stringify({ recallId: id, action: "end" }),
       });
 
       if (res.ok) {
@@ -236,6 +250,52 @@ export default function IncidentsPage() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Consumer Reports Triage */}
+      {reportAggregates.length > 0 && (
+        <div className="space-y-4">
+          <h2 className="text-sm font-bold uppercase tracking-wider text-white/50 border-b border-white/[0.06] pb-3 flex items-center gap-2">
+            <Flag size={14} className="text-[#faad14]" />
+            Consumer Reports ({reportAggregates.reduce((s, r) => s + r.total, 0)})
+          </h2>
+          <div className="space-y-3">
+            {reportAggregates.map((agg) => (
+              <div
+                key={agg.lotCode}
+                className="border border-white/[0.08] bg-white/[0.02] backdrop-blur-2xl p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-l-2 border-l-[#faad14]"
+              >
+                <div className="space-y-2 flex-1">
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm font-bold text-white/80 font-mono">{agg.lotCode}</span>
+                    <span className="border border-[#faad14]/30 bg-[#faad14]/10 text-[#faad14] text-[10px] font-bold uppercase tracking-wider px-2 py-1">
+                      {agg.total} report{agg.total !== 1 ? "s" : ""}
+                    </span>
+                    <span className="text-[10px] text-white/30">
+                      Latest: {new Date(agg.latestAt).toLocaleString()}
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {Object.entries(agg.byCategory).map(([category, count]) => (
+                      <span
+                        key={category}
+                        className="text-[10px] border border-white/[0.08] bg-white/[0.03] px-2 py-1 text-white/50"
+                      >
+                        {category.replace("_", " ")} ({count})
+                      </span>
+                    ))}
+                  </div>
+                </div>
+                <button
+                  onClick={() => prefillRecallForLot(agg.lotCode)}
+                  className="border border-[#ff4d4f]/20 bg-[#ff4d4f]/5 text-[#ff4d4f] font-bold text-[10px] uppercase tracking-wider px-4 py-2.5 hover:bg-[#ff4d4f]/10 transition-all flex items-center gap-1.5 shrink-0"
+                >
+                  Trigger Recall <ArrowRight size={12} />
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Active Recalls */}
       <div className="space-y-4">

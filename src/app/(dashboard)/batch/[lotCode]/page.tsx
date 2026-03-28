@@ -22,6 +22,13 @@ type BatchDetailPageProps = {
   params: Promise<{ lotCode: string }>;
 };
 
+type RecallInfo = {
+  id: string;
+  reason: string;
+  severity: string;
+  createdAt: string;
+};
+
 type BatchData = {
   batch: {
     id: string;
@@ -39,6 +46,7 @@ type BatchData = {
     parents: { lotCode: string; relationship: string; ratio: number }[];
     children: { lotCode: string; relationship: string; ratio: number }[];
   };
+  recall?: RecallInfo;
 };
 
 export default function BatchDetailPage({ params }: BatchDetailPageProps) {
@@ -93,7 +101,7 @@ export default function BatchDetailPage({ params }: BatchDetailPageProps) {
     );
   }
 
-  const { batch, product, journey, lineage } = data;
+  const { batch, product, journey, lineage, recall } = data;
 
   return (
     <motion.div
@@ -102,6 +110,25 @@ export default function BatchDetailPage({ params }: BatchDetailPageProps) {
       transition={{ duration: 0.5, ease: "easeOut" }}
       className="mx-auto max-w-[1170px] space-y-6 p-6"
     >
+      {/* Recall Banner */}
+      {recall && (
+        <div className="flex items-start gap-4 border border-[#ff4d4f]/30 bg-[#ff4d4f]/[0.06] backdrop-blur-2xl p-5 shadow-[0_0_24px_-8px_rgba(255,77,79,0.2)]">
+          <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-[#ff4d4f]" />
+          <div className="flex-1 space-y-1">
+            <div className="flex items-center gap-3">
+              <span className="text-sm font-bold uppercase tracking-wider text-[#ff4d4f]">Recalled</span>
+              <span className="border border-[#ff4d4f]/30 bg-[#ff4d4f]/10 text-[#ff4d4f] text-[10px] font-bold uppercase tracking-wider px-2 py-0.5">
+                {recall.severity}
+              </span>
+            </div>
+            <p className="text-sm text-white/70">{recall.reason}</p>
+            <p className="text-[10px] text-white/30">
+              Issued {new Date(recall.createdAt).toLocaleString()} &middot; ID {recall.id.substring(0, 8)}
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Header Section */}
       <header className="flex flex-col justify-between gap-6 border border-white/[0.08] bg-white/[0.02] backdrop-blur-2xl p-6 md:flex-row md:items-center shadow-[0_8px_32px_-8px_rgba(0,0,0,0.5)]">
         <div className="flex-1">

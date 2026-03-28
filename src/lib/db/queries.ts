@@ -432,11 +432,29 @@ export function createRecall(data: {
 }
 
 export function getAllRecalls() {
-  return db
+  const allRecalls = db
     .select()
     .from(recalls)
     .orderBy(desc(recalls.createdAt))
     .all();
+
+  const allLotLinks = db
+    .select({ recallId: recallLots.recallId, lotCode: batches.lotCode })
+    .from(recallLots)
+    .innerJoin(batches, eq(recallLots.batchId, batches.id))
+    .all();
+
+  const lotsByRecall = new Map<string, string[]>();
+  for (const link of allLotLinks) {
+    const list = lotsByRecall.get(link.recallId) ?? [];
+    list.push(link.lotCode);
+    lotsByRecall.set(link.recallId, list);
+  }
+
+  return allRecalls.map((recall) => ({
+    ...recall,
+    affectedLots: lotsByRecall.get(recall.id) ?? [],
+  }));
 }
 
 export function endRecall(recallId: string) {
@@ -458,6 +476,52 @@ export function endRecall(recallId: string) {
       .where(eq(batches.id, lot.batchId))
       .run();
   }
+}
+
+// ---------------------------------------------------------------------------
+// Report Aggregates (for QA triage)
+// ---------------------------------------------------------------------------
+
+export function getReportAggregates() {
+  const rows = db
+    .select({
+      lotCode: consumerReports.lotCode,
+      category: consumerReports.category,
+      count: sql<number>`count(*)`,
+      latestAt: sql<string>`max(${consumerReports.createdAt})`,
+    })
+    .from(consumerReports)
+    .groupBy(consumerReports.lotCode, consumerReports.category)
+    .all();
+
+  const byLot = new Map<string, { total: number; byCategory: Record<string, number>; latestAt: string }>();
+  for (const row of rows) {
+    const existing = byLot.get(row.lotCode) ?? { total: 0, byCategory: {}, latestAt: "" };
+    existing.total += row.count;
+    existing.byCategory[row.category] = row.count;
+    if (row.latestAt > existing.latestAt) existing.latestAt = row.latestAt;
+    byLot.set(row.lotCode, existing);
+  }
+
+  return [...byLot.entries()]
+    .map(([lotCode, data]) => ({ lotCode, ...data }))
+    .sort((a, b) => b.total - a.total);
+}
+
+// ---------------------------------------------------------------------------
+// Recall lookup for a specific batch
+// ---------------------------------------------------------------------------
+
+export function getActiveRecallForBatch(batchId: string) {
+  const row = db
+    .select({ recall: recalls })
+    .from(recallLots)
+    .innerJoin(recalls, eq(recallLots.recallId, recalls.id))
+    .where(and(eq(recallLots.batchId, batchId), eq(recalls.status, "active")))
+    .limit(1)
+    .get();
+
+  return row?.recall ?? null;
 }
 
 // ---------------------------------------------------------------------------

@@ -1,67 +1,105 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import { AlertsList, type Alert } from "@/components/alerts-list";
 
-const ALERTS: Alert[] = [
-  {
-    id: "1",
-    severity: "Critical",
-    title: "Listeria Contamination Risk",
-    description: "Routine testing detected potential Listeria monocytogenes in the production facility. Do not consume.",
-    timestamp: "2h ago",
-    lotCode: "C-CHOC-001",
-    status: "Active",
-  },
-  {
-    id: "2",
-    severity: "Warning",
-    title: "Packaging Seal Defect",
-    description: "Reports of compromised seals on yogurt cups which may lead to premature spoilage.",
-    timestamp: "5h ago",
-    lotCode: "Y-CUP-001",
-    status: "Under Review",
-  },
-  {
-    id: "3",
-    severity: "Info",
-    title: "Ingredient Sourcing Update",
-    description: "Temporary switch to alternative vanilla extract supplier due to supply chain constraints. No allergen impact.",
-    timestamp: "1d ago",
-    lotCode: "V-EXT-042",
-    status: "Resolved",
-  },
-  {
-    id: "4",
-    severity: "Critical",
-    title: "Undeclared Peanut Allergen",
-    description: "Cross-contamination during manufacturing resulted in trace amounts of peanut not listed on the label.",
-    timestamp: "2d ago",
-    lotCode: "B-BAR-099",
-    status: "Active",
-  },
-  {
-    id: "5",
-    severity: "Warning",
-    title: "Temperature Excursion",
-    description: "Cold chain monitoring indicated a brief temperature spike during transit. Product safety is being evaluated.",
-    timestamp: "3d ago",
-    lotCode: "M-MILK-204",
-    status: "Under Review",
-  },
-  {
-    id: "6",
-    severity: "Info",
-    title: "New Packaging Design",
-    description: "Rolling out updated packaging with improved recyclability. Product formulation remains unchanged.",
-    timestamp: "1w ago",
-    lotCode: "ALL-B-001",
-    status: "Resolved",
-  },
-];
+type RecallData = {
+  id: string;
+  reason: string;
+  severity: string;
+  status: string;
+  createdAt: string;
+  affectedLots?: string[];
+};
+
+const SEVERITY_MAP: Record<string, "Critical" | "Warning" | "Info"> = {
+  critical: "Critical",
+  high: "Warning",
+  medium: "Info",
+};
+
+const STATUS_MAP: Record<string, "Active" | "Resolved" | "Under Review"> = {
+  active: "Active",
+  ended: "Resolved",
+};
+
+function timeAgo(iso: string): string {
+  const diff = Date.now() - new Date(iso).getTime();
+  const minutes = Math.floor(diff / 60000);
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  return `${days}d ago`;
+}
+
+function mapRecallToAlerts(recall: RecallData): Alert[] {
+  const lots = recall.affectedLots ?? [];
+  if (lots.length === 0) {
+    return [{
+      id: recall.id,
+      severity: SEVERITY_MAP[recall.severity] ?? "Info",
+      title: recall.reason,
+      description: `Recall issued. No specific lot codes listed.`,
+      timestamp: timeAgo(recall.createdAt),
+      lotCode: "N/A",
+      status: STATUS_MAP[recall.status] ?? "Active",
+    }];
+  }
+
+  return lots.map((lotCode) => ({
+    id: `${recall.id}-${lotCode}`,
+    severity: SEVERITY_MAP[recall.severity] ?? "Info",
+    title: recall.reason,
+    description: `This lot has been recalled. Do not consume products from lot ${lotCode}.`,
+    timestamp: timeAgo(recall.createdAt),
+    lotCode,
+    status: STATUS_MAP[recall.status] ?? "Active",
+  }));
+}
 
 export default function AlertsPage() {
+  const [alerts, setAlerts] = useState<Alert[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchRecalls() {
+      try {
+        const res = await fetch("/api/recalls");
+        if (!res.ok) return;
+        const json = await res.json();
+        const recalls: RecallData[] = json.data?.recalls ?? [];
+        setAlerts(recalls.flatMap(mapRecallToAlerts));
+      } catch {
+        // Silently fall back to empty alerts
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchRecalls();
+  }, []);
+
+  if (loading) {
+    return (
+      <section className="space-y-4 font-sans">
+        <h1 className="text-3xl font-bold uppercase tracking-wide text-primary">Active Recalls</h1>
+        <div className="rounded-xl border border-border bg-white p-8 text-center text-sm text-muted animate-pulse">
+          Loading recalls...
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section className="space-y-4 font-sans">
       <h1 className="text-3xl font-bold uppercase tracking-wide text-primary">Active Recalls</h1>
-      <AlertsList alerts={ALERTS} />
+      {alerts.length === 0 ? (
+        <div className="rounded-xl border border-border bg-white p-8 text-center text-sm text-muted">
+          No active recalls. All products are safe.
+        </div>
+      ) : (
+        <AlertsList alerts={alerts} />
+      )}
     </section>
   );
 }

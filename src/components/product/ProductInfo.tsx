@@ -1,4 +1,4 @@
-
+import { TriangleAlert, AlertCircle } from "lucide-react";
 import type { ResolvedProduct } from "@/lib/product/resolve";
 import type { JourneyStage } from "@/lib/types";
 import { ProductPlaceholder } from "@/components/product/ProductPlaceholder";
@@ -104,6 +104,30 @@ function BadgeList({
 export function ProductInfo({ product, activeLot, supplyChain }: ProductInfoProps) {
   return (
     <div className="space-y-4">
+      {activeLot?.status === "recalled" && (
+        <div className="flex items-start gap-3 border border-[#dc2626] bg-[#fef2f2] p-4 rounded-xl">
+          <TriangleAlert className="mt-0.5 h-5 w-5 shrink-0 text-[#dc2626]" />
+          <div>
+            <p className="text-sm font-bold uppercase text-[#991b1b]">Product Recalled</p>
+            <p className="mt-1 text-sm text-[#991b1b]">
+              This product has been recalled. Do not consume. Check the alerts page for details.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {activeLot?.status === "under_review" && (
+        <div className="flex items-start gap-3 border border-[#f59e0b] bg-[#fffbeb] p-4 rounded-xl">
+          <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-[#d97706]" />
+          <div>
+            <p className="text-sm font-bold uppercase text-[#92400e]">Under Review</p>
+            <p className="mt-1 text-sm text-[#92400e]">
+              This product is currently under quality review. Check back for updates.
+            </p>
+          </div>
+        </div>
+      )}
+
       <header className="space-y-4 border border-border bg-white p-4 rounded-xl">
         <div className="space-y-2">
           <h1 className="text-3xl font-bold uppercase tracking-wide text-primary">{product.name}</h1>

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getBatchJourney, getBatchLineage, getFullLineageTree } from "@/lib/db/queries";
+import { getBatchJourney, getBatchLineage, getFullLineageTree, getActiveRecallForBatch } from "@/lib/db/queries";
 
 type Ctx = { params: Promise<{ lotCode: string }> };
 
@@ -53,6 +53,10 @@ export async function GET(request: Request, context: Ctx) {
     ? getFullLineageTree(lotCode)
     : undefined;
 
+  const recall = journey.batch.status === "recalled"
+    ? getActiveRecallForBatch(journey.batch.id)
+    : null;
+
   return NextResponse.json({
     success: true,
     data: {
@@ -72,6 +76,7 @@ export async function GET(request: Request, context: Ctx) {
         })),
       },
       ...(lineageTree ? { lineageTree } : {}),
+      ...(recall ? { recall: { id: recall.id, reason: recall.reason, severity: recall.severity, createdAt: recall.createdAt } } : {}),
     },
   });
 }

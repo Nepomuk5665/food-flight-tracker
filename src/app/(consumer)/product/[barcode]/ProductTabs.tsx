@@ -183,7 +183,7 @@ export default function ProductTabs({
         )}
       </AnimatePresence>
 
-      {activeLot && (
+      {activeLot && activeLot.status !== "recalled" && (
         <>
           <button
             data-testid="report-trigger"
