@@ -41,8 +41,7 @@ const STAGGER_DELAY = 300;
 const FLOW_CYCLE_MS = 3000; // time for one particle to traverse a full route
 const PARTICLES_PER_SEGMENT = 3;
 
-// Idle rotation
-const IDLE_RESUME_DELAY = 5000;
+// Idle rotation (plays once on load, stops permanently on first user interaction)
 const ROTATION_SPEED = 0.01; // degrees longitude per frame
 const ROTATION_ZOOM_THRESHOLD = 3; // stop rotating when zoomed past this
 
@@ -247,7 +246,7 @@ export function GodViewMap({
 
   // Idle rotation refs
   const idleRotationRef = useRef<number | null>(null);
-  const idleResumeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const rotationKilledRef = useRef(false);
 
   // ── Hover tooltip state ──
   const [tooltip, setTooltip] = useState<TooltipData | null>(null);
@@ -293,7 +292,9 @@ export function GodViewMap({
       return;
     }
 
-    if (map.getZoom() < ROTATION_ZOOM_THRESHOLD) {
+    // Skip setCenter while the map is in any transition (zoom, pan, fly)
+    // to avoid fighting user gestures or programmatic animations.
+    if (map.getZoom() < ROTATION_ZOOM_THRESHOLD && !map.isMoving()) {
       const center = map.getCenter();
       map.setCenter([center.lng + ROTATION_SPEED, center.lat]);
     }
@@ -302,7 +303,7 @@ export function GodViewMap({
   }, []);
 
   const startIdleRotation = useCallback(() => {
-    if (idleRotationRef.current) return;
+    if (idleRotationRef.current || rotationKilledRef.current) return;
     idleRotationRef.current = requestAnimationFrame(tickIdleRotation);
   }, [tickIdleRotation]);
 
@@ -315,18 +316,13 @@ export function GodViewMap({
 
   const handleInteractionStart = useCallback(() => {
     stopIdleRotation();
-    if (idleResumeTimerRef.current) {
-      clearTimeout(idleResumeTimerRef.current);
-      idleResumeTimerRef.current = null;
-    }
+    rotationKilledRef.current = true;
   }, [stopIdleRotation]);
 
+  // Once the user interacts, rotation never resumes until page refresh.
   const handleInteractionEnd = useCallback(() => {
-    if (idleResumeTimerRef.current) clearTimeout(idleResumeTimerRef.current);
-    idleResumeTimerRef.current = setTimeout(() => {
-      startIdleRotation();
-    }, IDLE_RESUME_DELAY);
-  }, [startIdleRotation]);
+    // no-op — rotation stays off permanently
+  }, []);
 
   // ── Precompute lineage connector endpoints for particle animation ──
   const lineageConnectors = useMemo(() => {
@@ -612,7 +608,6 @@ export function GodViewMap({
   useEffect(() => {
     return () => {
       if (idleRotationRef.current) cancelAnimationFrame(idleRotationRef.current);
-      if (idleResumeTimerRef.current) clearTimeout(idleResumeTimerRef.current);
       if (flowAnimRef.current) cancelAnimationFrame(flowAnimRef.current);
     };
   }, []);

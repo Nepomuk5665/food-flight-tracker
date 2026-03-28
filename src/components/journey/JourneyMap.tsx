@@ -605,12 +605,15 @@ export function JourneyMap({
                       ? "ring-red-500"
                       : "ring-[#9eca45]/50";
 
+                const markerZ = isClustered ? 0 : isSecondary ? 1 : 2;
+
                 return (
                   <Marker
                     key={stage.stageId}
                     longitude={stage.location.lng}
                     latitude={stage.location.lat}
                     anchor="center"
+                    style={{ zIndex: markerZ }}
                     onClick={(e) => {
                       e.originalEvent.stopPropagation();
                       if (!isClustered) handleMarkerClick(stage);
@@ -652,6 +655,7 @@ export function JourneyMap({
                       longitude={cluster.lng}
                       latitude={cluster.lat}
                       anchor="center"
+                      style={{ zIndex: 3 }}
                       onClick={(e) => {
                         e.originalEvent.stopPropagation();
                         mapRef.current?.flyTo({
