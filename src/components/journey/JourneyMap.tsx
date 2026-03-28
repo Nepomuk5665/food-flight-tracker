@@ -488,10 +488,10 @@ export function JourneyMap({
       startFly(2000);
       mapRef.current.flyTo({
         center: [selectedStage.location.lng, selectedStage.location.lat],
-        zoom: 14,
+        zoom: 18,
         duration: 2000,
         pitch: MAP_INTERACTION_CONFIG.maxPitch,
-        bearing: -20,
+        bearing: -25,
         curve: 1.8,
         essential: true,
       });
@@ -529,10 +529,10 @@ export function JourneyMap({
       startFly(800);
       mapRef.current?.flyTo({
         center: [stage.location.lng, stage.location.lat],
-        zoom: 14,
-        duration: 1400,
+        zoom: 18,
+        duration: 1800,
         pitch: MAP_INTERACTION_CONFIG.maxPitch,
-        bearing: -20,
+        bearing: -25,
         curve: 1.8,
         essential: true,
       });

@@ -174,6 +174,265 @@ Max Concurrent: 4 (Wave 1)
 
 ## TODOs
 
+- [ ] 1. DB Schema — Add push_subscriptions and device_scans tables
+
+  **What to do**:
+  - Add `pushSubscriptions` table to `src/lib/db/schema.ts`: `id` (PK, defaultId), `deviceId` (text, NOT NULL), `endpoint` (text, NOT NULL, UNIQUE), `auth` (text, NOT NULL), `p256dh` (text, NOT NULL), `createdAt` (text, nowIso)
+  - Add `deviceScans` table to `src/lib/db/schema.ts`: `id` (PK, defaultId), `deviceId` (text, NOT NULL), `barcode` (text, NOT NULL), `scannedAt` (text, nowIso). Add unique constraint on `(deviceId, barcode)` for upsert
+  - Update `ensureTables()` in `src/lib/db/index.ts` with `CREATE TABLE IF NOT EXISTS` for both tables
+  - Add query helpers in `src/lib/db/queries.ts`: `upsertPushSubscription()`, `deletePushSubscription()`, `getSubscriptionsForDevices()`, `recordDeviceScan()`, `getDeviceIdsByBarcode()`
+
+  **Must NOT do**: No Drizzle migrations. No FK from deviceScans to products.
+
+  **Recommended Agent Profile**: `quick`, Skills: []
+  **Parallelization**: Wave 1 | Blocks: 5, 6, 7 | Blocked By: None
+
+  **References**:
+  - `src/lib/db/schema.ts` — Follow `consumerReports` (line 97) for deviceId column pattern
+  - `src/lib/db/index.ts:16-75` — `ensureTables()` with CREATE TABLE IF NOT EXISTS
+  - `src/lib/db/queries.ts:389-432` — Query pattern examples
+
+  **QA Scenarios**:
+  ```
+  Scenario: Tables created on startup
+    Tool: Bash
+    Steps:
+      1. curl http://localhost:3000/api/product/4012345678901 to trigger DB init
+      2. sqlite3 data/trace.db ".tables"
+      3. Assert output contains "push_subscriptions" and "device_scans"
+    Evidence: .sisyphus/evidence/task-1-tables.txt
+  ```
+  **Commit**: `feat(db): add push_subscriptions and device_scans tables`
+
+- [ ] 2. VAPID Key Generation Script + Env Config
+
+  **What to do**:
+  - `bun add web-push`
+  - Create `scripts/generate-vapid.mjs` using `web-push.generateVAPIDKeys()`
+  - Update `.env.example` with `VAPID_SUBJECT`, `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `NEXT_PUBLIC_VAPID_PUBLIC_KEY`
+  - Run script, add keys to `.env.local`
+
+  **Must NOT do**: No `https://localhost` as VAPID subject. No committing real keys.
+
+  **Recommended Agent Profile**: `quick`, Skills: []
+  **Parallelization**: Wave 1 | Blocks: 8 | Blocked By: None
+
+  **References**:
+  - `scripts/seed.ts` — Script pattern
+  - `.env.local` — Existing env vars
+
+  **QA Scenarios**:
+  ```
+  Scenario: Keys generated
+    Tool: Bash
+    Steps:
+      1. node scripts/generate-vapid.mjs
+      2. Assert output contains VAPID_PUBLIC_KEY= and VAPID_PRIVATE_KEY=
+    Evidence: .sisyphus/evidence/task-2-vapid.txt
+  ```
+  **Commit**: `feat(push): add VAPID key generation script`
+
+- [ ] 3. Service Worker — Push + Click Handlers
+
+  **What to do**:
+  - Create `public/sw.js`: handle `push` (showNotification), `notificationclick` (openWindow), `install` (skipWaiting), `activate` (clients.claim)
+  - Notification payload: `{title, body, url, icon}`
+
+  **Must NOT do**: No fetch interception. No offline caching. No background sync. Plain JS only.
+
+  **Recommended Agent Profile**: `unspecified-high`, Skills: []
+  **Parallelization**: Wave 1 | Blocks: 8 | Blocked By: None
+
+  **References**:
+  - `public/manifest.json` — PWA manifest
+
+  **QA Scenarios**:
+  ```
+  Scenario: SW registers
+    Tool: Playwright
+    Steps:
+      1. Navigate to /scan
+      2. page.evaluate(() => navigator.serviceWorker.register('/sw.js'))
+      3. Assert registration succeeds
+    Evidence: .sisyphus/evidence/task-3-sw.png
+  ```
+  **Commit**: `feat(push): add service worker`
+
+- [ ] 4. Recall Events Pub/Sub Module
+
+  **What to do**:
+  - Create `src/lib/recall-events.ts` — EXACT copy of `report-events.ts` pattern with `RecallEvent` type, `onRecallCreated()`, `emitRecallCreated()`
+  - `RecallEvent`: `{ recallId, reason, severity, lotCodes[], productName, barcode }`
+
+  **Must NOT do**: No async emit. No imports from queries.ts.
+
+  **Recommended Agent Profile**: `quick`, Skills: []
+  **Parallelization**: Wave 1 | Blocks: 7, 10 | Blocked By: None
+
+  **References**:
+  - `src/lib/report-events.ts:1-32` — COPY THIS EXACT PATTERN
+
+  **QA Scenarios**:
+  ```
+  Scenario: Emit/listen works
+    Tool: Bash (bun test)
+    Steps: Register listener, emit event, assert called with correct payload. Unsubscribe, emit again, assert NOT called.
+    Evidence: .sisyphus/evidence/task-4-events.txt
+  ```
+  **Commit**: `feat(push): add recall events pub/sub`
+
+- [ ] 5. Push Subscription API Route
+
+  **What to do**:
+  - Create `src/app/api/push/subscribe/route.ts`: POST (subscribe/upsert), DELETE (unsubscribe)
+  - Validate `{deviceId, endpoint, keys: {p256dh, auth}}`
+
+  **Recommended Agent Profile**: `unspecified-high`, Skills: []
+  **Parallelization**: Wave 2 | Blocks: 8 | Blocked By: 1
+
+  **References**:
+  - `src/app/api/reports/route.ts` — Route pattern with validation
+
+  **QA Scenarios**:
+  ```
+  Scenario: Subscribe + upsert
+    Tool: Bash (curl)
+    Steps: POST with valid body → 201. Same endpoint again → 200. Missing fields → 400.
+    Evidence: .sisyphus/evidence/task-5-subscribe.txt
+  ```
+  **Commit**: `feat(push): add subscription API route`
+
+- [ ] 6. Device Scan Recording API Route
+
+  **What to do**:
+  - Create `src/app/api/scans/route.ts`: POST accepts `{deviceId, barcode}`, calls `recordDeviceScan()`
+
+  **Recommended Agent Profile**: `quick`, Skills: []
+  **Parallelization**: Wave 2 | Blocks: 9 | Blocked By: 1
+
+  **QA Scenarios**:
+  ```
+  Scenario: Record scan
+    Tool: Bash (curl)
+    Steps: POST → 201. sqlite3 query confirms row. Duplicate → 200 (upsert).
+    Evidence: .sisyphus/evidence/task-6-scan.txt
+  ```
+  **Commit**: `feat(push): add scan recording API route`
+
+- [ ] 7. Notification Sender — Affected Devices + Web Push
+
+  **What to do**:
+  - Create `src/lib/push/send-notifications.ts`: `sendRecallNotifications(event)` — query path: `barcode → device_scans.deviceId → push_subscriptions` → `web-push.sendNotification()` per subscription
+  - Create `src/lib/push/config.ts`: `web-push.setVapidDetails()` with env vars
+  - On 410 Gone: delete subscription. Wrap each send in try/catch.
+  - Register as listener via `onRecallCreated(sendRecallNotifications)`
+
+  **Must NOT do**: No retry on failure (except 410 cleanup). No queuing.
+
+  **Recommended Agent Profile**: `deep`, Skills: []
+  **Parallelization**: Wave 2 | Blocks: 10 | Blocked By: 1, 4
+
+  **References**:
+  - `src/lib/db/queries.ts` — Query path: `batches.lotCode → batches.productId → products.barcode → device_scans.barcode → device_scans.deviceId → push_subscriptions.deviceId`
+  - `src/lib/recall-events.ts` — `onRecallCreated()` from Task 4
+
+  **QA Scenarios**:
+  ```
+  Scenario: Notification sent to affected device
+    Tool: Bash (bun test)
+    Steps: Seed subscription + scan. Mock web-push. Call sendRecallNotifications(). Assert sendNotification called with correct subscription + payload.
+    Evidence: .sisyphus/evidence/task-7-notification.txt
+
+  Scenario: 410 cleanup
+    Tool: Bash (bun test)
+    Steps: Mock sendNotification → throw {statusCode: 410}. Assert subscription deleted from DB.
+    Evidence: .sisyphus/evidence/task-7-stale.txt
+  ```
+  **Commit**: `feat(push): add notification sender on recall`
+
+- [ ] 8. Permission Prompt + SW Registration in Consumer Layout
+
+  **What to do**:
+  - Create `src/components/notification-prompt.tsx` ("use client"): Check localStorage `fft:push-prompted`. Show custom banner "Get alerted if products you scan are recalled" with "Enable Alerts" + dismiss. On enable: `Notification.requestPermission()` → register SW → `pushManager.subscribe()` → POST `/api/push/subscribe`. Persist state.
+  - Update `src/app/(consumer)/layout.tsx` — add `<NotificationPrompt />`
+
+  **Must NOT do**: No native dialog without custom UI first. No prompt if `Notification` API unsupported.
+
+  **Recommended Agent Profile**: `unspecified-high`, Skills: []
+  **Parallelization**: Wave 3 | Blocked By: 2, 3, 5
+
+  **References**:
+  - `src/app/(consumer)/scan/page.tsx:280-328` — Camera permission gate UI pattern
+  - `src/lib/device-id.ts` — `getDeviceId()`
+  - `src/components/mobile-gate.tsx` — Gate pattern with localStorage
+
+  **QA Scenarios**:
+  ```
+  Scenario: Prompt grants + persists
+    Tool: Playwright
+    Steps: Set permissions granted. Navigate /scan. Assert prompt visible. Click "Enable Alerts". Assert fft:push-prompted = "granted". Reload. Assert no prompt.
+    Evidence: .sisyphus/evidence/task-8-granted.png
+
+  Scenario: Dismiss persists
+    Tool: Playwright
+    Steps: Navigate /scan. Click dismiss. Assert fft:push-prompted = "dismissed". Reload. Assert no prompt.
+    Evidence: .sisyphus/evidence/task-8-dismissed.png
+  ```
+  **Commit**: `feat(ui): add notification permission prompt`
+
+- [ ] 9. Integrate Scan Recording into Product Page
+
+  **What to do**:
+  - Update `src/app/(consumer)/product/[barcode]/save-to-history.tsx`: After `addToScanHistory()`, fire-and-forget `fetch("/api/scans", {method:"POST", body: JSON.stringify({deviceId: getDeviceId(), barcode})})` in try/catch
+
+  **Must NOT do**: No await. No error UI. No change to existing localStorage behavior.
+
+  **Recommended Agent Profile**: `quick`, Skills: []
+  **Parallelization**: Wave 3 | Blocked By: 6
+
+  **References**:
+  - `src/app/(consumer)/product/[barcode]/save-to-history.tsx` — Add fetch after `addToScanHistory()`
+  - `src/lib/device-id.ts` — `getDeviceId()`
+
+  **QA Scenarios**:
+  ```
+  Scenario: Scan recorded on product visit
+    Tool: Playwright
+    Steps: Navigate /product/4012345678901. Wait 2s. sqlite3 query device_scans. Assert row exists.
+    Evidence: .sisyphus/evidence/task-9-recorded.png
+  ```
+  **Commit**: `feat(push): record scans server-side from product page`
+
+- [ ] 10. Wire Recall Event Emission into POST /api/recalls
+
+  **What to do**:
+  - Update `src/app/api/recalls/route.ts` POST handler: after `createRecall()`, look up product name + barcode from lotCodes, call `emitRecallCreated({recallId, reason, severity, lotCodes, productName, barcode})` in try/catch
+  - Ensure notification listener is registered (side-effect import of send-notifications module)
+
+  **Must NOT do**: No modification to `createRecall()` in queries.ts. No waiting for notification delivery.
+
+  **Recommended Agent Profile**: `quick`, Skills: []
+  **Parallelization**: Wave 3 | Blocked By: 4, 7
+
+  **References**:
+  - `src/app/api/recalls/route.ts:10-38` — Add emit after createRecall()
+  - `src/app/api/reports/route.ts:77` — `try { emitReportCreated({...}) } catch {}` — COPY THIS PATTERN
+
+  **QA Scenarios**:
+  ```
+  Scenario: Full pipeline
+    Tool: Bash
+    Preconditions: Device with subscription + scan for barcode 4012345678901
+    Steps: POST /api/recalls with lotCode L6029479302. Assert 200. Check logs for notification dispatch.
+    Evidence: .sisyphus/evidence/task-10-pipeline.txt
+
+  Scenario: Recall with no scanned devices
+    Tool: Bash
+    Steps: POST /api/recalls with unscanned lot. Assert 200. No errors.
+    Evidence: .sisyphus/evidence/task-10-no-devices.txt
+  ```
+  **Commit**: `feat(push): emit recall events from recalls API`
+
 ---
 
 ## Final Verification Wave
