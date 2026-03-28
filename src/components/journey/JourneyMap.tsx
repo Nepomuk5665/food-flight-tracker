@@ -165,9 +165,16 @@ const animatedDotStyle: CircleLayerSpecification = {
 
 function buildRouteGeoJSON(stages: JourneyStage[]) {
   const sorted = [...stages].sort((a, b) => a.sequenceOrder - b.sequenceOrder);
-  const coordinates = sorted.map(
-    (s) => [s.location.lng, s.location.lat] as [number, number],
-  );
+  const coordinates: [number, number][] = [];
+
+  for (let i = 0; i < sorted.length; i++) {
+    const stage = sorted[i];
+    if (stage.routeCoordinates && stage.routeCoordinates.length > 0) {
+      coordinates.push(...(stage.routeCoordinates as [number, number][]));
+    } else {
+      coordinates.push([stage.location.lng, stage.location.lat]);
+    }
+  }
 
   return {
     type: "FeatureCollection" as const,
