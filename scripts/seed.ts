@@ -675,17 +675,301 @@ db.insert(schema.telemetryReadings).values(cheeseAgingReadings).run();
 console.log(`  Telemetry: ${cheeseAgingReadings.length} readings`);
 
 // ===========================================================================
+// SUPPLY CHAIN 3: Volvic Tee Minze (Shizuoka tea + Provence mint + Auvergne water)
+// Japan → France → Switzerland retail
+// ===========================================================================
+
+console.log("\n── Supply Chain 3: Volvic Tee Minze (linear) ──");
+
+const volvic = db
+  .insert(schema.products)
+  .values({
+    barcode: "3057640478468",
+    name: "Volvic Tee Minze 75cl PET",
+    brand: "Volvic",
+    category: "beverages",
+    imageUrl: "https://images.openfoodfacts.org/images/products/305/764/047/8468/front_fr.31.400.jpg",
+    source: "internal",
+    nutriScore: "C",
+    ecoScore: "A",
+    ingredients:
+      "Natürliches Mineralwasser Volvic (94%), Zucker (4,4%), Zitronensaft aus Konzentrat (1,2%), natürliches Minz-Aroma, natürliches Aroma, Grüntee-Extrakt",
+    allergens: JSON.stringify([]),
+  })
+  .returning()
+  .get()!;
+
+const volvicBatch = db
+  .insert(schema.batches)
+  .values({
+    lotCode: "VM2603-F19",
+    productId: volvic.id,
+    status: "active",
+    riskScore: 38,
+    unitCount: 42000,
+    createdAt: iso("2026-02-01T06:00:00Z"),
+    updatedAt: iso("2026-03-18T10:00:00Z"),
+  })
+  .returning()
+  .get()!;
+
+console.log(`  Product: ${volvic.name} (barcode: ${volvic.barcode})`);
+console.log(`  Batch: ${volvicBatch.lotCode} (risk: ${volvicBatch.riskScore})`);
+
+const volvicStages = db
+  .insert(schema.batchStages)
+  .values([
+    {
+      batchId: volvicBatch.id,
+      stageType: "harvest",
+      name: "Green Tea Harvest",
+      locationName: "Makinohara Tea Plantation, Shizuoka, Japan",
+      latitude: 34.7231,
+      longitude: 138.2292,
+      operator: "Makinohara Tea Cooperative",
+      metadata: JSON.stringify({
+        variety: "Yabukita sencha",
+        harvestFlush: "First flush (Ichibancha)",
+        harvestWeight: "480 kg dried leaf",
+        altitude: "250m",
+      }),
+      startedAt: iso("2026-02-01T05:00:00Z"),
+      completedAt: iso("2026-02-03T16:00:00Z"),
+      sequenceOrder: 1,
+    },
+    {
+      batchId: volvicBatch.id,
+      stageType: "transport",
+      name: "Air Freight Shizuoka → Lyon",
+      locationName: "Lyon-Saint Exupéry Airport, France",
+      latitude: 45.7256,
+      longitude: 5.0811,
+      routeCoords: JSON.stringify([
+        [138.2, 34.7],   // Shizuoka
+        [135.0, 34.5],   // Osaka
+        [121.0, 31.0],   // Shanghai
+        [104.0, 30.5],   // Chengdu
+        [69.0, 41.3],    // Tashkent
+        [51.4, 35.7],    // Tehran
+        [32.9, 39.9],    // Ankara
+        [23.7, 37.9],    // Athens
+        [12.5, 41.9],    // Rome
+        [5.0811, 45.7256], // Lyon
+      ]),
+      operator: "Air France Cargo",
+      metadata: JSON.stringify({
+        flightRoute: "NRT → CDG → LYS",
+        containerType: "Temperature-controlled air container",
+        targetTemp: "2-8°C",
+        transitHours: 28,
+      }),
+      startedAt: iso("2026-02-05T10:00:00Z"),
+      completedAt: iso("2026-02-06T14:00:00Z"),
+      sequenceOrder: 2,
+    },
+    {
+      batchId: volvicBatch.id,
+      stageType: "harvest",
+      name: "Mint Harvest",
+      locationName: "Domaine de la Menthe, Valensole, Provence, France",
+      latitude: 43.8372,
+      longitude: 5.9828,
+      operator: "Domaine de la Menthe SARL",
+      metadata: JSON.stringify({
+        variety: "Mentha spicata (spearmint)",
+        harvestWeight: "120 kg fresh leaves",
+        distillation: "Steam-distilled for natural aroma extract",
+        organic: true,
+      }),
+      startedAt: iso("2026-02-10T07:00:00Z"),
+      completedAt: iso("2026-02-11T15:00:00Z"),
+      sequenceOrder: 3,
+    },
+    {
+      batchId: volvicBatch.id,
+      stageType: "collection",
+      name: "Water Extraction",
+      locationName: "Source Clairvic, Volvic, Auvergne, France",
+      latitude: 45.8833,
+      longitude: 2.9500,
+      operator: "Société des Eaux de Volvic",
+      metadata: JSON.stringify({
+        source: "Volcanic aquifer, Chaîne des Puys",
+        filtrationDepth: "~90m through volcanic rock",
+        mineralContent: "130 mg/L TDS",
+        pH: "7.0",
+        extractionVolume: "32,000 L",
+      }),
+      startedAt: iso("2026-02-15T06:00:00Z"),
+      completedAt: iso("2026-02-15T18:00:00Z"),
+      sequenceOrder: 4,
+    },
+    {
+      batchId: volvicBatch.id,
+      stageType: "processing",
+      name: "Blending & Bottling",
+      locationName: "Volvic Factory, Volvic, Auvergne, France",
+      latitude: 45.8847,
+      longitude: 2.9525,
+      operator: "Société des Eaux de Volvic",
+      metadata: JSON.stringify({
+        process: "Ingredient blending, pasteurization, PET bottle filling, capping, labeling",
+        lineSpeed: "24,000 bottles/hour",
+        bottleSize: "75cl PET",
+        unitsProduced: "42,000 bottles",
+        bestBefore: "2026-09-15",
+      }),
+      startedAt: iso("2026-02-18T06:00:00Z"),
+      completedAt: iso("2026-02-18T18:00:00Z"),
+      sequenceOrder: 5,
+    },
+    {
+      batchId: volvicBatch.id,
+      stageType: "storage",
+      name: "Cold Storage",
+      locationName: "Volvic Distribution Center, Clermont-Ferrand, France",
+      latitude: 45.7772,
+      longitude: 3.0870,
+      operator: "Volvic Logistics",
+      metadata: JSON.stringify({
+        warehouseTemp: "4-8°C",
+        storageZone: "Zone B-7, Beverage Cold Room",
+        pallets: 175,
+      }),
+      startedAt: iso("2026-02-19T08:00:00Z"),
+      completedAt: iso("2026-03-10T06:00:00Z"),
+      sequenceOrder: 6,
+    },
+    {
+      batchId: volvicBatch.id,
+      stageType: "transport",
+      name: "Road Freight Clermont-Ferrand → Zürich",
+      locationName: "Coop Distribution Center, Pratteln, Switzerland",
+      latitude: 47.5215,
+      longitude: 7.6936,
+      routeCoords: JSON.stringify([
+        [3.087, 45.777],   // Clermont-Ferrand
+        [3.85, 45.76],     // A89 east
+        [4.83, 45.76],     // Lyon outskirts
+        [5.36, 46.20],     // Bourg-en-Bresse
+        [5.87, 46.67],     // Lons-le-Saunier
+        [6.15, 46.95],     // Pontarlier
+        [6.63, 47.23],     // Swiss border
+        [7.35, 47.37],     // Delémont
+        [7.6936, 47.5215], // Pratteln
+      ]),
+      operator: "Frigo Transports SA",
+      metadata: JSON.stringify({
+        vehicleType: "Refrigerated semi-trailer",
+        targetTemp: "4-8°C",
+        transitHours: 9,
+        driver: "Route A89 → A46 → A39 → A36 → E27",
+      }),
+      startedAt: iso("2026-03-10T04:00:00Z"),
+      completedAt: iso("2026-03-10T15:00:00Z"),
+      sequenceOrder: 7,
+    },
+    {
+      batchId: volvicBatch.id,
+      stageType: "retail",
+      name: "Retail Shelf",
+      locationName: "Coop Zürich-Oerlikon, Switzerland",
+      latitude: 47.4111,
+      longitude: 8.5445,
+      operator: "Coop Genossenschaft",
+      metadata: JSON.stringify({
+        shelfLocation: "Beverages aisle, Cooler 3",
+        retailPrice: "CHF 2.30",
+      }),
+      startedAt: iso("2026-03-12T06:00:00Z"),
+      completedAt: null,
+      sequenceOrder: 8,
+    },
+  ])
+  .returning()
+  .all();
+
+console.log(`  Stages: ${volvicStages.length}`);
+
+const volvicTransportStage = volvicStages[6]; // Road freight stage
+const volvicTelemetry: {
+  stageId: string;
+  readingType: "temperature" | "humidity";
+  value: number;
+  unit: string;
+  recordedAt: string;
+}[] = [];
+
+for (let hour = 0; hour < 11; hour++) {
+  const time = new Date("2026-03-10T04:00:00Z");
+  time.setHours(time.getHours() + hour);
+
+  let temp: number;
+  if (hour >= 4 && hour <= 7) {
+    temp = hour === 4 ? 8.2 : hour === 5 ? 18.5 : hour === 6 ? 31.4 : 34.1;
+  } else if (hour === 8) {
+    temp = 22.0;
+  } else if (hour === 9) {
+    temp = 12.3;
+  } else if (hour === 10) {
+    temp = 6.8;
+  } else {
+    temp = 4.5 + Math.random() * 2;
+  }
+
+  volvicTelemetry.push(
+    {
+      stageId: volvicTransportStage.id,
+      readingType: "temperature" as const,
+      value: Math.round(temp * 10) / 10,
+      unit: "°C",
+      recordedAt: time.toISOString(),
+    },
+    {
+      stageId: volvicTransportStage.id,
+      readingType: "humidity" as const,
+      value: Math.round((55 + Math.random() * 10) * 10) / 10,
+      unit: "%",
+      recordedAt: time.toISOString(),
+    },
+  );
+}
+
+db.insert(schema.telemetryReadings).values(volvicTelemetry).run();
+console.log(`  Telemetry: ${volvicTelemetry.length} readings`);
+
+db.insert(schema.stageAnomalies)
+  .values({
+    stageId: volvicTransportStage.id,
+    batchId: volvicBatch.id,
+    anomalyType: "temperature_high",
+    severity: "high",
+    description:
+      "Refrigeration compressor failure on A36 near Mulhouse during heatwave. Cargo temp rose from 6°C to 34.1°C over 3 hours. Replacement truck dispatched — cold chain restored after 4h total. Green tea catechins degrade above 25°C: risk of oxidation, color change, and off-flavors.",
+    thresholdValue: 8.0,
+    actualValue: 34.1,
+    durationMinutes: 240,
+    riskScoreImpact: 38,
+    detectedAt: iso("2026-03-10T09:15:00Z"),
+    resolvedAt: iso("2026-03-10T12:00:00Z"),
+  })
+  .run();
+
+console.log("  Anomaly: transport refrigeration failure (green tea oxidation risk)");
+
+// ===========================================================================
 // Summary
 // ===========================================================================
 
 console.log("\n── Seed Complete ──");
-console.log("  2 products, 6 batches, 4 lineage links");
-console.log(`  ${chocStages.length + cheeseStages.length} stages`);
-console.log(`  ${chocTelemetry.length + cheeseAgingReadings.length} telemetry readings`);
-console.log("  1 anomaly (warehouse heat excursion — fat/sugar bloom)");
+console.log("  3 products, 7 batches, 4 lineage links");
+console.log(`  ${chocStages.length + cheeseStages.length + volvicStages.length} stages`);
+console.log(`  ${chocTelemetry.length + cheeseAgingReadings.length + volvicTelemetry.length} telemetry readings`);
+console.log("  2 anomalies");
 console.log("  1 consumer report (bitter taste complaint)");
 console.log("");
 console.log("  Chain 1 — Chocolat au lait: CH2603-AP7 (linear, 8 stages, Ivory Coast → Switzerland → Munich)");
 console.log("  Chain 2 — Cheese:           K-FARM-H + K-FARM-S → K-MAKE-001 → K-SLICE-001 + K-WHEEL-001");
+console.log("  Chain 3 — Volvic Tee Minze: VM2603-F19 (linear, 8 stages, Japan + France → Switzerland)");
 
 sqlite.close();
