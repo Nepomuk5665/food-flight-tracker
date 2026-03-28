@@ -15,6 +15,9 @@ export default defineConfig({
         "src/lib/db/queries.ts",
         "src/lib/db/schema.ts",
         "src/lib/ai/cerebras.ts",
+        "src/lib/device-id.ts",
+        "src/lib/image-utils.ts",
+        "src/lib/map/**",
       ],
       thresholds: {
         statements: 90,
