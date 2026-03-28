@@ -1,16 +1,25 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Search, Filter, ChevronDown, ChevronUp } from "lucide-react";
+import { Search, Filter, ChevronDown, ChevronRight } from "lucide-react";
 
-type Batch = {
+type Lot = {
   lotCode: string;
-  productName: string;
   status: string;
   riskScore: number;
   unitCount: number;
   createdAt: string;
+};
+
+type Chain = {
+  productName: string;
+  lotCount: number;
+  maxRiskScore: number;
+  totalUnits: number;
+  latestUpdate: string;
+  status: string;
+  lots: Lot[];
 };
 
 const getRiskColor = (score: number) => {
@@ -39,31 +48,32 @@ const getStatusBadge = (status: string) => {
 
 export default function BatchesPage() {
   const router = useRouter();
-  const [batches, setBatches] = useState<Batch[]>([]);
+  const [chains, setChains] = useState<Chain[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [sortConfig, setSortConfig] = useState<{ key: keyof Batch; direction: "asc" | "desc" }>({
-    key: "riskScore",
+  const [expandedIndexes, setExpandedIndexes] = useState<Set<number>>(new Set());
+  const [sortConfig, setSortConfig] = useState<{ key: "productName" | "maxRiskScore" | "totalUnits" | "lotCount" | "status" | "latestUpdate"; direction: "asc" | "desc" }>({
+    key: "maxRiskScore",
     direction: "desc",
   });
 
   useEffect(() => {
     let cancelled = false;
 
-    const fetchBatches = async (attempt = 0) => {
+    const fetchChains = async (attempt = 0) => {
       try {
         const res = await fetch("/api/dashboard/batches");
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const json = await res.json();
         if (!json.success) throw new Error(json.error?.message ?? "Unknown error");
         if (!cancelled) {
-          setBatches(json.data?.batches ?? []);
+          setChains(json.data?.chains ?? []);
           setError(null);
         }
       } catch (err) {
         if (!cancelled && attempt < 2) {
-          setTimeout(() => fetchBatches(attempt + 1), 1000 * (attempt + 1));
+          setTimeout(() => fetchChains(attempt + 1), 1000 * (attempt + 1));
           return;
         }
         if (!cancelled) {
@@ -74,33 +84,39 @@ export default function BatchesPage() {
         if (!cancelled) setLoading(false);
       }
     };
-    fetchBatches();
+    fetchChains();
 
     return () => { cancelled = true; };
   }, []);
 
-  const handleSort = (key: keyof Batch) => {
-    let direction: "asc" | "desc" = "asc";
-    if (sortConfig.key === key && sortConfig.direction === "asc") {
-      direction = "desc";
-    }
-    setSortConfig({ key, direction });
+  const toggleExpand = (index: number) => {
+    setExpandedIndexes((prev) => {
+      const next = new Set(prev);
+      if (next.has(index)) next.delete(index);
+      else next.add(index);
+      return next;
+    });
   };
 
-  const sortedBatches = [...batches].sort((a, b) => {
-    if (a[sortConfig.key] < b[sortConfig.key]) {
-      return sortConfig.direction === "asc" ? -1 : 1;
-    }
-    if (a[sortConfig.key] > b[sortConfig.key]) {
-      return sortConfig.direction === "asc" ? 1 : -1;
-    }
+  const handleSort = (key: typeof sortConfig.key) => {
+    setSortConfig((prev) => ({
+      key,
+      direction: prev.key === key && prev.direction === "asc" ? "desc" : "asc",
+    }));
+  };
+
+  const sortedChains = [...chains].sort((a, b) => {
+    const av = a[sortConfig.key];
+    const bv = b[sortConfig.key];
+    if (av < bv) return sortConfig.direction === "asc" ? -1 : 1;
+    if (av > bv) return sortConfig.direction === "asc" ? 1 : -1;
     return 0;
   });
 
-  const filteredBatches = sortedBatches.filter(
-    (batch) =>
-      batch.lotCode.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      batch.productName.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredChains = sortedChains.filter(
+    (chain) =>
+      chain.productName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      chain.lots.some((lot) => lot.lotCode.toLowerCase().includes(searchQuery.toLowerCase())),
   );
 
   if (loading) {
@@ -160,16 +176,15 @@ export default function BatchesPage() {
           <table className="w-full text-left text-sm">
             <thead className="border-b border-white/[0.06] text-[10px] font-bold uppercase tracking-wider text-white/40">
               <tr>
-                {(
-                  [
-                    { key: "lotCode" as const, label: "Lot Code" },
-                    { key: "productName" as const, label: "Product" },
-                    { key: "status" as const, label: "Status" },
-                    { key: "riskScore" as const, label: "Risk Score" },
-                    { key: "unitCount" as const, label: "Units" },
-                    { key: "createdAt" as const, label: "Created" },
-                  ] as const
-                ).map((col) => (
+                <th className="w-10 px-3 py-4" />
+                {([
+                  { key: "productName" as const, label: "Product" },
+                  { key: "status" as const, label: "Status" },
+                  { key: "lotCount" as const, label: "Lots" },
+                  { key: "maxRiskScore" as const, label: "Max Risk" },
+                  { key: "totalUnits" as const, label: "Total Units" },
+                  { key: "latestUpdate" as const, label: "Updated" },
+                ]).map((col) => (
                   <th
                     key={col.key}
                     className="px-6 py-4 cursor-pointer hover:bg-white/[0.03] hover:text-white/60 transition-colors"
@@ -178,50 +193,114 @@ export default function BatchesPage() {
                     <div className="flex items-center gap-1">
                       {col.label}
                       {sortConfig.key === col.key &&
-                        (sortConfig.direction === "asc" ? <ChevronUp size={14} /> : <ChevronDown size={14} />)}
+                        (sortConfig.direction === "asc" ? <ChevronDown size={14} className="rotate-180" /> : <ChevronDown size={14} />)}
                     </div>
                   </th>
                 ))}
               </tr>
             </thead>
             <tbody>
-              {filteredBatches.map((batch, index) => (
-                <tr
-                  key={batch.lotCode}
-                  onClick={() => router.push(`/batch/${batch.lotCode}`)}
-                  className={`cursor-pointer border-b border-white/[0.04] last:border-0 hover:bg-white/[0.04] transition-colors ${
-                    index % 2 === 0 ? "" : "bg-white/[0.01]"
-                  }`}
-                >
-                  <td className="px-6 py-4 font-bold text-white">{batch.lotCode}</td>
-                  <td className="px-6 py-4 text-white/60">{batch.productName}</td>
-                  <td className="px-6 py-4">{getStatusBadge(batch.status)}</td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
-                      <span className="w-8 text-right font-bold" style={{ color: getRiskColor(batch.riskScore) }}>
-                        {batch.riskScore}
-                      </span>
-                      <div className="w-24 h-1 bg-white/[0.06] overflow-hidden">
-                        <div
-                          className="h-full transition-all duration-500"
-                          style={{
-                            width: `${batch.riskScore}%`,
-                            backgroundColor: getRiskColor(batch.riskScore),
-                            boxShadow: `0 0 8px ${getRiskColor(batch.riskScore)}40`,
-                          }}
-                        />
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 text-white/50">{batch.unitCount.toLocaleString()}</td>
-                  <td className="px-6 py-4 text-white/30 text-xs">
-                    {new Date(batch.createdAt).toLocaleDateString()}
-                  </td>
-                </tr>
-              ))}
-              {filteredBatches.length === 0 && (
+              {filteredChains.map((chain, index) => {
+                const expanded = expandedIndexes.has(index);
+                const isMultiLot = chain.lotCount > 1;
+
+                return (
+                  <Fragment key={chain.lots[0]?.lotCode ?? index}>
+                    {/* Chain summary row */}
+                    <tr
+                      className={`border-b border-white/[0.04] last:border-0 hover:bg-white/[0.04] transition-colors ${
+                        isMultiLot ? "cursor-pointer" : ""
+                      } ${index % 2 === 0 ? "" : "bg-white/[0.01]"}`}
+                      onClick={() => {
+                        if (isMultiLot) {
+                          toggleExpand(index);
+                        } else {
+                          router.push(`/batch/${chain.lots[0].lotCode}`);
+                        }
+                      }}
+                    >
+                      <td className="px-3 py-4 text-white/30">
+                        {isMultiLot ? (
+                          expanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />
+                        ) : null}
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="font-bold text-white">{chain.productName}</span>
+                        {isMultiLot && (
+                          <span className="ml-2 text-[10px] text-white/30 font-bold uppercase tracking-wider">
+                            {chain.lotCount} lots
+                          </span>
+                        )}
+                        {!isMultiLot && (
+                          <span className="ml-2 text-xs text-white/30 font-mono">{chain.lots[0].lotCode}</span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4">{getStatusBadge(chain.status)}</td>
+                      <td className="px-6 py-4 text-white/50 tabular-nums">{chain.lotCount}</td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          <span className="w-8 text-right font-bold tabular-nums" style={{ color: getRiskColor(chain.maxRiskScore) }}>
+                            {chain.maxRiskScore}
+                          </span>
+                          <div className="w-24 h-1 bg-white/[0.06] overflow-hidden">
+                            <div
+                              className="h-full transition-all duration-500"
+                              style={{
+                                width: `${chain.maxRiskScore}%`,
+                                backgroundColor: getRiskColor(chain.maxRiskScore),
+                                boxShadow: `0 0 8px ${getRiskColor(chain.maxRiskScore)}40`,
+                              }}
+                            />
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-white/50 tabular-nums">{chain.totalUnits.toLocaleString()}</td>
+                      <td className="px-6 py-4 text-white/30 text-xs">
+                        {new Date(chain.latestUpdate).toLocaleDateString()}
+                      </td>
+                    </tr>
+
+                    {/* Expanded sub-rows */}
+                    {expanded && chain.lots.map((lot) => (
+                      <tr
+                        key={lot.lotCode}
+                        className="border-b border-white/[0.02] bg-white/[0.02] hover:bg-white/[0.05] cursor-pointer transition-colors"
+                        onClick={() => router.push(`/batch/${lot.lotCode}`)}
+                      >
+                        <td className="px-3 py-3" />
+                        <td className="px-6 py-3 pl-12">
+                          <span className="font-mono text-xs text-white/70">{lot.lotCode}</span>
+                        </td>
+                        <td className="px-6 py-3">{getStatusBadge(lot.status)}</td>
+                        <td className="px-6 py-3" />
+                        <td className="px-6 py-3">
+                          <div className="flex items-center gap-3">
+                            <span className="w-8 text-right text-xs tabular-nums" style={{ color: getRiskColor(lot.riskScore) }}>
+                              {lot.riskScore}
+                            </span>
+                            <div className="w-16 h-0.5 bg-white/[0.06] overflow-hidden">
+                              <div
+                                className="h-full"
+                                style={{
+                                  width: `${lot.riskScore}%`,
+                                  backgroundColor: getRiskColor(lot.riskScore),
+                                }}
+                              />
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-3 text-white/40 text-xs tabular-nums">{lot.unitCount.toLocaleString()}</td>
+                        <td className="px-6 py-3 text-white/20 text-xs">
+                          {new Date(lot.createdAt).toLocaleDateString()}
+                        </td>
+                      </tr>
+                    ))}
+                  </Fragment>
+                );
+              })}
+              {filteredChains.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center text-white/20">
+                  <td colSpan={7} className="px-6 py-12 text-center text-white/20">
                     No batches found matching your search.
                   </td>
                 </tr>

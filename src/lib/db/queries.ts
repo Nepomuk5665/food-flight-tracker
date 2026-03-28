@@ -99,6 +99,77 @@ export function getAllBatches() {
     .all();
 }
 
+/** Returns batches grouped by supply-chain (lineage-connected components). */
+export function getAllBatchesGrouped() {
+  const rows = getAllBatches();
+  const lineageEdges = db.select().from(batchLineage).all();
+
+  // Union-find to cluster lineage-connected batches
+  const parent = new Map<string, string>();
+
+  function find(x: string): string {
+    let root = x;
+    while (parent.get(root) !== root) root = parent.get(root) ?? root;
+    let cur = x;
+    while (cur !== root) {
+      const next = parent.get(cur) ?? cur;
+      parent.set(cur, root);
+      cur = next;
+    }
+    return root;
+  }
+
+  function union(a: string, b: string) {
+    const ra = find(a);
+    const rb = find(b);
+    if (ra !== rb) parent.set(ra, rb);
+  }
+
+  for (const { batch } of rows) parent.set(batch.id, batch.id);
+  for (const edge of lineageEdges) {
+    if (parent.has(edge.parentBatchId) && parent.has(edge.childBatchId)) {
+      union(edge.parentBatchId, edge.childBatchId);
+    }
+  }
+
+  // Group rows by chain root
+  const groups = new Map<string, typeof rows>();
+  for (const row of rows) {
+    const root = find(row.batch.id);
+    const list = groups.get(root) ?? [];
+    list.push(row);
+    groups.set(root, list);
+  }
+
+  return [...groups.values()].map((members) => {
+    // Sort members by createdAt desc so the newest lot is the "primary"
+    const sorted = [...members].sort(
+      (a, b) => b.batch.createdAt.localeCompare(a.batch.createdAt),
+    );
+    const primary = sorted[0];
+
+    return {
+      productName: primary.product.name,
+      lotCount: sorted.length,
+      maxRiskScore: Math.max(...sorted.map((m) => m.batch.riskScore)),
+      totalUnits: sorted.reduce((sum, m) => sum + (m.batch.unitCount ?? 0), 0),
+      latestUpdate: sorted[0].batch.updatedAt,
+      status: sorted.some((m) => m.batch.status === "recalled")
+        ? "recalled"
+        : sorted.some((m) => m.batch.status === "under_review")
+          ? "under_review"
+          : "active",
+      lots: sorted.map(({ batch }) => ({
+        lotCode: batch.lotCode,
+        status: batch.status,
+        riskScore: batch.riskScore,
+        unitCount: batch.unitCount ?? 0,
+        createdAt: batch.createdAt,
+      })),
+    };
+  });
+}
+
 export function updateBatchStatus(
   lotCode: string,
   status: string,
