@@ -36,9 +36,9 @@ Die App hat zwei Seiten:
 | **QA Dashboard** | Lebensmittelsicherheits-Teams, die Lieferketten ueberwachen | Desktop-Browser | [foodflighttracker.com/overview](https://foodflighttracker.com/overview) |
 
 <p align="center">
-  <img src="docs/screenshots/mobile-home.png" alt="Consumer App — Startseite" width="250" />
+  <img src="docs/screenshots/consumer-product.jpeg" alt="Consumer App — Produktseite" width="280" />
   &nbsp;&nbsp;&nbsp;&nbsp;
-  <img src="docs/screenshots/dashboard.png" alt="QA Dashboard" width="250" />
+  <img src="docs/screenshots/dashboard-live.png" alt="QA Dashboard — God View" width="480" />
 </p>
 
 Bereit? Los geht's!
